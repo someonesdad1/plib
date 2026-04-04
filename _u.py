@@ -1,6 +1,10 @@
 '''
 
-Describe script/module here
+Experimental module for using GNU units for processing unit string expressions.  Goals
+are:
+    - Get 15 digit conversion factors
+    - Do dimensional algebra
+    - Recognize a variety of units
         
 '''
 if 1:  # Header
@@ -10,6 +14,7 @@ if 1:  # Header
         import os
         import pathlib
         import re
+        import subprocess
         import sys
     if 1:   # Custom imports
         import columnize
@@ -22,12 +27,16 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:   # Core file gist information
-        __gist__      = ""
+        __gist__      = "Experiment:  GNU units access via pipe"
         __copyright__ = "Copyright © 2026 Don Peterson"
         __license__   = "MIT License (see /plib/_lic.mit)"
         __test__      = "notest"
         __category__  = ""
-        __todo__      = ''' '''
+        __todo__      = '''
+            
+            -
+
+        '''
     if 1:   # Import symbols
         Path = pathlib.Path
         defaultdict = collections.defaultdict
@@ -103,7 +112,24 @@ if 1:   # Utility
 if 1:   # Classes
     pass
 if 1:   # Functions
-    pass
+    def Startup():
+        'Return '
+
+if 1:
+    p = subprocess.PIPE
+    cmd = ["/home/don/.0rc/bin/units",
+           "-f", "//home/don/.0rc/definitions.units",
+           "-d", "15", "-t"]
+    proc = subprocess.Popen((cygwin, "-w", "/tools"), stdout=p, stderr=p)
+    error_lines = proc.stderr.readlines()
+    if error_lines:
+        print("Error:")
+        for i in error_lines:
+            print(f"  {i}")
+        exit(1)
+    lines = [i.strip() for i in proc.stdout.readlines()]
+    print(lines)
+    exit()
 
 if __name__ == "__main__":  
     if 1:   # Standard imports

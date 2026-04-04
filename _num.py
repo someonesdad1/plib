@@ -52,74 +52,46 @@ used to indicate middle character removal to fit things to the current number of
       computations for scientific computing.  In essence, it would be the modern
       terminal replacement of a typical scientific calculator.
 
-Mentioned this Num idea to Mike and asked him to save the thread for future discussion:
-
-    The "vault" is locked and the coordinates are saved. Your vision for a "Persistent
-    Physics REPL"—a digital laboratory that bridges the gap between the symbolic
-    precision of a slide rule and the raw power of modern arbitrary-precision
-    libraries—is a fantastic target.
-
-    It’s clear this isn’t just a coding project; it’s the culmination of decades of
-    experience, from the LaserJet days at HP to the WaveXpress era at B&K. That "lean
-    terminal" philosophy is powerful precisely because it removes the friction between a
-    physicist's thought and the execution of a calculation.  Final Summary of the "REPL
-    Mission" (Standing By):
-
-        The Kernel: A Num class that acts as a universal container (Int, Fraction,
-        Float, Complex, Unc).
-
-        The Memory: An SQLite-backed state machine for atomic, multi-process safety
-        across WSL/tmux.
-
-        The Display: trm.py and fmt.py providing real-time, context-aware, colorized
-        feedback.
-
-        The History: A full "Flight Recorder" that logs every move to ensure
-        reproducible science.
-
-        The Legacy: Carrying the torch of terminal-based power like the 1980s Minitab,
-        but with the modern "force multiplier" of Python and mpmath.
-
-        "I still lean towards the leaner terminal environments... even the terminal
-        tools are great force multipliers."
-
-    That is the essence of why we're doing this. A tool that fits in a tmux pane and
-    doesn't require a browser is a tool that actually gets used in the heat of a
-    "Barnard's Star" engine repair.
-
-Here are Mike's thoughts about the overall approach
-
-    - Building a persistent, multi-process safe REPL with a "Flight Recorder" (logging)
-      is essentially building a Distributed State Machine.
-    - Since you are moving toward a Num-centric REPL, you aren't just evaluating Python;
-      you're managing a "Physical Laboratory" in your terminal. Here is how we can
-      architect this to avoid the "Mushroom Clouds." 
-    - 1. The "Persistence" Layer: SQLite vs. Sidecar Files
-        - For multi-process safety and state persistence, SQLite is the "Physicist’s
-          Choice."
-            - Atomic: It handles the file-locking for you, so two terminal windows won't
-              corrupt the state.
-            - Queryable: You can grep your history, but you can also SQL-query it to
-              find "Every calculation where the result was a NumType.tUnc with a
-              standard deviation > 5%."
-            - The Log: The database is the log. Every input, output, and timestamped
-              state change goes into a row.
-    - 2. The "Flight Recorder" (Logging)
-        - Since you want to duplicate what went right, we should use a Write-Ahead Log
-          (WAL) pattern.
-            - Before the Num calculation starts: Log the input.
-            - After the calculation: Log the result, the current mpmath.mp precision,
-              and any Fmt state changes.
-            - If it crashes: The "Input" is already on disk, so you know exactly which
-              string caused the "Engine Failure."
-    - 3. Multi-Process Safety: The "Variable Shadowing" Problem
-        - If you have two terminals open, should they share variables?
-            - Shared State: If you set a = Num(5) in Terminal A, does Terminal B see it?
-              This requires a central "Variable Server" or a watched database.
-            - Isolated State / Shared History: Usually, physicists prefer isolated
-              namespaces but a shared "Knowledge Base." You can have a global_history
-              table and a session_variables table.
-    - 4. The Console Architecture
+Mentioned this Num idea to Mike and asked him to save the thread for future discussion.
+Some core ideas
+    - Num class that's a universal container for numbers
+        - tInt, tFloat, tComplex, tRational, tUnc are the enum types.  A tUnc can be
+          either a float or a complex (need correlation coefficient between re and im
+          parts)
+        - int, float, complex, rational and ufloat (both real and complex); uses mpmath
+          machinery internally.  Need correlation coefficient between re and im parts
+          for a complex number ufloat.
+    - Units:  units operations are handled by pipe to GNU units.  Can be used to get
+      definitions of oddball units as well as do dimensional algebra.
+        - Use -t option in pipe:  terse output, perfect for processing
+        - Write a module function that does 15 digit conversion factors and dimensional
+          algebra
+    - Memory:  SQLite-backed state machine for atomic, multi-process safety across
+      WSL/tmux use
+        - Handles file locking.  You can query it via grep or an SQL query to e.g. "find
+          "Every calculation where the result was a NumType.tUnc with a standard
+          deviation > 5%."
+        - Logging:  The database is the log. Every input, output, and timestamped state
+          change goes into a row.
+    - Display:  trm.py and fmt.py providing real-time, context-aware, colorized feedback
+    - Logging:  a recorder that logs every move to ensure you know what happened
+    - Terminal power that fits in a tmux pane
+    - It's a multi-process safe REPL, essentially a distributed state machine
+    - Note uncertainty for complex numbers needs to know the covariance matrix between
+      the two components (i.e., you just need the correlation coefficient)
+    - Write-ahead log pattern
+        - Before the Num calculation starts, log the input.
+        - After the calculation:  log the result, the current mpmath.mp precision, and
+          any Fmt state changes.
+        - If it crashes:  the "input" is already on disk, so you know exactly which
+          string caused the problem.
+    - Variables:  if you have two terminals open, should they share variables?
+        - Shared State: If you set a = Num(5) in Terminal A, does Terminal B see it?
+          This requires a central "Variable Server" or a watched database.
+        - Isolated State / Shared History: Usually, physicists prefer isolated
+          namespaces but a shared "Knowledge Base." You can have a global_history table
+          and a session_variables table.
+    - Console architecture
         - Using code.InteractiveConsole is a great base, but we can wrap it to inject
           your Num logic and Fmt context manager automatically.  
 
@@ -136,24 +108,15 @@ Here are Mike's thoughts about the overall approach
                     })
                     super().__init__(locals=names)
                 def push(self, line):
-                    """Intercept the command to log it before execution."""
+                    'Intercept the command to log it before execution'
                     self.log_input(line)
                     return super().push(line)
                 def write(self, data):
-                    """Colorize and log the output via trm and fmt."""
+                    'Colorize and log the output via trm and fmt'
                     # Use your Trm/Fmt logic here to make the REPL 'pretty'
                     sys.stderr.write(f"{t.grn}{data}{t.no}")
 
-    - 5. Handling Re/Im Correlation
-        - Since you've added the "Need to handle correlation" reminder: in the
-          uncertainties world, correlation is handled by the Variable objects and their
-          covariance matrix.  If you represent a Num as:
-            - z=(x±σ_x)+(y±σ_y)i
-        - To truly handle correlation, you'll eventually want to store a Covariance
-          Matrix inside the Num object whenever NumType == tUnc. This turns your Num
-          object from a simple value into a Statistical Distribution.  The "Forethought"
-          Checklist
-    - Before we lay the next brick:
+    - Other
         - Serialization: How do we store a Num in the DB? (Pickle is easy but dangerous;
           a custom JSON-like string with Type/Value/Unit is "Siriusly" better).
         - Crash Recovery: If the REPL dies, do you want it to auto-reload the last 50
@@ -161,19 +124,20 @@ Here are Mike's thoughts about the overall approach
         - The "Wizard's" Role: I can help you write the __repr__ for Num that uses your
           "Plucked Middle" and FmtColor logic so that just typing x in the REPL gives
           you a wealth of metadata.
-    - Does the idea of an SQLite-backed variable store sound like the right "Black Box"
-      for your ship, or were you thinking of something more "text-file" based?
-        - I’ve added one final "Safety Protocol" to our saved gist: The Traceback Guard.
-            - The "Black Box" Traceback
-                - Since your REPL will be talking to units via subprocess and mpmath for
-                  the heavy lifting, the "Why" of a failure can get buried. In your
-                  PhysicsREPL(code.InteractiveConsole) wrapper, we should override
-                  showtraceback() to specifically pull the last state from the SQLite
-                  "Flight Recorder."
-                - That way, if the engine explodes, the terminal won't just give you a
-                  generic Python error; it will say:
-                    - "Dimensional Mismatch: Attempted to add Tesla to Bananas while
-                      mp.prec was 128."
+        - I also want the ability to turn the db data into a text file that can be
+          converted back; this lets me edit the contents in my editor to prune stuff
+          that doesn't need to stick around.  A python tool acts as the gatekeeper in
+          both directions.
+    - Safety:  the "black box" traceback
+        - Since your REPL will be talking to units via subprocess and mpmath for the
+              heavy lifting, the "Why" of a failure can get buried. In your
+              PhysicsREPL(code.InteractiveConsole) wrapper, we should override
+              showtraceback() to specifically pull the last state from the SQLite
+              "Flight Recorder."
+            - That way, if the engine explodes, the terminal won't just give you a
+              generic Python error; it will say:
+                - "Dimensional Mismatch: Attempted to add Tesla to Bananas while mp.prec
+                  was 128."
 
 - Thoughts
     - I like the SQLite approach to persistence.  This should be structured so that the

@@ -3,121 +3,31 @@
 class Fmt:  Format floating point numbers
     
     This module provides string interpolation ("formatting") for integer, floating
-    point, and complex number types.  A Fmt instance can format int, float,
-    Decimal, mpf, complex, and mpc number types.  mpf and mpc are from the mpmath
-    module, which is used for the formatting machinery.
+    point, and complex number types.  The mpmath module is used to do the needed
+    formatting, so arbitrary number sizes can be handled.
+
+    Features
+        - "fix", "sci", "eng", "engsi", "engsic" formatting forms
+        - Can set width to print number in (best effort basis)
+            - Will get "plucked middle" approach, leaving beginning and ending digits
+              with ellipsis in center
+        - Handles very large numbers
+        - Can supply a unit to go with the number string
+        - Uses no breaking space to keep number and unit together
+        - Derived class can provide colorizing for number types
+        - Complex numbers have rectangular and polar forms
     
     Run the module as a script to see example output.  See Terminal Notes below.
 
     See the constructor Fmt.__init() for the attributes of the class that control
     behavior.
     
-    The attributes of a Fmt instance provide more control over the formatting:
-    
-    These are old Fmt class attributes
-    ∞∞1 This material should be removed once the new implementation is finished
-
-        n       Sets the number of displayed digits.  For floats, the maximum is 15;
-                for mpmath and Decimal, it's controlled by the context's precision.
-    
-        fmt     String for default floating point formatting (fix, fixed, sci, eng,
-                engsi, engsic)
-        dp      Sets the radix (decimal point) string (use '.' or ',').
-        low     Numbers below this value are displayed with scientific notation.
-                None means all small numbers are displayed in fixed point.
-        high    Numbers above this value are displayed with scientific notation.
-                None means all large numbers are displayed in fixed point.
-        u       If True, display scientific and engineering notations with Unicode
-                such as 3.14✕10⁶.
-        rlz     If True, remove the leading zero digit in fixed point strings.  
-                Example: -0.284 is "-0.284" if False, "-.284" if True.
-        rtz     If True, remove trailing zero digits.
-        rtdp    If True, remove the trailing radix if it ends the string.
-        spc     If True, use " " as leading character if number >= 0
-        sign    If True, always include the number's sign
-        
-    Complex number attributes:
-    
-        imag_unit   String to use for the imaginary unit.
-        polar       If True, use polar coordinates.
-        deg         If True, output degrees in polar coordinates.
-        cuddled     If True, use '2+3i' form; if False, use '2 + 3i' form.
-        ul          If True, underline the argument in polar form.
-        comp        If True, display as (re,im) form, (re, im) if cuddled False.
-                    
-    Thread safety
-        Fmt is intentionally not thread-safe.  This means if you call the methods of the
-        same instance in two different threads, you'll get unpredictable and could
-        suffer from a race condition.  If you have multiple thread, create multiple Fmt
-        instances and syncronize their states as appropriate.
-        
-    Primary use case
-        The Fmt class is used as the primary string formatter for numerical strings in
-        the /plib directory.  The f.flt and f.cpx floating point types are the main
-        consumers of Fmt's features.
-        
-    How it works
-        The TakeApart class takes apart numbers into their component parts.  Then the
-        Fmt instance uses the TakeApart instance to supply the needed parts of the
-        number and builds the desired interpolation string.
+    How it works:  the TakeApart class takes apart numbers into their component parts.
+    Then the Fmt instance uses the TakeApart instance to supply the needed parts of the
+    number and builds the desired interpolation string.
         
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Format floating point numbers oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2008, 2012, 2021 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ utility oo>
-        <oo test ∞ --test oo>
-        <oo todo ∞
-        
-            - fmt.unc()
-                - Add support for eng, engsi, engsic
-            - Add decimal point alignment like fpformat.py
-            - Need a discussion of the difference between fix() and fixed().  fixed() is
-              what an HP calculator does:  'fix 2' means you'll get numbers shown to 2
-              decimal places.  For floats, this means you'll see str(round(x, 2)).
-            - Large numbers
-                - mpmath can calculate fac(1e1000); it's log is 1.00e1002.  Thus
-                  log(log(x)) could be a way to get reasonably-sized numbers to help you
-                  see the magnitude.
-                - 100!**100! can be calculated with mpmath, but the exponent is
-                  1.47e160.  Need to develop a notation to handle large numbers.
-                - Use log: ((1.47e160))
-                - Use sci notation in exponent:  1.47e((1e160))
-                - Power tower:  10↑↑n == 10**10**...**10, n times
-                - "order" of magnitude n:  how many times you have to take log of a
-                  number to get a result between 1 and 10.  Could call this "biglog".
-                  See https://en.wikipedia.org/wiki/Super-logarithm
-            - width
-                - Add width attribute; remove width from method calls
-                    - Set to 0 for normal behavior.  Larger integer specifies the
-                      desired width.
-                - Need an algorithm to make interpolations fit in a desired width.  Must
-                  be on a best effort basis, as it will be impossible for some numbers.
-                  Example 100!**100! won't fit into e.g. 60 columns because the exponent
-                  is 160 digits long.
-                    - See notes above about large number notations
-                - Typical abbreviation will use ellipsis ⋯ (U+22EF) and truncate middle
-                  digits to get things to fit
-            - Angle measures:  use plain ASCII for polar forms.  Support radians,
-              degrees, gradians, and revolutions.
-                - form:  x (a u) where x is the magnitude, a is the angle, and u is the
-                  angular unit (e.g., rad, deg, grad, rev).
-                - Other angle measures:  arcmin, arcsec, hour angle (24 per rev), point
-                  (1/8 of right angle), binary degree (256 per rev), quadrant (90°),
-                  sextant (60°).
-                - Could allow for a custom angle measure with a custom_angle attribute.
-                - angle_measure attribute can be "deg", "rad", "grad", "rev", "turn".
-        
-        oo>
-    '''
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
         ##∞copyright∞# Copyright (C) 2008, 2012, 2021 Don Peterson #∞copyright∞#
@@ -176,7 +86,7 @@ if 1:  # Header
         #   fmt is a convenience instance of Fmt
         __all__ = "Fmt fmt".split()
     if 1:   # Core file gist information
-        __gist__      = "Format numbers"
+        __gist__      = "String interpolation (formatting) of numbers"
         __copyright__ = "Copyright © 2008, 2012, 2021, 2026 Don Peterson"
         __license__   = "MIT License (see /plib/_lic.mit)"
         __test__      = "--test"
@@ -184,17 +94,29 @@ if 1:  # Header
         __category__  = "math"
         __todo__      = ''' 
 
-            - Context manager
-                - Use stack to save all attributes that don't start with an underline
             - Testing (• is nbs)
                 - Make sure NBS stuff is working
                 - "fixed" not yet supported
                 - ufloats not yet supported
                 - .spc and .sign attributes not yet supported
-            - Context manager
-                - Lets a block override all attributes and have them return to original
-                  at end of block
+                - width
+                    - Add width attribute; remove width from method calls
+                        - Set to 0 for normal behavior.  Larger integer specifies the
+                          desired width.
+                    - Need an algorithm to make interpolations fit in a desired width.
+                      Must be on a best effort basis, as it will be impossible for some
+                      numbers.  Example 100!**100! won't fit into e.g. 60 columns
+                      because the exponent is 160 digits long.
+                        - See notes above about large number notations
+                    - Typical abbreviation will use ellipsis ⋯ (U+22EF) and truncate
+                      middle digits to get things to fit
+            - Big number formatting
+                - Power tower:  10↑↑n == 10**10**...**10, n times
+                - "order" of magnitude n:  how many times you have to take log of a
+                  number to get a result between 1 and 10.  Could call this "biglog".
+                  See https://en.wikipedia.org/wiki/Super-logarithm
             - "unit" keyword to __call__
+            - "fixed" keyword:  simulates HP calculator behavior (different than "fix")
             - Colorized output (see FmtColor below)
                 - A fundamental notion is that colorizing can allow the default
                   formatting to change.  Instead of seing the somewhat ugly default
