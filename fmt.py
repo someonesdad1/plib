@@ -1700,7 +1700,7 @@ else:   # New TakeApart/Fmt
             # Note:  the self._stack instance is NOT changed
             self.cuddled = True     # No spaces around signs/operators (e.g., 1+2j vs 1 + 2j)
             self.deg = False        # Use degrees for polar complex notation instead of radians
-            self.ellipsis = '⋯'     # For overly-wide situations:  1234⋯5678
+            self.ellipsis = '...'   # For overly-wide situations:  1234...5678
             self.exp_char = 'e'     # Character used for scientific notation (e.g., 'e', 'E', or 'D')
             self.fmt = fmt          # Default mode: 'fix' (auto), 'sci', 'eng', 'engsi', 'engsic'
             self.high = 1e16        # Upper threshold to switch from 'fix' to 'sci' mode
@@ -1709,6 +1709,7 @@ else:   # New TakeApart/Fmt
             self.mult = "×"         # For e.g., 3.14×10⁰
             self.n = digits         # Precision: number of significant digits to maintain
             self.nbs = False        # Use non-breaking spaces (\u00A0) in SI/Eng formatting
+            self.show_pos = False   # Always show '+' sign if True
             self.polar = False      # Display complex numbers in polar (magnitude/angle) form
             self.rlz = False        # Remove Leading Zero (e.g., .123 instead of 0.123)
             self.rtdp = False       # Retain Trailing Decimal Point (e.g., 3. instead of 3)
@@ -1800,20 +1801,7 @@ else:   # New TakeApart/Fmt
             retval = str(x)
             if self.width is None or len(retval) <= self.width:
                 return retval
-            return retval #∞∞ 
-            # Best effort to fit within self.width
-            #             - sign   1st_digit  ellipsis   last_digit
-            # min_width = (x < 0)  +   1     +    1    +      1
-            min_width = 4 if x < 0 else 3
-            if len(retval) >= min_width:
-                # Minimum string returned
-                left = retval[:2] if x < 0 else retval[:1]
-                right = retval[-1:]
-                return left + self.ellipsis + right
-            else:
-                pass
-            #yy
-            return str(x)
+            return self.PluckInt(x)
         def _finalize_si(self, c, active_fmt) -> str:
             space = '\u00A0' if self.nbs else ' '
             sep = '' if active_fmt == 'engsic' else space
@@ -1873,19 +1861,99 @@ else:   # New TakeApart/Fmt
             return self
         def __exit__(self, exc_type, exc_val, exc_tb) -> None:
             self.pop()
+        if 1:  # Digit plucking routines to get things to fit a fixed width
+            def PluckInt(self, x: int) -> str:
+                '''
+                Splits the available width between the head and the tail.
+                '''
+                s = str(x)
+                if self.show_pos and x >= 0:
+                    s = "+"+s
+                if len(s) <= self.width:
+                    return s
+                # Budget calculation
+                budget = self.width-len(self.ellipsis)
+                if budget <= 0:
+                    return s[:self.width]
+                # Split budget: head gets half, tail gets the rest
+                head_len = budget//2
+                # Ensure we don't show an empty head if we have width
+                if head_len == 0 and budget > 0:
+                    head_len = 1
+                tail_len = budget-head_len
+                return s[:head_len]+self.ellipsis+s[-tail_len:]
+            def PluckReal(self, s: str) -> str:
+                '''
+                Protects the exponent and splits mantissa budget 50/50.
+                '''
+                if self.show_pos and not (s.startswith("-") or s.startswith("+")):
+                    s = "+"+s
+                if len(s) <= self.width:
+                    return s
+                if "e" in s:
+                    parts = s.split("e")
+                    mantissa = parts[0]
+                    exponent = "e"+parts[1]
+                else:
+                    mantissa = s
+                    exponent = ""
+                # Budget: width minus exponent and ellipsis
+                budget = self.width-len(exponent)-len(self.ellipsis)
+                if budget <= 1:
+                    return s[:self.width]
+                # Split mantissa budget
+                head_len = budget//2
+                if head_len == 0:
+                    head_len = 1
+                tail_len = budget-head_len
+                res = mantissa[:head_len]+self.ellipsis
+                if tail_len > 0:
+                    res += mantissa[-tail_len:]
+                return res+exponent
+            def PluckComplex(self, re_str: str, im_str: str) -> str:
+                '''Combines two plucked reals. Imaginary sign handling is
+                critical for separation.
+                '''
+                # Ensure a sign separates real and imaginary parts
+                has_sign = im_str.startswith("-") or im_str.startswith("+")
+                sep = "+" if not has_sign else ""
+                return re_str + sep + im_str + self.imag_unit
 if 1:   # Public convenience instance of Fmt()
     fmt = Fmt()
 
 if 0 and __name__ == "__main__":  
     # Utility for quick tests/prototyping
-    # Get self.width working.  Start with ints.
-    #   - Best effort for width (should be easy for ints)
-    x = -31415926535897933141592653589793
-    print(f"x = {x}")
-    fmt.width = None
-    print(f"No width:  fmt(x) = {fmt(x)}")
-    fmt.width = 10
-    print(f"Width {fmt.width}:  fmt(x) = {fmt(x)}")
+    # Get self.width working.  
+    if 0:   # Int
+        x = -31415926535897933141592653589793
+        print(f"x = {x}")
+        fmt.width = None
+        print(f"No width:  fmt(x) = {fmt(x)}")
+        fmt.width = 10
+        print(f"Width {fmt.width}:  fmt(x) = {fmt(x)}")
+        print()
+    if 0:   # Float:  problems with default precision
+        x = -314159265358979.33141592653589793
+        print(f"x = {x}")
+        fmt.width = None
+        print(f"No width:  fmt(x) = {fmt(x)}")
+        fmt.width = 10
+        print(f"Width {fmt.width}:  fmt(x) = {fmt(x)}")
+        print()
+    if 0:  # Float with proper digits
+        mpmath.mp.dps = 50 # Set decimal places to 50
+        x = mpmath.mpf("-314159265358979.33141592653589793")
+        s = f"{x}"
+        print(fmt.PluckReal(s))
+    if 1:  # Complex with proper digits
+        mpmath.mp.dps = 50 # Set decimal places to 50
+        s = "-314159265358979.33141592653589793"
+        x = mpmath.mpc(s, s)
+        fmt.width = 20
+        print("x =", x)
+        re = fmt.PluckReal(str(x.real))
+        im = fmt.PluckReal(str(x.imag))
+        print(fmt.PluckComplex(re, im))
     exit()
 
 if __name__ == "__main__":
