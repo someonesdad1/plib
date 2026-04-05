@@ -222,6 +222,7 @@ if 1:  # Header
         import re
         import string
         import sys
+        import typing as ty
     if 1:   # Custom imports
         import columnize
         import dpstr
@@ -244,7 +245,7 @@ if 1:  # Header
         __todo__      = '''
             
             -
-
+        
         '''
     if 1:   # Import symbols
         Path = pathlib.Path
@@ -320,13 +321,16 @@ if 1:   # Utility
         return args
 if 1:   # Classes
     NumType = enum.Enum("NumType", ("Int", "Flt", "Cpx", "Rat", "Unc"))
+    NumericalTypes = ty.Union[int | float | complex | decimal.Decimal |
+                              fractions.Fraction | mpmath.mpf | mpmath.mpc |
+                              uncertainties.UFloat | str | None]
     class Num:
         '''Represent a general number useful for routine calculations
 
         The internal representation uses mpmath, so it's your responsibility as the
         user to ensure the mpmath context has sufficient resolution for your problems.
         '''
-        def __init__(self, value: str|None = None, unit: str|None = None) -> None:
+        def __init__(self, value: NumericalTypes = None, unit: str = "") -> None:
             if 1:   # Default internal state representation
                 # numer & denom are for Int and Rat
                 self.numer: int = 0
@@ -435,7 +439,7 @@ if __name__ == "__main__":
         zero = mpmath.mpf(0)
         def Demo():
             pass
-        def Test_Constructor_Numbers():
+        def Test_Constructor_With_Numbers():
             if 1:   # No input
                 num = Num()
                 Assert(num.real == 0 and num.imag == 0)
