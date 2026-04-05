@@ -24,6 +24,17 @@ be satisifed for the calculation to proceed to numerical evaluation (or overridd
   window, you see the same data you saw when you last exited.  This provides problem
   continuity, as often you have to e.g. go to a prompt and do some other task.
 
+Another vision is that this tool should be minimalistic, in the sense that the
+components required should be easy for people to get.  So far, I know of the following
+dependencies:
+    - python 3.11
+    - mpmath (pip)
+    - plotext (pip)
+    - numpy (pip)
+    - GNU units (external package)
+    - SQLite (built into python)
+
+---------------------------------------------------------------------------
 
 Experiment:  construct a python class that holds a number.  The vision is that this
 number can be an int, float, complex, rational, or a float or complex with uncertainty

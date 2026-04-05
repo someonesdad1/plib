@@ -222,6 +222,8 @@ if 1:  # Core functionality
         # Run the test functions
         while tests:
             name, func = tests.pop()
+            if func == "--test":
+                continue
             try:
                 if verbose:
                     print(" ", name, file=stream)

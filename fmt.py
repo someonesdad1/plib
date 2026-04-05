@@ -1656,32 +1656,15 @@ else:   # New TakeApart/Fmt
             # state behavior depends on having simple attributes.
             #
             # In addition, if maintenance changes to using properties later, the dict
-            # update() method bypasses, the properties, so you'll need to use the
+            # update() method bypasses the properties, so you'll need to use the
             # __setattr__(self, k, v) loop to get things to work.
-            self.cuddled = True     # No spaces around signs/operators (e.g., 1+2j vs 1 + 2j)
-            self.deg = False        # Use degrees for polar complex notation instead of radians
-            self.exp_char = 'e'     # Character used for scientific notation (e.g., 'e', 'E', or 'D')
-            self.mul_char = '×'     # For e.g., 3.14×10⁰
-            self.fmt = fmt          # Default mode: 'fix' (auto), 'sci', 'eng', 'engsi', 'engsic'
-            self.high = 1e16        # Upper threshold to switch from 'fix' to 'sci' mode
-            self.imag_unit = 'j'    # Character for the imaginary part (e.g., 'j', 'i')
-            self.low = 1e-5         # Lower threshold to switch from 'fix' to 'sci' mode
-            self.mult = "✕"         # Multiplication symbol for Unicode scientific notation
-            self.n = digits         # Precision: number of significant digits to maintain
-            self.nbs = False        # Use non-breaking spaces (\u00A0) in SI/Eng formatting
-            self.polar = False      # Display complex numbers in polar (magnitude/angle) form
-            self.rlz = False        # Remove Leading Zero (e.g., .123 instead of 0.123)
-            self.rtdp = False       # Retain Trailing Decimal Point (e.g., 3. instead of 3)
-            self.rtz = False        # Remove Trailing Zeros in the fractional part
-            self.u = False          # Use Unicode: ✕10ⁿ for scientific, superscripts, and ∠ for angles
-            self.ul = False         # Underline the angle in polar mode (mimics HP-42s display)
-            self.unit = ''          # Physical unit string to append (e.g., 'V', 'Hz', 'Ω')
-            self.width = None       # Fixed width for padding (not yet fully implemented)
-            self.maxlen = 20000     # Safety governor: max string length before ValueError
+            #
+            self._default_state(digits, fmt)
             if 1:   # Private attributes
                 self._si = {-18:'a',-15:'f',-12:'p',-9:'n',-6:'µ',-3:'m',0:'',3:'k',6:'M',9:'G',12:'T',15:'P'}
                 self._sup = str.maketrans('0123456789+-', '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻')
                 self._stack = []    # Allow push/pop & context management
+        # The call method is the primary interface to this module
         def __call__(self, x, n=None, fmt=None):
             if isinstance(x, (str, bytes)): 
                 return x
@@ -1712,6 +1695,39 @@ else:   # New TakeApart/Fmt
                 return ret_value
             finally:
                 self.n, self.fmt = old_n, old_fmt
+        def _default_state(self, digits: int, fmt: str) -> None:
+            'Set the public attributes to their default state'
+            # Note:  the self._stack instance is NOT changed
+            self.cuddled = True     # No spaces around signs/operators (e.g., 1+2j vs 1 + 2j)
+            self.deg = False        # Use degrees for polar complex notation instead of radians
+            self.ellipsis = '⋯'     # For overly-wide situations:  1234⋯5678
+            self.exp_char = 'e'     # Character used for scientific notation (e.g., 'e', 'E', or 'D')
+            self.fmt = fmt          # Default mode: 'fix' (auto), 'sci', 'eng', 'engsi', 'engsic'
+            self.high = 1e16        # Upper threshold to switch from 'fix' to 'sci' mode
+            self.imag_unit = 'j'    # Character for the imaginary part (e.g., 'j', 'i')
+            self.low = 1e-5         # Lower threshold to switch from 'fix' to 'sci' mode
+            self.mult = "×"         # For e.g., 3.14×10⁰
+            self.n = digits         # Precision: number of significant digits to maintain
+            self.nbs = False        # Use non-breaking spaces (\u00A0) in SI/Eng formatting
+            self.polar = False      # Display complex numbers in polar (magnitude/angle) form
+            self.rlz = False        # Remove Leading Zero (e.g., .123 instead of 0.123)
+            self.rtdp = False       # Retain Trailing Decimal Point (e.g., 3. instead of 3)
+            self.rtz = False        # Remove Trailing Zeros in the fractional part
+            self.u = False          # Use Unicode: ×10ⁿ for scientific, superscripts, and ∠ for angles
+            self.ul = False         # Underline the angle in polar mode (mimics HP-42s display)
+            self.unit = ''          # Physical unit string to append (e.g., 'V', 'Hz', 'Ω')
+            self.width = None       # Fixed width for padding (not yet implemented)
+            self.maxlen = 20000     # Safety valve: max string length before ValueError
+            self._check_state()
+        def _check_state(self) -> None:
+            'Make sure the attributes make sense'
+            assert self.fmt in {"fix", "sci", "eng", "engsi", "engsic"}
+            assert self.high >= self.low
+            assert self.n >= 1
+            assert self.maxlen >= 1
+            for i in (self.cuddled, self.deg, self.nbs, self.polar, self.rlz,
+                      self.u, self.ul):
+                assert isinstance(i, bool)
         def _format_scalar(self, x: ty.Any, active_fmt: str) -> str:
             '''
             Main routing for scalar values. Handles sign-aware leading zero removal.
@@ -1770,7 +1786,7 @@ else:   # New TakeApart/Fmt
                 # 3. Format the exponent string
                 if self.u:
                     # e.g., 3.14×10⁰
-                    exp_str = f"{self.mul_char}10{str(exp_val).translate(self._sup)}"
+                    exp_str = f"{self.mult}10{str(exp_val).translate(self._sup)}"
                 else:
                     # e.g., 3.14e+00
                     exp_str = f"{self.exp_char}{exp_val:d}"
@@ -1781,6 +1797,22 @@ else:   # New TakeApart/Fmt
                     res += f"{sep}{self.unit}"
                 return res
         def _finalize_int(self, x, active_fmt) -> str:
+            retval = str(x)
+            if self.width is None or len(retval) <= self.width:
+                return retval
+            return retval #∞∞ 
+            # Best effort to fit within self.width
+            #             - sign   1st_digit  ellipsis   last_digit
+            # min_width = (x < 0)  +   1     +    1    +      1
+            min_width = 4 if x < 0 else 3
+            if len(retval) >= min_width:
+                # Minimum string returned
+                left = retval[:2] if x < 0 else retval[:1]
+                right = retval[-1:]
+                return left + self.ellipsis + right
+            else:
+                pass
+            #yy
             return str(x)
         def _finalize_si(self, c, active_fmt) -> str:
             space = '\u00A0' if self.nbs else ' '
@@ -1846,15 +1878,14 @@ if 1:   # Public convenience instance of Fmt()
 
 if 0 and __name__ == "__main__":  
     # Utility for quick tests/prototyping
-    x = decimal.Decimal("3.141592653589793")
+    # Get self.width working.  Start with ints.
+    #   - Best effort for width (should be easy for ints)
+    x = -31415926535897933141592653589793
     print(f"x = {x}")
-    print(f"fmt(x) = {fmt(x, fmt='sci')}")
-    print("entering context manager:  print to 10 digits")
-    with fmt as f:
-        f.n = 10
-        print(f"fmt(x) = {fmt(x, fmt='sci')}")
-    print("out of context manager:  back to default 3 digits")
-    print(f"fmt(x) = {fmt(x, fmt='sci')}")
+    fmt.width = None
+    print(f"No width:  fmt(x) = {fmt(x)}")
+    fmt.width = 10
+    print(f"Width {fmt.width}:  fmt(x) = {fmt(x)}")
     exit()
 
 if __name__ == "__main__":
@@ -2683,13 +2714,13 @@ if __name__ == "__main__":
                     Assert(s == "-30.e6")
                     fmt.u = 1
                     s = f"{fmt.eng(x)}"
-                    Assert(s == "34.5678✕10⁶")
+                    Assert(s == "34.5678×10⁶")
                     s = f"{fmt.eng(-x)}"
-                    Assert(s == "-34.5678✕10⁶")
+                    Assert(s == "-34.5678×10⁶")
                     s = f"{fmt.eng(x, n=1)}"
-                    Assert(s == "30.✕10⁶", got=s, expected="30✕10⁶")
+                    Assert(s == "30.×10⁶", got=s, expected="30×10⁶")
                     s = f"{fmt.eng(-x, n=1)}"
-                    Assert(s == "-30.✕10⁶")
+                    Assert(s == "-30.×10⁶")
                     fmt.u = 0
                     # engsi
                     s = f"{fmt.engsi(x)}"
@@ -2721,13 +2752,13 @@ if __name__ == "__main__":
                     Assert(s == "-300.e-15")
                     fmt.u = 1
                     s = f"{fmt.eng(x)}"
-                    Assert(s == "345.678✕10⁻¹⁵")
+                    Assert(s == "345.678×10⁻¹⁵")
                     s = f"{fmt.eng(-x)}"
-                    Assert(s == "-345.678✕10⁻¹⁵")
+                    Assert(s == "-345.678×10⁻¹⁵")
                     s = f"{fmt.eng(x, n=1)}"
-                    Assert(s == "300.✕10⁻¹⁵")
+                    Assert(s == "300.×10⁻¹⁵")
                     s = f"{fmt.eng(-x, n=1)}"
-                    Assert(s == "-300.✕10⁻¹⁵")
+                    Assert(s == "-300.×10⁻¹⁵")
                     fmt.u = 0
                     # engsi
                     s = f"{fmt.engsi(x)}"
@@ -2994,7 +3025,7 @@ if __name__ == "__main__":
                 assert 'e' in fmt(1e7) # Should auto-switch to sci
     if 1:  # Module's base code
         if len(sys.argv) > 1 and sys.argv[1] == "--test":
-        #if 1:
             status, msg = run(globals(), regexp=r"Test_", halt=1)
             exit(status)
-        Demo()
+        else:
+            Demo()
