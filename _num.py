@@ -1,4 +1,11 @@
 '''
+ 5 Apr 2026 Task
+
+- Get constructor to initialize properly
+- Perform an addition of Num(33) + Num(3.444448)
+- Show inclusion of units, but don't hook up type plumbing yet
+
+---------------------------------------------------------------------------'
 General number implementation
 
 Vision:  a single number object for a REPL environment that allows use with physical
@@ -89,12 +96,9 @@ used to indicate middle character removal to fit things to the current number of
 Mentioned this Num idea to Mike and asked him to save the thread for future discussion.
 Some core ideas
     - Num class that's a universal container for numbers
-        - tInt, tFloat, tComplex, tRational, tUnc are the enum types.  A tUnc can be
-          either a float or a complex (need correlation coefficient between re and im
+        - Int, Flt, Cpx, Rat, Unc are the enum types.  An Unc can be
+          either a Flt or Cpx (for Cpx, need correlation coefficient between re and im
           parts)
-        - int, float, complex, rational and ufloat (both real and complex); uses mpmath
-          machinery internally.  Need correlation coefficient between re and im parts
-          for a complex number ufloat.
     - Units:  units operations are handled by pipe to GNU units.  Can be used to get
       definitions of oddball units as well as do dimensional algebra.
         - Use -t option in pipe:  terse output, perfect for processing
@@ -103,7 +107,7 @@ Some core ideas
     - Memory:  SQLite-backed state machine for atomic, multi-process safety across
       WSL/tmux use
         - Handles file locking.  You can query it via grep or an SQL query to e.g. "find
-          "Every calculation where the result was a NumType.tUnc with a standard
+          "Every calculation where the result was a NumType.Unc with a standard
           deviation > 5%."
         - Logging:  The database is the log. Every input, output, and timestamped state
           change goes into a row.
@@ -315,7 +319,7 @@ if 1:   # Utility
         g.W, g.L = GetScreen()
         return args
 if 1:   # Classes
-    NumType = enum.Enum("NumType", ("tUnknown", "tInt", "tFloat", "tComplex", "tRational", "tUnc"))
+    NumType = enum.Enum("NumType", ("Int", "Flt", "Cpx", "Rat", "Unc"))
     class Num:
         '''Represent a general number useful for routine calculations
 
@@ -324,70 +328,74 @@ if 1:   # Classes
         '''
         def __init__(self, value: str|None = None, unit: str|None = None) -> None:
             if 1:   # Default internal state representation
+                # numer & denom are for Int and Rat
                 self.numer: int = 0
-                self.denom: int = 0
+                self.denom: int = 1
+                # real & imag for Flt and Cpx
                 self.real: mpmath.mpf = mpmath.mpf("0")
                 self.imag: mpmath.mpf = mpmath.mpf("0")
+                # re_unc & im_unc for Unc:  the _unc portion is the standard deviation
                 self.re_unc: mpmath.mpf = mpmath.mpf("0")
                 self.im_unc: mpmath.mpf = mpmath.mpf("0")
+                self.correl: mpmath.mpf = mpmath.mpf("0")   # Correlation coefficient
                 self.unit: str|None = unit
-                self.mytype: NumType = NumType.tInt
+                self.mytype: NumType = NumType.Int
                 if value is None:
                     return
             if 1:   # Convert value to our internal representation
                 if isinstance(value, int):
                     self.numer = int(value)
-                    self.mytype = NumType.tInt
+                    self.mytype = NumType.Int
                 elif isinstance(value, float):
                     self.real = mpmath.mpc(repr(value), 0)
-                    self.mytype = NumType.tFloat
+                    self.mytype = NumType.Flt
                 elif isinstance(value, complex):
                     self.real = mpmath.mpc(repr(value.real), 0)
                     self.imag = mpmath.mpc(repr(value.imag), 0)
-                    self.mytype = NumType.tComplex
+                    self.mytype = NumType.Cpx
                 elif isinstance(value, decimal.Decimal):
                     self.real = mpmath.mpc(str(value), 0)
-                    self.mytype = NumType.tFloat
+                    self.mytype = NumType.Flt
                 elif isinstance(value, fractions.Fraction):
                     self.numer = value.numerator
                     self.denom = value.denominator
-                    self.mytype = NumType.tRational
+                    self.mytype = NumType.Rat
                 elif isinstance(value, mpmath.mpf):
                     self.real = mpmath.mpc(value, 0)
-                    self.mytype = NumType.tFloat
+                    self.mytype = NumType.Flt
                 elif isinstance(value, mpmath.mpc):
                     self.real = mpmath.mpc(value.real, 0)
                     self.imag = mpmath.mpc(value.imag, 0)
-                    self.mytype = NumType.tComplex
+                    self.mytype = NumType.Cpx
                 elif isinstance(value, uncertainties.UFloat):
                     self.real = mpmath.mpf(str(value.nominal_value))
                     self.re_unc = mpmath.mpf(str(value.std_dev))
-                    self.mytype = NumType.tUnc
-                    print("Need to handle re/im correlation", file=sys.stderr)
+                    self.mytype = NumType.Unc
+                    print(f"{__file__}:  Need to handle re/im correlation", file=sys.stderr)
                 elif isinstance(value, str):
                     msg = f"{value!r} not recognized as a number"
-                    chars = set(value.lower().strip())
-                    if "/" in chars:    # Assume it's a rational number
+                    normalized = set(value.lower().replace("i", "j").strip())
+                    if "/" in normalized:    # It's rational
                         try:
                             self.numer, self.denom = [int(i) for i in value.split("/")]
-                            self.mytype = NumType.tRational
+                            self.mytype = NumType.Rat
                         except Exception as e:
                             raise ValueError(msg) from e
-                    elif "j" in chars or "i" in chars:  # Assume it's complex
+                    elif "j" in normalized:  # It's complex
                         re, im = dpmath.ParseComplex(value)
-                        self.real = mpmath.mpc(re, 0)
-                        self.imag = mpmath.mpc(im, 0)
-                        self.mytype = NumType.tComplex
-                    elif "." in chars or "e" in chars:  # Assume it's floating point
+                        self.real = mpmath.mpf(re)
+                        self.imag = mpmath.mpf(im)
+                        self.mytype = NumType.Cpx
+                    elif "." in normalized or "e" in normalized:  # It's floating point
                         try:
-                            self.real = mpmath.mpc(mpmath.mpf(value), 0)
-                            self.mytype = NumType.tFloat
+                            self.real = mpmath.mpf(value)
+                            self.mytype = NumType.Flt
                         except Exception as e:
                             raise ValueError(msg) from e
-                    else:   # Assume it's an integer
+                    else:   # It's an integer
                         try:
                             self.numer = int(value)
-                            self.mytype = NumType.tInt
+                            self.mytype = NumType.Int
                         except Exception as e:
                             raise ValueError(msg) from e
                 else:
@@ -424,82 +432,99 @@ if __name__ == "__main__":
             for arg in args:
                 pass    # Do stuff
     else:   # For module
+        zero = mpmath.mpf(0)
         def Demo():
             pass
-        def Test_Constructor():
+        def Test_Constructor_Numbers():
             if 1:   # No input
                 num = Num()
                 Assert(num.real == 0 and num.imag == 0)
-                Assert(num.mytype == NumType.tInt)
+                Assert(num.mytype == NumType.Int)
             if 1:   # int
                 if 1:   # Positive
-                    x, T = 30957357, NumType.tInt
+                    x, T = 30957357, NumType.Int
                     num = Num(x)
-                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.numer == x and num.denom == 1)
                     Assert(num.mytype == T)
                     # As string
                     num = Num(str(x))
-                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.numer == x and num.denom == 1)
                     Assert(num.mytype == T)
                 if 1:   # Negative
-                    x, T = -30957357, NumType.tInt
+                    x, T = -30957357, NumType.Int
                     num = Num(x)
-                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.numer == x and num.denom == 1)
                     Assert(num.mytype == T)
                     # As string
                     num = Num(str(x))
-                    Assert(num.numer == x and num.denom == 0)
+                    Assert(num.numer == x and num.denom == 1)
                     Assert(num.mytype == T)
             if 1:   # float
-                if 1:   # Positive float
-                    x, T = 3095.7357, NumType.tFloat
-                    num = Num(x)
-                    Assert(num.real.real == x and num.real.imag == 0)
-                    Assert(num.mytype == T)
-                    # As string
-                    num = Num(str(x))
-                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == T)
-                if 1:   # Negative float
-                    x, T = -3095.7357, NumType.tFloat
-                    num = Num(x)
-                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == T)
-                    # As string
-                    num = Num(str(x))
-                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == T)
-            if 1:   # mpmath.mpf
-                if 1:   # Positive mpf
-                    s, T = "3095.7357", NumType.tFloat
-                    x = mpmath.mpf(s)
-                    num = Num(x)
-                    Assert(num.real.real == x and num.real.imag == 0)
-                    Assert(num.mytype == T)
-                    # As string
-                    num = Num(str(x))
-                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == T)
-                if 1:   # Negative mpf
-                    s, T = "-3095.7357", NumType.tFloat
-                    x = mpmath.mpf(s)
-                    num = Num(x)
-                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == T)
-                    # As string
-                    num = Num(str(x))
-                    Assert(num.real.real == mpmath.mpf(str(x)) and num.real.imag == 0)
-                    Assert(num.mytype == T)
-            if 1:   # Complex
-                pass
-            if 1:   # mpmath.mpc
-                pass
+                x, T = 3095.7357, NumType.Flt
+                num = Num(x)
+                Assert(num.real == x and num.imag == 0)
+                Assert(num.mytype == T)
+                num = Num(-x)
+                Assert(num.real == -x and num.imag == 0)
+                Assert(num.mytype == T)
             if 1:   # Decimal
-                pass
+                s = "3095.7357"
+                x, T = decimal.Decimal(s), NumType.Flt
+                num = Num(x)
+                Assert(num.real == mpmath.mpf(s) and num.imag == zero)
+                Assert(num.mytype == T)
+                num = Num(-x)
+                Assert(num.real == -x and num.imag == zero)
+                Assert(num.mytype == T)
+            if 1:   # mpmath.mpf
+                s, T = "3095.7357", NumType.Flt
+                x = mpmath.mpf(s)
+                num = Num(x)
+                Assert(num.real == x and num.imag == zero)
+                Assert(num.mytype == T)
+                num = Num(-x)
+                Assert(num.real == -x and num.imag == zero)
+                Assert(num.mytype == T)
+            if 1:   # Complex
+                x, T = -1+3j, NumType.Cpx
+                num = Num(x)
+                Assert(num.real == mpmath.mpf(-1) and num.imag == mpmath.mpf(3))
+                Assert(num.mytype == T)
+                num = Num(-x)
+                Assert(num.real == mpmath.mpf(1) and num.imag == mpmath.mpf(-3))
+                Assert(num.mytype == T)
+            if 1:   # mpmath.mpc
+                x, T = mpmath.mpc(-1, 3), NumType.Cpx
+                num = Num(x)
+                Assert(num.real == mpmath.mpf(-1) and num.imag == mpmath.mpf(3))
+                Assert(num.mytype == T)
+                num = Num(-x)
+                Assert(num.real == mpmath.mpf(1) and num.imag == mpmath.mpf(-3))
+                Assert(num.mytype == T)
             if 1:   # Rational
                 pass
             if 1:   # Unc
                 pass
+        def Test_Constructor_Strings():
+            test_cases = [("1", NumType.Int),
+                          ("1/2", NumType.Rat),
+                          ("1.2", NumType.Flt),
+                          ("1.2e3", NumType.Flt),
+                          ("1+2j", NumType.Cpx)]
+            for s, typ in test_cases:
+                x = Num(s)
+                Assert(x.mytype == typ, got=typ, expected=x.mytype)
+                # Check numerical value
+                if s == "1":
+                    Assert(x.numer == 1 and x.denom == 1)
+                elif s == "1/2":
+                    Assert(x.numer == 1 and x.denom == 2)
+                elif s == "1.2":
+                    Assert(x.real == mpmath.mpf("1.2") and x.imag == zero)
+                elif s == "1.2e3":
+                    Assert(x.real == mpmath.mpf("1.2e3") and x.imag == zero)
+                elif s == "1+2j":
+                    Assert(x.real == mpmath.mpf("1") and x.imag == mpmath.mpf("2"))
         if len(sys.argv) > 1:
             Demo()
         else:
