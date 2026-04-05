@@ -1,3 +1,4 @@
+from __future__ import annotations
 '''
  5 Apr 2026 Task
 
@@ -217,6 +218,7 @@ if 1:  # Header
         import enum
         import fractions
         import getopt
+        import operator
         import os
         import pathlib
         import re
@@ -279,12 +281,12 @@ if 1:   # Utility
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.n}", end="", file=Dbg.file)
-    def Warning(*msg, **kw):
+    def Warn(*msg, **kw):
         print(*msg, file=sys.stderr)
     def Error(*msg, status=1):
-        Warning(f"{t.err}", end="")
-        Warning(*msg)
-        Warning(f"{t.n}")
+        Warn(f"{t.err}", end="")
+        Warn(*msg)
+        Warn(f"{t.n}")
         exit(status)
     def Usage(status=1):
         print(dedent(f'''
@@ -319,18 +321,66 @@ if 1:   # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
+if 1:   # Types and enums
+    NumType = enum.Enum("NumType", ("Int", "Rat", "Flt", "Cpx", "Unc"))
+    NumericalTypes = ty.Union[
+        int , float , complex , decimal.Decimal ,
+        fractions.Fraction , mpmath.mpf , mpmath.mpc ,
+        uncertainties.UFloat , "Num" , str , None]
+    #NumericalTypes = (int | float | complex | decimal.Decimal |
+    #                          fractions.Fraction | mpmath.mpf | mpmath.mpc |
+    #                          uncertainties.UFloat | "Num" | str | None)
+    # Using a nested dict: [op_name][(type_a, type_b)] = function
+    _REGISTRY: ty.Dict[str, ty.Dict[ty.Tuple["NumType", "NumType"], ty.Callable]] = {}
+if 1:  # Populate the dispatch registry
+    MATH_REGISTRY = {
+        "add": {
+            (NumType.Int, NumType.Int): lambda a, b: Num(a.val+b.val, NumType.Int),
+            (NumType.Int, NumType.Flt): lambda a, b: Num(a.val+b.val, NumType.Flt),
+            (NumType.Flt, NumType.Int): lambda a, b: Num(a.val+b.val, NumType.Flt),
+            # ... etc
+        },
+        "mul": {
+            # Different logic for units here
+        }
+    }
+    def Register(op: str, t1: "NumType", t2: "NumType", func: ty.Callable, symmetric: bool = True):
+        '''Helper to populate the dispatch table. If symmetric, (t1, t2) and (t2, t1) 
+        get the same logic.
+        '''
+        if op not in _REGISTRY:
+            _REGISTRY[op] = {}
+        _REGISTRY[op][(t1, t2)] = func
+        if symmetric and t1 != t2:
+            _REGISTRY[op][(t2, t1)] = func
+    if 1:   # Addition:  note all additions are commutative
+        op, T = "add", NumType.Int
+        Register(op, T, T, lambda a, b: a.numer + b.numer)
+        Register(op, T, NumType.Flt, lambda a, b: a.val + b.val)
+
+    # Int + Flt -> Flt (Promotion)
+    Register("add", NumType.Int, NumType.Flt, lambda a, b: a.val+b.val)
+    # Flt + Cpx -> Cpx
+    Register("add", NumType.Flt, NumType.Cpx, lambda a, b: a.val+b.val)
 if 1:   # Classes
-    NumType = enum.Enum("NumType", ("Int", "Flt", "Cpx", "Rat", "Unc"))
-    NumericalTypes = ty.Union[int | float | complex | decimal.Decimal |
-                              fractions.Fraction | mpmath.mpf | mpmath.mpc |
-                              uncertainties.UFloat | str | None]
     class Num:
         '''Represent a general number useful for routine calculations
-
+        
         The internal representation uses mpmath, so it's your responsibility as the
         user to ensure the mpmath context has sufficient resolution for your problems.
         '''
         def __init__(self, value: NumericalTypes = None, unit: str = "") -> None:
+            if 1:   # Copy constructor (idempotency)
+                if isinstance(value, Num):
+                    self.numer = value.numer
+                    self.denom = value.denom
+                    self.real = value.real
+                    self.imag = value.imag
+                    self.re_unc = value.re_unc
+                    self.im_unc = value.im_unc
+                    self.unit = unit if unit else value.unit
+                    self.mytype = value.mytype
+                    return
             if 1:   # Default internal state representation
                 # numer & denom are for Int and Rat
                 self.numer: int = 0
@@ -404,21 +454,58 @@ if 1:   # Classes
                             raise ValueError(msg) from e
                 else:
                     raise TypeError(f"Type of {value!r} is not supported")
-        def __str__(self) -> str:
-            'For now, just use the id number'
-            me = dpstr.Int2Base(id(self), 62)
-            return f"Num(0x{id(self):x})"
-        def __repr__(self) -> str:
-            'This is detailed info for debugger view'
-            typ = self.mytype
-            s = (f"Num<type={typ}\n"
-                 f"   real:  {self.real}\n"
-                 f"   imag:  {self.imag}\n"
-                 f"   numer: {self.numer}\n"
-                 f"   denom: {self.denom}>")
-            return s
-if 1:   # Functions
-    pass
+        def _check_unit_compatibility(self, other: 'Num', op_name: str) -> None:
+            '''The bouncer for units
+             
+            Will raise an exception if the units aren't compatible for the operation.
+            '''
+            Warn("{t.orn}Num._check_unit_compatibility() needs to be written{t.n}")
+        def _binary_op(self, other: "Num", op_func: ty.Callable) -> "Num":
+            '''Return self op other
+
+            Method is to promote the types as needed.
+            '''
+            # 1. Determine the 'Highest' type involved
+            # Int < Rat < Flt < Cpx < Unc
+            target_type = max(self.mytype.value, other.mytype.value)
+            
+            # 2. Logic Bucket: Exact (Int/Rat)
+            if target_type <= NumType.Rat.value:
+                res = op_func(self.as_int_or_rat, other.as_int_or_rat)
+                return Num(res)
+
+            # 3. Logic Bucket: Uncertainty (The most complex)
+            if target_type == NumType.Unc.value:
+                return self._do_uncertainty_math(other, op_func)
+
+            # 4. Logic Bucket: Standard Real/Complex
+            # Simply use mpmath's ability to handle mixed types
+            res = op_func(self.real if self.mytype >= NumType.Flt else self.as_mpf,
+                        other.real if other.mytype >= NumType.Flt else other.as_mpf)
+            return Num(res)
+        def __add__(self, other: ty.Any) -> "Num":
+            # 1. Coerce input to Num (handles units, units checked here)
+            other_num = self._coerce(other)
+            self._check_units(other_num, "add")
+            
+            # 2. Execute via the logic buckets
+            return self._binary_op(other_num, operator.add)
+        if 1: # Internal Value Accessors
+            @property
+            def as_mpf(self) -> mpmath.mpf:
+                '''Returns the best floating-point representation available.'''
+                if self.mytype == NumType.Int:
+                    return mpmath.mpf(str(self.numer))
+                if self.mytype == NumType.Rat:
+                    return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
+                return self.real
+
+            @property
+            def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
+                '''Returns exact representation for Int/Rat types.'''
+                if self.mytype == NumType.Int:
+                    return self.numer
+                return fractions.Fraction(self.numer, self.denom)
 
 if __name__ == "__main__":  
     if 1:   # Standard imports
@@ -529,6 +616,10 @@ if __name__ == "__main__":
                     Assert(x.real == mpmath.mpf("1.2e3") and x.imag == zero)
                 elif s == "1+2j":
                     Assert(x.real == mpmath.mpf("1") and x.imag == mpmath.mpf("2"))
+        def Test_Addition():
+            x = Num("1.3")
+            y = Num("-7.3")
+            result = x + y
         if len(sys.argv) > 1:
             Demo()
         else:

@@ -24,9 +24,10 @@
   global and local variables. Avoid SHOUTING_SNAKE_CASE if possible.
 - Code density:  no blank lines between code statements. Blank lines in docstrings are
   allowed but must contain the current indentation level's spaces.
-- Math spacing (tight):  no spaces around *, /, //, or **.
-- Math spacing (loose):  one space on each side of +, -, %, &, |, <<, >>, <, <=,
-    >, >=, !=, ==, or, and and.
+- Math spacing
+    - No spaces around *, /, //, or **
+    - One space on each side of +, -, %
+    - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
 - Type annotations:  use type annotations wherever possible, utilizing import typing as
   ty for abbreviations.
 - Explicit imports:  use the 'import x' or 'import x as y' form only, with one library
