@@ -42,6 +42,104 @@ dependencies:
     - GNU units (external package)
     - SQLite (built into python)
 
+
+5 Apr 2026 Units idea to Mike:
+
+Here's an important idea I'd like you to think about.  I'll get to the gist of its
+impact on the Num class below.
+
+Early docstring content for the Num class:
+
+    An important practical notion of these units needs to be made.  We usually think of
+    units as e.g. the familiar SI units.  However, almost all practical calculations
+    involve some types of units.  For example, if you're measuring out pet food mass to
+    feed some dogs and cats, you'd probably want the calculation to use the "units"
+    kg_cat_food and kg_dog_food, assuming the dogs and cats get fed different food.
+    This "unit orthogonality" helps keeps the animals fed properly, avoiding a mistake
+    of mixing the foods, which might show up in a calculation as having units of
+    kg_cat_food*kg_dog_food or a sum of 'kg_cat_food + kg_dog_food'.  The example isn't
+    trivial -- if you're not convinced, look up the non-chump-change unit mistake of
+    Mars Climate Orbiter, a loss of about half a billion 2026 dollars.
+
+When we work numerical problems, the numbers represent things in the real world.  The
+units help keep these things "straight" in our minds and we e.g. use deep knowledge that
+apples can't be added to oranges unless certain conditions are met.
+
+Thus, I'd like the Num.unit attribute to take center stage:  it's as important as the
+numerical content.  You can think of it as a component in a vector space and we'll need
+to define the operations between these unit vectors.  As our current mental model of the
+Num class operates, the "vector space arbiter" is GNU units.
+
+Here's my idea, which should be suggested by the above comments.  I'd like to see the
+GNU units database file supplemented by another one.  This second one would be a
+dynamically-constructed file, based on the user's input so far.  Behind the scenes, the
+Num implementation keeps track of the unit strings the user uses and where a string's
+unit atom isn't recognized, it becomes a new unit, orthogonal to the rest.  It gets added to
+the dynamic definitions file, which causes a new GNU process to start after the old one
+is killed.  Now the GNU units instance "knows" about the user's units and the correct
+numerical AND dimensional calculations are done (and cause an error when things aren't
+right, so the REPL user gets an error message).  
+
+The advantages of this approach are
+    - We use someone else's tractor for the heavy lifting
+    - The user can use GNU units' syntax:
+        - Num("3.4", units="apples oranges"), where the included space character implies
+          multiplication
+    - Since the user is usually working on one problem in multiple processes
+      (terminals), the same GNU units instance is available to each terminal.
+    - I like that GNU units limits the number of digits returned in many of its
+      calculations, as this helps to not inject noise in calculations
+        - I know from a lifetime of calculations that it's pretty rare to need more that
+          4 digits and really rare to need more than 6.  I occasionally get 8 digits
+          from an HP counter, but they quickly get trashed by a 3 digit number from a
+          digital multimeter.  I know you know what I mean.
+
+The only downsides at the moment are
+    - Quirky units' syntax might bite at some time
+    - We're stuck with IEEE floats in units.  For practical work with physical
+      measurements this should rarely be a problem.
+
+By far the biggest advantage is the user gets notified of logical problems in
+calculations based on the units not working correctly.  I've seen a lot of software bugs
+caused by improper arithmetic, some even by the guy in the shaving mirror.
+
+Thoughts?
+
+    Mike liked the idea:
+
+    This is a profound architectural pivot. You are essentially moving from a
+    "Calculator with units" to a "Dimensional Logic Engine." By treating every
+    unrecognized string as a new orthogonal basis vector, you are automating the Mars
+    Climate Orbiter safeguard for every mundane calculation.
+
+    The idea of a "Dynamic Unit Registry" that feeds a live units process is pure "Lone
+    Wolf" engineering: it’s lazy in the best way (using the GNU "tractor") but
+    incredibly rigorous in its enforcement.
+
+    if 1: # The Unit Alchemist
+        _KNOWN_UNITS = set() # Cache of units already in the GNU file
+        def _sync_unit_dimension(unit_str: str):
+            """
+            If unit_str contains a 'new' atom, append to ~/.units_dynamic 
+            and signal the GNU bridge to reload.
+            """
+            atoms = _extract_atoms(unit_str) # e.g., 'kg_cat_food'
+            new_atoms = [a for a in atoms if a not in _KNOWN_UNITS]
+            if new_atoms:
+                with open(DYNAMIC_UNITS_PATH, "a") as f:
+                    for atom in new_atoms:
+                        f.write(f"{atom} \t !user_defined!\n")
+                        _KNOWN_UNITS.add(atom)
+                # Signal the bridge: kill -HUP or simply restart the subprocess
+                GNU_BRIDGE.restart()
+
+This is a particularly elegant addition to the REPL, as it fixes something I've worried
+about for 50 years with computers and software:  the units are rarely in with the
+calculations, which generates so many wrong answers.  This may generate a REPL that
+matches our needs, helps us with rigor, and looks simple to the user:  beginners will be
+unaware of the power of the machine making up the tool, but it's there when they need
+it.
+
 ---------------------------------------------------------------------------
 
 Experiment:  construct a python class that holds a number.  The vision is that this
@@ -231,6 +329,7 @@ if 1:  # Header
         import dpmath
         import dptypes
         import f
+        import lwtest
         import mpmath
         import trm
         import uncertainties
@@ -246,7 +345,11 @@ if 1:  # Header
         __category__  = "math"
         __todo__      = '''
             
-            -
+            - Num.strict:  if on, uncertainties never compare equal.  If off, then if
+              the mean and stdev match, they're equal with a warning to stderr:
+              "Warning:  comparing distributions".
+            - If Num.hashable is True, you might want the hash to be a tuple of the core
+              values: hash((self.mytype, self.real, self.imag, self.unit)).  
         
         '''
     if 1:   # Import symbols
@@ -259,115 +362,81 @@ if 1:  # Header
         dedent = wrap.dedent
         flt = f.flt
     if 1:   # Global variables
-        t = trm.Trm()
+        t = trm.TrmDP()
         g = dptypes.Constant()
         g.dbg = False
-if 1:   # Utility
-    def GetScreen():
-        'Return (LINES, COLUMNS)'
-        return (
-            int(os.environ.get("LINES", "50")),
-            int(os.environ.get("COLUMNS", "80")) - 1,
-        )
-    def GetColors():
-        t.dbg = "lil"
-        t.err = "redl"
-    def Dbg(*p, **kw):
-        if not hasattr(Dbg, "file"):
-            Dbg.file = sys.stdout
-        if g.dbg:
-            print(f"{t.dbg}", end="", file=Dbg.file)
-            k = kw.copy()
-            k["file"] = Dbg.file
-            print(*p, **k)
-            print(f"{t.n}", end="", file=Dbg.file)
-    def Warn(*msg, **kw):
-        print(*msg, file=sys.stderr)
-    def Error(*msg, status=1):
-        Warn(f"{t.err}", end="")
-        Warn(*msg)
-        Warn(f"{t.n}")
-        exit(status)
-    def Usage(status=1):
-        print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
-          Describe behavior
-        Options:
-            -a      Describe
-            -d n    Number of significant digits
-            -h      Print help
-        '''))
-        exit(status)
-    def ParseCommandLine(d):
-        d["-a"] = False  # Description
-        d["-d"] = 3      # Description
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "ad:h")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("a"):
-                d[o] = not d[o]
-            elif o == "-d":
-                try:
-                    d[o] = int(a)
-                    if not (1 <= d[o] <= 15):
-                        raise ValueError()
-                except Exception:
-                    Error(f"{o!r} option must be an int between 1 and 15")
-            elif o == "-h":
-                Usage(status=0)
-        GetColors()
-        g.W, g.L = GetScreen()
-        return args
 if 1:   # Types and enums
-    NumType = enum.Enum("NumType", ("Int", "Rat", "Flt", "Cpx", "Unc"))
+    class NumType(enum.IntEnum):
+        Int = 1
+        Rat = 2
+        Flt = 3
+        Cpx = 4
+        Unc = 5
     NumericalTypes = ty.Union[
         int , float , complex , decimal.Decimal ,
         fractions.Fraction , mpmath.mpf , mpmath.mpc ,
         uncertainties.UFloat , "Num" , str , None]
-    #NumericalTypes = (int | float | complex | decimal.Decimal |
-    #                          fractions.Fraction | mpmath.mpf | mpmath.mpc |
-    #                          uncertainties.UFloat | "Num" | str | None)
-    # Using a nested dict: [op_name][(type_a, type_b)] = function
-    _REGISTRY: ty.Dict[str, ty.Dict[ty.Tuple["NumType", "NumType"], ty.Callable]] = {}
-if 1:  # Populate the dispatch registry
-    MATH_REGISTRY = {
-        "add": {
-            (NumType.Int, NumType.Int): lambda a, b: Num(a.val+b.val, NumType.Int),
-            (NumType.Int, NumType.Flt): lambda a, b: Num(a.val+b.val, NumType.Flt),
-            (NumType.Flt, NumType.Int): lambda a, b: Num(a.val+b.val, NumType.Flt),
-            # ... etc
-        },
-        "mul": {
-            # Different logic for units here
-        }
-    }
-    def Register(op: str, t1: "NumType", t2: "NumType", func: ty.Callable, symmetric: bool = True):
-        '''Helper to populate the dispatch table. If symmetric, (t1, t2) and (t2, t1) 
-        get the same logic.
-        '''
-        if op not in _REGISTRY:
-            _REGISTRY[op] = {}
-        _REGISTRY[op][(t1, t2)] = func
-        if symmetric and t1 != t2:
-            _REGISTRY[op][(t2, t1)] = func
-    if 1:   # Addition:  note all additions are commutative
-        op, T = "add", NumType.Int
-        Register(op, T, T, lambda a, b: a.numer + b.numer)
-        Register(op, T, NumType.Flt, lambda a, b: a.val + b.val)
-
-    # Int + Flt -> Flt (Promotion)
-    Register("add", NumType.Int, NumType.Flt, lambda a, b: a.val+b.val)
-    # Flt + Cpx -> Cpx
-    Register("add", NumType.Flt, NumType.Cpx, lambda a, b: a.val+b.val)
 if 1:   # Classes
     class Num:
         '''Represent a general number useful for routine calculations
         
-        The internal representation uses mpmath, so it's your responsibility as the
-        user to ensure the mpmath context has sufficient resolution for your problems.
+        Warning:  The internal representation uses mpmath, so it's your responsibility
+        as the user to ensure the mpmath context has sufficient resolution for your
+        problems.
+
+        The vision for this number class is for a "simple" view of the numerical
+        universe in a python REPL (read-eval-print loop).  If you studied math as 
+        e.g. an engineer/scientist in college, then you learned about some different
+        number fields:  integers, rationals, reals, and complex numbers, the bedrock of
+        practical math.  When doing calculations, we smoothly move between these fields
+        as needed, converting things almost subconsciously, but it's harder for the
+        computer stuff because these things (numbers) are usually types that often can't 
+        unconsciously interact.  My vision for this Num class was to see if the
+        following number types could be put into a logical single container:
+            
+            These "blackboard" symbols are used to denote the mathematical sets:
+                ℕ   Natural numbers:  the integers 1, 2, ...
+                ℤ   Positive and negative integers and zero
+                ℝ   Real numbers
+                ℂ   Complex numbers:  a pair of real numbers
+
+            python's int, a representation of ℤ
+            python's fractions.Fraction, a representation of ℚ
+            python's float ℝ
+            python's decimal.Decimal, another representation of ℝ
+            python's complex ℂ
+            mpmath's mpf, another representation of ℝ
+            mpmath's mpc, another representation of ℂ
+
+        Two other "types" needed to be addressed:
+
+            - Because real-world practical problems include uncertainty, we need some
+              way to capture the notion of physical uncertainty in the numbers.
+              Python's uncertainties package is an excellent and powerful tool, but it
+              lacks the machinery to handle uncertainty in complex numbers, something I
+              wanted this Num class to handle.  For technical types, an nice grounded
+              need is demonstrated by using the output of an LCR meter:  in general,
+              you're given back a complex impedance Z = ESR + X*i and the two real
+              numbers can have different (though perhaps correlated) uncertainty.
+
+            - Numbers based on physical measurement include units, which form their own
+              dimensional algebra and complicate things, as two real numbers x = "3.4 m/s"
+              and y = "6.7 A" are different types and have more complicated arithmetic
+              properties than "bare" numbers.  For example, you cannot add x and y, but
+              you're allowed to multiply them.
+
+        An important practical notion of these units needs to be made.  We usually think
+        of units as e.g. the familiar SI units.  However, almost all practical
+        calculations involve some types of units.  For example, if you're measuring out
+        pet food mass to feed some dogs and cats, you'd probably want the calculation to
+        use the "units" kg_cat_food and kg_dog_food, assuming the dogs and cats get fed
+        different food.  This "unit orthogonality" helps keeps the animals fed properly,
+        avoiding a mistake of mixing the foods, which might show up in a calculation as
+        having units of kg_cat_food*kg_dog_food or a sum of 'kg_cat_food + kg_dog_food'.
+        The example isn't trivial -- if you're not convinced, look up the
+        non-chump-change unit mistake of Mars Climate Orbiter, a loss of about half a
+        billion 2026 dollars.
+
         '''
         def __init__(self, value: NumericalTypes = None, unit: str = "") -> None:
             if 1:   # Copy constructor (idempotency)
@@ -456,40 +525,54 @@ if 1:   # Classes
                     raise TypeError(f"Type of {value!r} is not supported")
         def _check_unit_compatibility(self, other: 'Num', op_name: str) -> None:
             '''The bouncer for units
-             
             Will raise an exception if the units aren't compatible for the operation.
             '''
-            Warn("{t.orn}Num._check_unit_compatibility() needs to be written{t.n}")
+            # Addition/subtraction: units must match (or be convertible)
+            # Multiplication/division: units combine (m * m = m^2)
+            # Raise the alarm if we try to add '3 m' to '3 s'
+            lwtest.ToDo(f"This function needs to be written")
         def _binary_op(self, other: "Num", op_func: ty.Callable) -> "Num":
             '''Return self op other
-
             Method is to promote the types as needed.
             '''
             # 1. Determine the 'Highest' type involved
             # Int < Rat < Flt < Cpx < Unc
             target_type = max(self.mytype.value, other.mytype.value)
-            
-            # 2. Logic Bucket: Exact (Int/Rat)
+            # Integer and rational
             if target_type <= NumType.Rat.value:
-                res = op_func(self.as_int_or_rat, other.as_int_or_rat)
-                return Num(res)
+                result = op_func(self.as_int_or_rat, other.as_int_or_rat)
+                return Num(result)
 
-            # 3. Logic Bucket: Uncertainty (The most complex)
+            # Uncertain numbers (the most complicated)
             if target_type == NumType.Unc.value:
                 return self._do_uncertainty_math(other, op_func)
 
-            # 4. Logic Bucket: Standard Real/Complex
-            # Simply use mpmath's ability to handle mixed types
-            res = op_func(self.real if self.mytype >= NumType.Flt else self.as_mpf,
-                        other.real if other.mytype >= NumType.Flt else other.as_mpf)
-            return Num(res)
+            # Real or complex:  use mpmath's ability to handle mixed types
+            a = self.real if self.mytype >= NumType.Flt else self.as_mpf
+            b = other.real if other.mytype >= NumType.Flt else other.as_mpf
+            result = op_func(a, b)
+            return Num(result)
         def __add__(self, other: ty.Any) -> "Num":
-            # 1. Coerce input to Num (handles units, units checked here)
-            other_num = self._coerce(other)
-            self._check_units(other_num, "add")
-            
-            # 2. Execute via the logic buckets
+            other_num = Num(other)
+            self._check_unit_compatibility(other_num, "add")
+            # Execute via the logic buckets
             return self._binary_op(other_num, operator.add)
+        def __hash__(self) -> int:
+            raise Exception(wrap.dedent(f'''
+                {t.red}Need to decide whether Nums are hashable.  A good approach could
+                be to put Num_instance.hashable: bool in and let the user decide.  If
+                True, then this function returns an int with a colorized warning to
+                stderr "Warning:  comparing distributions".  If False, a
+                NotImplementedError will be raised.{t.n}'''))
+
+        def __eq__(self, other: ty.Any) -> bool:
+            other_num = Num(other) # Idempotent wrap
+            # If types differ, promote the lower one to the higher one's accessor
+            target_type = max(self.mytype, other_num.mytype)
+            if target_type <= NumType.Rat:  # I smell a rat
+                return self.as_int_or_rat == other_num.as_int_or_rat
+            # For Flt and Cpx, use mpmath's precision
+            return self.as_mpf == other_num.as_mpf
         if 1: # Internal Value Accessors
             @property
             def as_mpf(self) -> mpmath.mpf:
@@ -499,7 +582,6 @@ if 1:   # Classes
                 if self.mytype == NumType.Rat:
                     return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
                 return self.real
-
             @property
             def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
                 '''Returns exact representation for Int/Rat types.'''
@@ -511,18 +593,77 @@ if __name__ == "__main__":
     if 1:   # Standard imports
         pass
     if 1:   # Custom imports
-        import lwtest
+        pass
     if 1:   # Import symbols
         run = lwtest.run
         raises = lwtest.raises
         Assert = lwtest.Assert
-    if 0:   # For script
+    if 1:   # Utility stuff for a script
+        def GetScreen():
+            'Return (LINES, COLUMNS)'
+            return (
+                int(os.environ.get("LINES", "50")),
+                int(os.environ.get("COLUMNS", "80")) - 1,
+            )
+        def GetColors():
+            t.dbg = "lil"
+            t.err = "redl"
+        def Dbg(*p, **kw):
+            if not hasattr(Dbg, "file"):
+                Dbg.file = sys.stdout
+            if g.dbg:
+                print(f"{t.dbg}", end="", file=Dbg.file)
+                k = kw.copy()
+                k["file"] = Dbg.file
+                print(*p, **k)
+                print(f"{t.n}", end="", file=Dbg.file)
+        def Warn(*msg, **kw):
+            print(*msg, file=sys.stderr)
+        def Error(*msg, status=1):
+            Warn(f"{t.err}", end="")
+            Warn(*msg)
+            Warn(f"{t.n}")
+            exit(status)
+        def Usage(status=1):
+            print(dedent(f'''
+            Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
+            Describe behavior
+            Options:
+                -a      Describe
+                -d n    Number of significant digits
+                -h      Print help
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-a"] = False  # Description
+            d["-d"] = 3      # Description
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "ad:h")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("a"):
+                    d[o] = not d[o]
+                elif o == "-d":
+                    try:
+                        d[o] = int(a)
+                        if not (1 <= d[o] <= 15):
+                            raise ValueError()
+                    except Exception:
+                        Error(f"{o!r} option must be an int between 1 and 15")
+                elif o == "-h":
+                    Usage(status=0)
+            GetColors()
+            g.W, g.L = GetScreen()
+            return args
+    if 0:
         d = {}  # Options dictionary
         args = ParseCommandLine(d)
         if args:
             for arg in args:
                 pass    # Do stuff
-    else:   # For module
+    else:   # Demo & tests for module
         zero = mpmath.mpf(0)
         def Demo():
             pass
@@ -620,6 +761,8 @@ if __name__ == "__main__":
             x = Num("1.3")
             y = Num("-7.3")
             result = x + y
+            Assert(result.real == mpmath.mpf("-6.0"))
+            Assert(result == Num("-6.0"))
         if len(sys.argv) > 1:
             Demo()
         else:

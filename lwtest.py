@@ -1,83 +1,109 @@
 '''
 Lightweight testrunner framework
 
-from lwtest import run, raises, assert_equal, Assert, Debugger
+    Architecture:  I put the self-tests of my python modules in the module itself after
+    the 'if __name__ == "__main__":' block.  Then the module is tested by either running
+    it or, if e.g. running it shows demonstration output, by using the --test option.
+    This is done by the script encountering the line
 
-def TestExample():
-    f = lambda x: set(x)
-    # Two ways to check for expected exceptions
-    raises(TypeError, f, 1)
-    with raises(ZeroDivisionError) as x:
-        1/0
-    Assert(x.value = "<class 'ZeroDivisionError'>")
-    if 1:   # How to compare floating point numbers
-        eps = 1e-6
-        a, b = 1, 1 + eps
-        # In following, debug=True starts debugger if a != b
-        assert_equal(a, b, abstol=eps, debug=True)
-        # Set Assert.debug to True to always drop into debugger
+        exit(lwtest.run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
 
-if __name__ == "__main__":
-    failed, messages = run(globals())
-or 
-    exit(run(globals(), halt=True)[0])
+    This finds all test functions that start with test_ or Test_ and runs them.  There's
+    currently no support for the use of test classes like unittest uses (i.e., you
+    derive from unittest.TestCase and call unittest.main()).
 
-run()
-    Finds test functions and execute them.  Its single argument must be a dictionary
-    containing the names and their associated function objects.  Set verbose=True to see
-    which functions will be executed and their execution order.
+    Example:
 
-Assert() 
-    Works like python's assert statement, but can drop you into the debugger if so
-    instructed.  Type 'up' to go to the failed Assert() line.  Since dropping into the
-    debugger is a common need, there are multiple ways:
+        from lwtest import run, raises, assert_equal, Assert, Debugger
 
-        - Set the debug keyword to True
-        - Include a command line argument
-        - Set Assert.debug to True
-        - Set the environment variable 'Assert' to the nonempty string
+        def TestExample():
+            f = lambda x: set(x)
+            # Two ways to check for expected exceptions
+            raises(TypeError, f, 1)
+            with raises(ZeroDivisionError) as x:
+                1/0
+            Assert(x.value = "<class 'ZeroDivisionError'>")
+            if 1:   # How to compare floating point numbers
+                eps = 1e-6
+                a, b = 1, 1 + eps
+                # In following, debug=True starts debugger if a != b
+                assert_equal(a, b, abstol=eps, debug=True)
+                # Set Assert.debug to True to always drop into debugger
 
-    Note Assert() and assert_equal() do not pay attention to __debug__, unlike
-    python's assert statement.
+        if __name__ == "__main__":
+            failed, messages = run(globals())
+        or 
+            exit(run(globals(), halt=True)[0])
 
-ToDoMessage()
-    Causes a colored message to be printed to stdout to remind you of something that
-    needs to be done.
+    run()
+        Finds test functions and execute them.  Its single argument must be a dictionary
+        containing the names and their associated function objects.  Set verbose=True to
+        see which functions will be executed and their execution order.
 
-My motivation for generating this lightweight testrunner framework was my frustration
-with the unittest module in conjunction with the way I develop code.  I write my unit
-tests before or during code development and often need to drop into the debugger or add
-a print statement to see what's going wrong.  The unittest module traps stdout and makes
-this painful to do.  I liked some of the available testrunners like nose or pytest, but
-I decided that if I was going to add a new dependency, it might as well be a dependency
-I could tune to my own preferences.  The other major desire was to allow fairly
-comprehensive coverage of comparing numerical results.
+    Assert() 
+        Works like python's assert statement, but can drop you into the debugger if so
+        instructed.  Type 'up' to go to the failed Assert() line.  Since dropping into
+        the debugger is a common need, there are multiple ways:
+
+            - Set the debug keyword to True
+            - Include a command line argument
+            - Set Assert.debug to True
+            - Set the environment variable 'Assert' to the nonempty string
+
+        Note Assert() and assert_equal() do not pay attention to __debug__, unlike
+        python's assert statement.
+
+    ToDo()
+        Causes a colored message to be printed to stdout to remind you of something that
+        needs to be done.
+
+    My motivation for generating this lightweight testrunner framework was my
+    frustration with the unittest module in conjunction with the way I develop code.  I
+    write my unit tests before or during code development and often need to drop into
+    the debugger or add a print statement to see what's going wrong.  The unittest
+    module traps stdout and makes this painful to do.  I liked some of the available
+    testrunners like nose or pytest, but I decided that if I was going to add a new
+    dependency, it might as well be a dependency I could tune to my own preferences.
+    The other major desire was to allow fairly comprehensive coverage of comparing
+    numerical results.  This code was based on a nice idea by Raymond Hettinger around
+    2008 in an ActiveState post, but the URL went defunct.
 
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Lightweight test runner oo>
-        <oo desc ∞ This was derived from some nice code by Raymond Hettinger at
-            http://code.activestate.com/recipes/572194/.  Downloaded 27 Jul 2014;
-            unfortunately the URL is defunct.
-        oo>
-        <oo copy ∞ Copyright © 2014 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ utility oo>
-        <oo test ∞ testdir oo>
-        <oo todo ∞
-        
-            - ∞∞1 Assert core need:  use an environment variable AssertStop to determine
-              if an exception is raised during execution.  Most of the time I want this 
-              exception; however, when vetting a major change (like the fmt.py
-              refactor), it would be advantageous to set AssertStop to False and have
-              Assert print out a red error message with line number everywhere there is
-              an assertion failure.
+    if 1:  # Standard imports
+        import collections
+        import decimal
+        import inspect
+        import math
+        import os
+        import pdb
+        import re
+        import sys
+        import time
+        import traceback
+    if 1:  # Custom imports
+        import color
+        import f
+        import trm
+        try:
+            import numpy
+            have_numpy = True
+        except ImportError:
+            have_numpy = False
+        try:
+            import mpmath
+            have_mpmath = True
+        except ImportError:
+            have_mpmath = False
+    if 1:   # Core file gist information
+        __gist__      = "Lightweight test runner"
+        __copyright__ = "Copyright © 2014 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "testdir"
+        __history__   = '''Important dates of changes'''
+        __category__  = "utility"
+        __todo__      = '''
+
             - ∞∞1 Assert, assert_equal, and the check_* functions can use debug.fln() to get
               the file and line number of the failed call
                 - ∞∞2 Also look at including debug.py to print the details during an
@@ -109,34 +135,8 @@ if 1:  # Header
               consider would be to let run look at sys.argv and process options there in
               lieu of keywords (this would be handy for command line work, as the
               command line options would overrule the keywords).
-        
-        oo>
-    '''
-    if 1:  # Standard imports
-        import collections
-        import decimal
-        import inspect
-        import math
-        import os
-        import pdb
-        import re
-        import sys
-        import time
-        import traceback
-    if 1:  # Custom imports
-        import color
-        import f
-        import trm
-        try:
-            import numpy
-            have_numpy = True
-        except ImportError:
-            have_numpy = False
-        try:
-            import mpmath
-            have_mpmath = True
-        except ImportError:
-            have_mpmath = False
+
+        '''
     if 1:  # Global variables
         yy = pdb.set_trace
         u = trm.TrmDP()
@@ -147,6 +147,7 @@ if 1:  # Header
         __all__ = '''
             Assert
             ToDoMessage
+            ToDo
             assert_equal
             raises
             run
@@ -155,7 +156,7 @@ if 1:  # Header
         ii = isinstance
         python_version = ".".join([str(i) for i in sys.version_info[:3]])
         # Regular expression to identify test functions
-        id_test_function_regexp = "^Test_|_test$"
+        id_test_function_regexp = "^[Tt]est_"
 if 1:  # Core functionality
     def run(names_dict, **kw):
         '''Discover and run the test functions in the names_dict dictionary (name :
@@ -194,9 +195,8 @@ if 1:  # Core functionality
             file = traceback.extract_stack()[0][0]
             u.print(f"{u.orn}{_modname}! {file}:  Error:  tests are broken")
             return (1, "Tests are broken")
-        # Find test functions in names_dict to run.  Note we don't allow
-        # "_lwtest" to end the name; this lets you use a variable like
-        # _have_lwtest in a script.
+        # Find test functions in names_dict to run.  Note we don't allow "_lwtest" to
+        # end the name; this lets you use a variable like _have_lwtest in a script.
         istest = re.compile(regexp, reopts)
         tests = [
             (name, func)
@@ -208,10 +208,9 @@ if 1:  # Core functionality
         try:
             filename = names_dict["__file__"]
         except KeyError:
-            # Use the current file's name; put angle brackets around it to
-            # indicate it might not be the correct file (e.g., the user
-            # manually invoked run() with a hand-crafted dictionary and
-            # forgot to add a "__file__" key).
+            # Use the current file's name; put angle brackets around it to indicate it
+            # might not be the correct file (e.g., the user manually invoked run() with
+            # a hand-crafted dictionary and forgot to add a "__file__" key).
             filename = "<__file__ ?>"
         pass_count = fail_count = 0
         fail_messages = []
@@ -310,19 +309,19 @@ if 1:  # Core functionality
             raise AssertionError("Did not raise expected exception")
 if 1:  # Utility
     def GetTime(duration_s):
+        'Return duration in s in s, min, or hr'
         if duration_s > 3600:
             return f"{duration_s/3600:.3f} hr"
         elif duration_s > 60:
             return f"{duration_s/60:.2f} min"
         else:
             return f"{duration_s:.2f} s"
-    def ToDoMessage(message, prefix="+ ", color=u.orn):
-        '''This function results in a message to stdout; its purpose is to
-        allow you to see something that needs to be done, but won't cause
-        the test to fail.  The message is decorated with a leading prefix
-        string and the file and line number.  If color is not None, then it
-        must either be a string naming a color (see color.py) or a Color
-        class instance.  The message is printed in this color.
+    def ToDo(message, prefix="+ ", color=u.orn, file=sys.stdout):
+        '''This function results in a message to stdout; its purpose is to allow you to
+        see something that needs to be done, but won't cause the test to fail.  The
+        message is decorated with a leading prefix string and the file and line number.
+        If color is not None, then it must either be a string naming a color (see
+        color.py) or a Color class instance.  The message is printed in this color.
         '''
         fn, ln, method, call = traceback.extract_stack()[-2]
         c = u(color) if color is not None else ""
@@ -337,14 +336,15 @@ if 1:  # Utility
         }
         if vars["method"] == "<module>":
             if color is None:
-                print("{prefix}{fn}[{ln}]:  {msg}".format(**vars))
+                print("{prefix}{fn}[{ln}]:  {msg}".format(**vars), file=file)
             else:
-                print("{c}{prefix}{fn}[{ln}]:  {msg}{n}".format(**vars))
+                print("{c}{prefix}{fn}[{ln}]:  {msg}{n}".format(**vars), file=file)
         else:
             if color is None:
-                print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars))
+                print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars), file=file)
             else:
-                print("{c}{prefix}{fn}[{ln}] in {method}:  {msg}{n}".format(**vars))
+                print("{c}{prefix}{fn}[{ln}] in {method}:  {msg}{n}".format(**vars), file=file)
+    ToDoMessage = ToDo   # ToDoMessage is old name
 if 1:  # Checking functions
     def check_flt(a, b, reltol=None, abstol=None, use_min=False):
         '''a must be a flt.  If b is not a flt, then convert it if
@@ -674,27 +674,28 @@ if 1:  # Checking functions
                 raise AssertionError(msg)
         else:
             return 0
-
-if 1:  # Testing functions
+if 1:  # Self-test functions for this module
     def Test_Raises():
         f = lambda x: 1/x
-        # Function call & object instantiation semantics
-        raises(ZeroDivisionError, f, 0)
-        try:
-            raises(RuntimeError, f, 1)
-        except AssertionError:
-            pass
-        else:
-            raise Exception("Bug!")
-        class A:
-            def __init__(self):
-                raise RuntimeError
-        raises(RuntimeError, A)
+        if 1:   # Function call semantics
+            raises(ZeroDivisionError, f, 0)
+            try:
+                raises(RuntimeError, f, 1)
+            except AssertionError:
+                pass
+            else:
+                raise Exception("Bug!")
+        if 1:   # Object instantiation semantics
+            class A:
+                def __init__(self):
+                    raise RuntimeError
+            raises(RuntimeError, A)
     def Test_RaisesContextManager():
         f = lambda x: 1/x
         with raises(ZeroDivisionError):
             f(0)
         with raises(ZeroDivisionError) as x:
+            # x is a <lwtest.RaisesContextManager object at 0x...>
             assert x is not None
             f(0)
         Assert(x.value == "<class 'ZeroDivisionError'>")
@@ -704,96 +705,100 @@ if 1:  # Testing functions
         except AssertionError:
             pass
         else:
-            raise Exception("Bug!")
+            raise Exception("Bug in lwtest.Test_RaisesContextManager")
     def Test_AssertEqual():
-        """Demonstrate that the assert_equal function can detect equal and
+        '''Demonstrate that the assert_equal function can detect equal and
         non-equal objects for the following types:
-            Numbers
-                integers
-                floats
-                Decimals
-                complex
-            Sequences of numbers
-            Arbitrary objects that can be compared
-        """
+            - Numbers
+                - integers
+                - floats
+                - Decimals
+                - complex
+            - Sequences of numbers
+            - Arbitrary objects that can be compared
+        '''
         E = AssertionError
-        # Numbers
-        x = 0.0
-        assert_equal(int(x), int(x))
-        raises(E, assert_equal, int(x), int(x) + 1)
-        assert_equal(x, x)
-        raises(E, assert_equal, x, x + 1.0)
-        x, y = "0.0", "1.0"
-        assert_equal(decimal.Decimal(x), decimal.Decimal(x))
-        raises(E, assert_equal, decimal.Decimal(x), decimal.Decimal(y))
-        x, y = 1 + 1j, 1 + 2j
-        assert_equal(x, x)
-        raises(E, assert_equal, x, x + 1.0)
-        if have_mpmath:
-            x = mpmath.mpf("1.0")
+        if 1:   # Numbers
+            # Float
+            x = 0.0
+            assert_equal(int(x), int(x))
+            raises(E, assert_equal, int(x), int(x) + 1)
             assert_equal(x, x)
             raises(E, assert_equal, x, x + 1.0)
-        # Sequences of numbers
-        x = [1.0, 2.0]
-        y = [int(i) for i in x]
-        assert_equal(y, y)
-        raises(E, assert_equal, y, [i + 1 for i in y])
-        assert_equal(x, x)
-        raises(E, assert_equal, x, [i + 1 for i in x])
-        x = [decimal.Decimal("1.0"), decimal.Decimal("2.0")]
-        assert_equal(x, x)
-        raises(E, assert_equal, x, [i + 1 for i in x])
-        x = [1 + 1j, 1 + 2j]
-        assert_equal(x, x)
-        raises(E, assert_equal, x, [i + 1 for i in x])
-        if have_mpmath:
-            x = [mpmath.mpf("1.0"), mpmath.mpf("1.0")]
+            # Decimal
+            x, y = "0.0", "1.0"
+            assert_equal(decimal.Decimal(x), decimal.Decimal(x))
+            raises(E, assert_equal, decimal.Decimal(x), decimal.Decimal(y))
+            x, y = 1 + 1j, 1 + 2j
+            assert_equal(x, x)
+            raises(E, assert_equal, x, x + 1.0)
+            # mpmath
+            if have_mpmath:
+                x = mpmath.mpf("1.0")
+                assert_equal(x, x)
+                raises(E, assert_equal, x, x + 1.0)
+        if 1:   # Sequences of numbers
+            # Integers & floats
+            x = [1.0, 2.0]
+            y = [int(i) for i in x]
+            assert_equal(y, y)
+            raises(E, assert_equal, y, [i + 1 for i in y])
             assert_equal(x, x)
             raises(E, assert_equal, x, [i + 1 for i in x])
-        if have_numpy:
-            x = numpy.array([1.0, 1.0])
+            # Decimal
+            x = [decimal.Decimal("1.0"), decimal.Decimal("2.0")]
             assert_equal(x, x)
-            raises(E, assert_equal, x, x + 1)
-        # -----------------
-        # abstol
-        x, eps = 1, 1e-15
-        assert_equal(x, x + eps, abstol=2*eps)
-        raises(E, assert_equal, x, x + eps, abstol=eps)
-        # Check things work if one argument is zero
-        x, eps = 0, 1e-15
-        assert_equal(0, eps, abstol=2*eps)
-        assert_equal(eps, 0, abstol=2*eps)
-        # -----------------
-        # reltol
-        x, tol, eps = 1, 0.01, 1e-15
-        assert_equal(x, x*(1 + tol - eps), reltol=tol)
-        raises(E, assert_equal, x, x*(1 + tol), reltol=tol)
-        # reltol & abstol both defined, use_min=True
-        assert_equal(x, x*(1 + tol - eps), reltol=tol, abstol=0)  # Passes
-        raises(
-            E, assert_equal, x, x*(1 + tol - eps), reltol=tol, abstol=0, use_min=True
-        )  # Catches failure
-        # Check things work if one argument is zero
-        assert_equal(0, 1, reltol=1)
-        assert_equal(1, 0, reltol=1)
-        # ----- Other objects -----
-        # Strings
-        x = "a string"
-        assert_equal(x, x)
-        raises(E, assert_equal, x, x[:-1])
-        # Classes and instances
-        class A:
-            pass
-        class B:
-            pass
-        a, b = A(), B()
-        assert_equal(a, a)
-        assert_equal(A, A)
-        raises(E, assert_equal, a, b)
-        raises(E, assert_equal, A, B)
-        # Functions
-        assert_equal(Test_Raises, Test_Raises)
-        raises(E, assert_equal, Test_Raises, assert_equal)
+            raises(E, assert_equal, x, [i + 1 for i in x])
+            # Complex
+            x = [1 + 1j, 1 + 2j]
+            assert_equal(x, x)
+            raises(E, assert_equal, x, [i + 1 for i in x])
+            # mpmath
+            if have_mpmath:
+                x = [mpmath.mpf("1.0"), mpmath.mpf("1.0")]
+                assert_equal(x, x)
+                raises(E, assert_equal, x, [i + 1 for i in x])
+            # numpy
+            if have_numpy:
+                x = numpy.array([1.0, 1.0])
+                assert_equal(x, x)
+                raises(E, assert_equal, x, x + 1)
+        if 1:   # abstol
+            x, eps = 1, 1e-15
+            assert_equal(x, x + eps, abstol=2*eps)
+            raises(E, assert_equal, x, x + eps, abstol=eps)
+            # Check things work if one argument is zero
+            x, eps = 0, 1e-15
+            assert_equal(0, eps, abstol=2*eps)
+            assert_equal(eps, 0, abstol=2*eps)
+        if 1:   # reltol
+            x, tol, eps = 1, 0.01, 1e-15
+            assert_equal(x, x*(1 + tol - eps), reltol=tol)
+            raises(E, assert_equal, x, x*(1 + tol), reltol=tol)
+            # reltol & abstol both defined, use_min=True
+            assert_equal(x, x*(1 + tol - eps), reltol=tol, abstol=0)  # Passes
+            raises(E, assert_equal, x, x*(1 + tol - eps), reltol=tol, abstol=0, use_min=True)  # Catches failure
+            # Check things work if one argument is zero
+            assert_equal(0, 1, reltol=1)
+            assert_equal(1, 0, reltol=1)
+        if 1:   # ----- Other objects -----
+            # Strings
+            x = "a string"
+            assert_equal(x, x)
+            raises(E, assert_equal, x, x[:-1])
+            # Classes and instances
+            class A:
+                pass
+            class B:
+                pass
+            a, b = A(), B()
+            assert_equal(a, a)
+            assert_equal(A, A)
+            raises(E, assert_equal, a, b)
+            raises(E, assert_equal, A, B)
+            # Functions
+            assert_equal(Test_Raises, Test_Raises)
+            raises(E, assert_equal, Test_Raises, assert_equal)
     def Test_flt_cpx():
         x, z = f.flt(0), f.cpx(0)
         with x:
@@ -807,39 +812,40 @@ if 1:  # Testing functions
             b = 1 + 1j
             assert_equal(a, b)
     def Test_Run():
-        def TestA():
+        def Test_A():
             raise ValueError()
-        def TestB():
+        def Test_B():
             raise ValueError()
-        def testA():
+        def test_A():
             raise ValueError()
-        st, d = StringIO(), {"TestA": TestA, "TestB": TestB, "testA": testA}
-        # Test halt keyword
-        failed, messages = run(d, stream=None, halt=True)
-        assert messages.split("\n")[0] == "TestA failed:  ValueError()"
-        # Test that run has two failures
-        failed, messages = run(d, stream=None)
-        m1, m2 = "TestA failed:", "TestB failed:"
-        assert m1 in messages and m2 in messages
-        # Show regexp change results in only one function being run
-        failed, messages = run(d, stream=None, regexp="^TestA$")
-        assert m1 in messages and m2 not in messages
-        # Change to a case sensitive search
         st = StringIO()
-        failed, messages = run(d, stream=st, regexp="^testA$", reopts=0)
-        s = st.getvalue().strip().split("\n")
-        assert s[0] == "testA failed:  ValueError()"
-        assert m1 not in messages and m2 not in messages
-    def Test_ToDoMessage():
-        ToDoMessage("Simulated to-do message")
-        ToDoMessage("Simulated to-do message in color", color="yel")
+        di = {"Test_A": Test_A, "Test_B": Test_B, "test_A": test_A}
+        if 1:   # Test halt keyword
+            failed, messages = run({"Test_A": Test_A}, stream=None, halt=True)
+            assert messages.split("\n")[0] == "Test_A failed:  ValueError()"
+        if 1:   # Test that run has two failures
+            failed, messages = run(di, stream=None)
+            m1, m2 = "Test_A failed:", "Test_B failed:"
+            assert m1 in messages and m2 in messages
+        if 1:   # Show regexp change results in only one function being run
+            failed, messages = run(di, stream=None, regexp="^Test_A$")
+            assert m1 in messages and m2 not in messages
+        if 1:   # Change to a case sensitive search
+            st = StringIO()
+            failed, messages = run(di, stream=st, regexp="^test_A$", reopts=0)
+            s = st.getvalue().strip().split("\n")
+            assert s[0] == "test_A failed:  ValueError()"
+            assert m1 not in messages and m2 not in messages
+    def Test_ToDo():
+        ToDo("Simulated to-do message")
+        ToDo("Simulated to-do message in color", color="yel")
 
 if __name__ == "__main__":
     if 1:  # Standard imports
         import sys
         from io import StringIO
     if 1:  # Custom imports
-        from lwtest import run, raises, assert_equal, Assert, ToDoMessage
+        from lwtest import run, raises, assert_equal, Assert, ToDo
         import wrap
         try:
             import numpy
@@ -855,6 +861,7 @@ if __name__ == "__main__":
         u.k = u.sky
         u.d = u.grn1
         u.u = u.lavl
+        u.ul = u(attr="ul")
         print(wrap.dedent(f'''
         {u.yel}lwtest:  Lightweight test framework -- typical usage:{u.n}
             from lwtest import run, assert_equal, raises, Assert
@@ -864,6 +871,7 @@ if __name__ == "__main__":
                   or
                 {u.mag}exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0]){u.n}
             
+            {u.ul}run keywords{u.n}
                 {u.k}broken{u.n}      If True, testing code is acknowledged to be broken; a warning
                             message is printed and tests are not run.  [{u.d}False{u.n}]
                 {u.k}dbg{u.n}         If True, don't handle exceptions (allows you to trap them in a
@@ -880,7 +888,7 @@ if __name__ == "__main__":
             
                 exit(num_failed)      # Nonzero status if 1 or more unhandled exceptions
         
-        Utility functions:
+        {u.ul}Utility functions:{u.n}
             Check that two numbers are close:
                 {u.u}assert_equal{u.n}(a, b, reltol=None, abstol=None, use_min=False)
             Check that something raises an exception:
@@ -889,7 +897,7 @@ if __name__ == "__main__":
                 with {u.u}raises{u.n}(exception_object):
                     <code that must raise an exception>
             Send a colored reminder message to stdout:
-                {u.u}ToDoMessage{u.n}(message, prefix="+", color="yel")
+                {u.u}ToDo{u.n}(message, prefix="+", color="yel")
                 
             {u.u}Assert{u.n}(condition, msg="", debug=False)
                 Is like assert but can't be optimized out.  The debug keyword argument if True drops
