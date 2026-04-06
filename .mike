@@ -22,6 +22,9 @@
   elif, def, or class).
 - Naming conventions:  use CamelCase for classes and functions; use snake_case for
   global and local variables. Avoid SHOUTING_SNAKE_CASE if possible.
+    - You routinely use 'res' for 'result'.  I have to do a double-take everytime I see
+      this, as I think 'reserve', 'result', 'residual', and other things.  Can you
+      standardize on using the word result?
 - Code density:  no blank lines between code statements. Blank lines in docstrings are
   allowed but must contain the current indentation level's spaces.
 - Math spacing
@@ -44,6 +47,8 @@
     - Most of the time:  standard sentence structure with capitalized first word,
       followed by no capitals except for proper nouns or common honorifics
 - Colons in text:  two spaces after the colon.
+- Technicolor in tracebacks:  you don't need to put terminal escape sequences in for me,
+  as I'll do it myself, but it will be rare
 - Core files in /plib
     - f.py:  flt(float) and cpx(complex) with short string interpolations
     - trm.py:  Trm(dict) for terminal escape sequences

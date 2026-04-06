@@ -316,8 +316,8 @@ if 1:  # Utility
             return f"{duration_s/60:.2f} min"
         else:
             return f"{duration_s:.2f} s"
-    def ToDo(message, prefix="+ ", color=u.orn, file=sys.stdout):
-        '''This function results in a message to stdout; its purpose is to allow you to
+    def ToDo(message, prefix="+ ", color="orn", file=sys.stderr):
+        '''This function results in a message to stderr; its purpose is to allow you to
         see something that needs to be done, but won't cause the test to fail.  The
         message is decorated with a leading prefix string and the file and line number.
         If color is not None, then it must either be a string naming a color (see
@@ -335,12 +335,12 @@ if 1:  # Utility
             "n": u.n,
         }
         if vars["method"] == "<module>":
-            if color is None:
+            if color is None or color.strip() == "":
                 print("{prefix}{fn}[{ln}]:  {msg}".format(**vars), file=file)
             else:
                 print("{c}{prefix}{fn}[{ln}]:  {msg}{n}".format(**vars), file=file)
         else:
-            if color is None:
+            if color is None or color.strip() == "":
                 print("{prefix}{fn}[{ln}] in {method}:  {msg}".format(**vars), file=file)
             else:
                 print("{c}{prefix}{fn}[{ln}] in {method}:  {msg}{n}".format(**vars), file=file)

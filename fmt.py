@@ -1606,7 +1606,8 @@ else:   # New TakeApart/Fmt
             elif isinstance(x, mpmath.mpf):
                 if not mpmath.isfinite(x):
                     return DecomposedNumber('', str(x).lower(), 0, True)
-                s = mpmath.nstr(x, n, min_fixed=0, max_fixed=0, strip_zeros=False).lower()
+                s = mpmath.nstr(x, n, min_fixed=0, max_fixed=0, strip_zeros=False,
+                                show_zero_exponent=True).lower()
             elif isinstance(x, float):
                 if not math.isfinite(x):
                     s = str(x).lower()
