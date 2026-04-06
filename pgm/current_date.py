@@ -29,7 +29,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from pprint import pprint as pp
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         import u
         from f import flt
         import dpastro
