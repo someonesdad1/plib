@@ -17,33 +17,63 @@ Vision
         width = num(2, "km")
         area = length*width
         print(area)
-        -> 5.22 mi²
-        print(area.to("in2"))       # Convert to square inches
-        -> 20953700787.4016
-        -> 2.10e10 in²
+            -> 5.22 mi²
+        area_sq_in = area.to("in2")     # Convert to square inches
+        print(area_sq_in)
+            -> 2.10e10 in²
+        print(area_sq_in.engsi)         # Can use SI prefixes and engineering notation
+            -> 21 Gin²
 
-    The default formatter outputs 3 digits for the answer.
+    The default formatter outputs 3 digits for the answer.  The user has control over
+    the points at which the output switches to scientific notation.
+
+    This also supports the infection model:  a num combined with a native python number
+    always results in a num type result.  The intent is that the user's numerical
+    computations appear to done with one numerical type.  In reality, a num object
+    internally uses two python integers and four mpmath.mpf numbers to implement this 
+    simulated number.
+
+    Because the GNU units program is used for unit conversion data and dimensional
+    algebra, the num environment is unit-agnostic, meaning you can freely use any units
+    you wish that are defined.  A strategic addition is this also gives you the freedom
+    to define your own unit strings.  For example, suppose you were computing a
+    combinatorial problem of estimating how long it would take to generate all the
+    combinations of a hashed string looking for a collision.  A useful unit string here
+    would be 'hash', so you'd use the command 
+
+        units("hash")
+
+    to add a new unit to the allowed units.  This unit by definition is orthogonal to
+    all other units.  Now you can use expressions like num("1e10", "hash/s") for a
+    hardware hashing rate and your computations will be checked for proper dimensional
+    arithmetic.  This is a real win for doing calculations, as you can define any
+    strings you want as primitive units for your problem and see the answer in this
+    primitive units.  This will undoubtedly help catch calculation mistakes, as you'll
+    be prevented from adding apples to oranges unless a dimensional relationship between
+    them is defined.
+
+
 
 - It will have trm.Trm and fmt.Fmt instances to handle the formatting for display
 
 - With the proper semantics and grease, numpy can be used to do the calculations behind
-the scene.  This isn't for high-speed huge matrices, it's for the 10 to 1000 data a
-person working at a practical problem might encounter.
+  the scene.  This isn't for high-speed huge matrices, it's for the 10 to 1000 data a
+  person working at a practical problem might encounter.
 - SQLite can be used as a repository for data, giving speed and, effectively, a single
-channel IPC method.  Another process in another terminal can have its data be shared
-by SQLite giving it a namespace that another process can use/list and borrow what's
-needed.  In general, we want our process' local variables to be locally private, but
-sometimes we want to share.
+  channel IPC method.  Another process in another terminal can have its data be shared
+  by SQLite giving it a namespace that another process can use/list and borrow what's
+  needed.  In general, we want our process' local variables to be locally private, but
+  sometimes we want to share.
 - The minitab environment I remember let data be accessible as column vectors and
-matrices.  I showed Mike the transformation, stats, and regression tools of xfmpy
-and explained I want these in the REPL too.
+  matrices.  I showed Mike the transformation, stats, and regression tools of xfmpy and
+  explained I want these in the REPL too.
 - Plotting is important for models, but I don't have a GUI handy like matplotlib in WSL.
-But Plotext can do such things well enough in another terminal window to let you see
-residual plots, histograms, and probability plots.  The user should be able to run a 
-command to say "send this data to be plotted in the other window".
+  But Plotext can do such things well enough in another terminal window to let you see
+  residual plots, histograms, and probability plots.  The user should be able to run a
+  command to say "send this data to be plotted in the other window".
 - Persistence:  the db approach gives data persistence so when you start a new REPL in a
-window, you see the same data you saw when you last exited.  This provides problem
-continuity, as often you have to e.g. go to a prompt and do some other task.
+  window, you see the same data you saw when you last exited.  This provides problem
+  continuity, as often you have to e.g. go to a prompt and do some other task.
 
 Another vision is that this tool should be minimalistic, in the sense that the
 components required should be easy for people to get.  So far, I know of the following

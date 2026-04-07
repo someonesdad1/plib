@@ -80,9 +80,9 @@ if 1:  # Header
         dedent = wrap.dedent
     if 1:   # Global variables
         t = trm.TrmDP()
-        t.dbg = "lill"
+        t.dbg = "#bdf6fe"
         g = dptypes.Constant()
-        g.dbg = False
+        g.dbg = True if 0 else False
 if 1:   # Types and enums
     class NumType(enum.IntEnum):
         Int = 1
@@ -172,13 +172,12 @@ if 1:   # Num class
 class Num:
     '''Represent a general number useful for routine calculations'''
     # Pick color based on number type
-    # (Using t.sky, t.mag, etc. from your provided trm.py integration)
-    type_color = {
-        NumType.Int: t.grn,
-        NumType.Rat: t.cyn,
-        NumType.Flt: t.sky,
-        NumType.Cpx: t.mag,
-        NumType.Unc: t.red
+    type_color = {  # Match number types in dpdb.py for debugger
+        NumType.Int: t("mag", "gry1"),
+        NumType.Rat: t("brn", "gry1"),
+        NumType.Flt: t("ygr", "gry1"),
+        NumType.Cpx: t("sky", "gry1"),
+        NumType.Unc: t("pur", "gry1"),
     }
     def __init__(self, value: ty.Optional[NumericalTypes] = None, unit: str = "") -> None:
         if 1:  # Default internal state representation
@@ -274,8 +273,8 @@ class Num:
         return Num(op_func(a, b))
     def _check_units(self, other: "Num") -> mpmath.mpf:
         '''Returns the multiplier to convert other.unit -> self.unit.'''
-        if not self.unit and not other.unit: return mpmath.mpf("1")
-        if self.unit == other.unit: return mpmath.mpf("1")
+        if (not self.unit and not other.unit) or (self.unit == other.unit):
+            return mpmath.mpf("1")
         arbiter = UnitArbiter()
         # We need: magnitude in other.unit * factor = magnitude in self.unit
         is_ok, factor_str = arbiter.check_conformable(other.unit, self.unit)
@@ -337,37 +336,39 @@ class Num:
         if target_type <= NumType.Rat.value:
             return self.as_int_or_rat == other_num.as_int_or_rat
         return bool(self.as_mpf == other_num.as_mpf)
-    # Output Methods
-    def __str__(self) -> str:
-        if self.mytype == NumType.Int: s = fmt.fmt(self.numer)
-        elif self.mytype == NumType.Rat: s = fmt.fmt(fractions.Fraction(self.numer, self.denom))
-        elif self.mytype == NumType.Cpx: s = fmt.fmt(mpmath.mpc(self.real, self.imag))
-        elif self.mytype == NumType.Unc: s = f"{self.real} ± {self.re_unc}"
-        else: s = fmt.fmt(self.real)
-        unit_str = f" {t.yel1}{self.unit}{t.n}" if self.unit else ""
-        color = Num.type_color.get(self.mytype, t.wht)
-        return f"{color}{s}{t.n}{unit_str}"
-    def __repr__(self) -> str:
-        if self.mytype == NumType.Int: s = str(self.numer)
-        elif self.mytype == NumType.Rat: s = f"{self.numer}/{self.denom}"
-        elif self.mytype == NumType.Cpx: s = f"{self.real!r}+{self.imag!r}j"
-        elif self.mytype == NumType.Unc: s = f"{self.real} ± {self.re_unc}"
-        else: s = f"{self.real!r}"
-        return f'Num("{s}", "{self.unit}")'
-    # Accessors
-    @property
-    def unit(self) -> str: return self._unit.strip()
-    @unit.setter
-    def unit(self, value: str) -> None: self._unit = value.strip() if value else ""
-    @property
-    def as_mpf(self) -> mpmath.mpf:
-        if self.mytype == NumType.Int: return mpmath.mpf(str(self.numer))
-        if self.mytype == NumType.Rat: return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
-        return self.real
-    @property
-    def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
-        if self.mytype == NumType.Int: return self.numer
-        return fractions.Fraction(self.numer, self.denom)
+    if 1:   # String interpolation
+        def __str__(self) -> str:
+            if self.mytype == NumType.Int: s = fmt.fmt(self.numer)
+            elif self.mytype == NumType.Rat: s = fmt.fmt(fractions.Fraction(self.numer, self.denom))
+            elif self.mytype == NumType.Cpx: s = fmt.fmt(mpmath.mpc(self.real, self.imag))
+            elif self.mytype == NumType.Unc: s = f"{self.real} ± {self.re_unc}"
+            else: s = fmt.fmt(self.real)
+            unit_str = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
+            color = Num.type_color.get(self.mytype, t.wht)
+            return f"{color}{s}{t.n}{unit_str}"
+        def __repr__(self) -> str:
+            if self.mytype == NumType.Int: s = str(self.numer)
+            elif self.mytype == NumType.Rat: s = f"{self.numer}/{self.denom}"
+            elif self.mytype == NumType.Cpx: s = f"{self.real!r}+{self.imag!r}j"
+            elif self.mytype == NumType.Unc: s = f"{self.real} ± {self.re_unc}"
+            else: s = f"{self.real!r}"
+            return f'Num("{s}", "{self.unit}")'
+    if 1:   # Properties
+        @property
+        def unit(self) -> str:
+            return self._unit.strip()
+        @unit.setter
+        def unit(self, value: str) -> None:
+            self._unit = value.strip() if value else ""
+        @property
+        def as_mpf(self) -> mpmath.mpf:
+            if self.mytype == NumType.Int: return mpmath.mpf(str(self.numer))
+            if self.mytype == NumType.Rat: return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
+            return self.real
+        @property
+        def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
+            if self.mytype == NumType.Int: return self.numer
+            return fractions.Fraction(self.numer, self.denom)
 
 if 1:   # UnitArbiter class
     class UnitArbiter:  # A singleton with a lock
@@ -426,19 +427,25 @@ if 1:   # UnitArbiter class
             '''Returns (is_match, multiplier_string)'''
             with self._lock:
                 try:
+                    Dbg(f"check_conformable:  have = {have}, want = {want}")
                     if not have or not want:
                         return False, "0"
                     query = f"{have}\n{want}\n"
+                    Dbg(f"  query = {query!r}")
                     self.proc.stdin.write(query)
                     self.proc.stdin.flush()
                     # GNU Units output: line 1 is reciprocal, line 2 is the factor
                     line_1 = self.proc.stdout.readline().strip()
                     if not line_1 or "conformable" in line_1 or "error" in line_1:
+                        Dbg("  error in units call")
                         return False, "0"
                     line_2 = self.proc.stdout.readline().strip()
+                    Dbg(f"  line_1 = {line_1!r}")
+                    Dbg(f"  line_2 = {line_2!r}")
                     # Extract just the numeric part of the factor
                     # e.g., "* 0.3048" -> "0.3048"
-                    factor_str = line_2.split()[-1]
+                    factor_str = line_1.split()[-1]
+                    Dbg(f"  returning True, factor_str = {factor_str!r}")
                     return True, factor_str
                 except Exception as e:
                     Dbg(f"Restarting 'units' process: {e!r}", color="yel")
@@ -622,43 +629,37 @@ if __name__ == "__main__":
                 x = Num("1", "ft")
                 y = Num("1", "m")
                 result = x + y
-                expected = "1.3048"
-                if 0:   # Show string interpolations
-                    print(f"result = {repr(result)}")
-                    print(f"result = {result}")
-                # Check numerical result
+                expected = "4.2808399000000001"
                 Assert(result.real == mpmath.mpf(expected))
-                # Check numerical and units result
                 Assert(result == Num(expected, "ft"))
             if 1:   # Test subtraction
                 x = Num("1", "ft")
                 y = Num("1", "m")
-                breakpoint() # ∞∞ 
                 result = x - y
-                expected = "-2.28083989501312"
-                if 1:   # Show string interpolations
-                    print(f"result = {repr(result)}")
-                    print(f"result = {result}")
-                # Check numerical result
+                expected = "-2.2808399000000001"
                 Assert(result.real == mpmath.mpf(expected))
-                # Check numerical and units result
                 Assert(result == Num(expected, "ft"))
             if 1:   # Test multiplication
                 x = Num("1.5", "V")
                 y = Num("2.0", "A")
                 result = x*y
                 expected = "3.0"
-                # Check numerical result
                 Assert(result.real == mpmath.mpf(expected))
-                # Check numerical and units result
                 Assert(result == Num(expected, "(V)*(A)"))
-        if 1:   # Special one-off test area
+            if 1:   # Test division
+                x = Num("1.0", "ft")
+                y = Num("1", "m")
+                result = x/y
+                expected = "1.0"
+                Assert(result.real == mpmath.mpf(expected))
+                Assert(result == Num(expected, "(ft)/(m)"))
+        if 0:   # Special one-off test area
             # Problem with subtraction
-            x = Num("1", "ft")  # Is 0.3048 m
+            x = Num("1.0", "ft")  # Is 0.3048 m
             y = Num("1", "m")   # Is 1 m
             # So 0.3048 - 1 is -0.6952 m, which is -2.28083989501312 ft by GNU units
             result = x - y
-            print(f"result = {result!r}")
+            print(f"result = {result!s}")
             expected = "-2.28083989501312"
             exit()
             

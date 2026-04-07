@@ -55,8 +55,35 @@ if 1:  # Header
         import f
         import trm
     if 1:   # Global variables
-        yy = pdb.set_trace
+        yy = pdb.set_trace  # Handy when this file is broken
         u = trm.TrmDP()
+    if 1:   # Core file gist information
+        __gist__      = "DP's debugger additions"
+        __copyright__ = "Copyright © 2023 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "notest"
+        __history__   = '''Important dates of changes'''
+        __category__  = "util"
+        __todo__      = '''
+
+        - If a debugger command starts with '^\s*#', it should be considered a comment
+          and ignored.  This is helpful to type notes when using the script command to
+          capture all the output.
+        - When debugging, the return value string gets truncated with '...'.  This can
+          be a pain when e.g. the return value is a ufloat, as you can't see the value.
+          Make it use up the available screen width or see if a debugger option can be used to
+          let you see the whole string.
+        - Add a command to change the number of lines displayed
+        - po command:
+            - Columnize dir() output.  First arg is object to dir, remaining args are
+              regexps to search for.
+        - See if r vs s behavior can be changed or toggled
+        - inspect has a number of functions that could be useful for a command that's
+          used to inspect an object:  it's source, docs, etc.  Call the built-in pager
+          to do this.
+        - Use a traceback to print the call stack on an exception.
+
+        '''
     if 1:  # Functions to set up colorizing strings
         def All():
             "Fancier set of colors"
@@ -336,15 +363,16 @@ if 1:  # Classes
             def do_o(self, arg):  # Dump local variables
                 'Dump local variables with color key (arg ignored)'
                 if 1:  # Define our own colors
+                    bg = "gry1"
                     c = color_choice != NoColors
                     u.title = u.wht
                     u.bool = u.lipl
-                    u.float = u.ygr
-                    u.flt = u.red
-                    u.cpx = u.cyn
-                    u.int = u.mag
-                    u.Decimal = u.yonl
-                    u.Fraction = u.brn
+                    u.float = u("ygr", bg)
+                    u.flt = u("red", bg)
+                    u.cpx = u("cyn", bg)
+                    u.int = u("mag", bg)
+                    u.Decimal = u("yonl", bg)
+                    u.Fraction = u("brn", bg)
                     u.string = u.lwn
                     u.bytes = u.orn
                     u.bytearray = u.olv
@@ -442,29 +470,3 @@ if 1:  # Find symbols
                             print(f"Found {symbol!r} in: {name} ({module.__file__})")
                 except Exception:
                     pass
-
-def GetGist():
-    g = {}
-    g["gist"] = "Extended python debugger"
-    g["copy"] = "Copyright © 2023 Don Peterson"
-    g["lic"] = "MIT License (see /plib/_lic.mit)"
-    g["test"] = "notest"
-    g["cat"] = "util"
-    g["todo"] = '''
-
-        - When debugging, the return value string gets truncated with '...'.  This can
-          be a pain when e.g. the return value is a ufloat, as you can't see the value.
-          Make it use up the available width or see if a debugger option can be used to
-          let you see the whole string.
-        - Add a command to change the number of lines displayed
-        - po command:
-            - Columnize dir() output.  First arg is object to dir, remaining args are
-              regexps to search for.
-        - See if r vs s behavior can be changed or toggled
-        - inspect has a number of functions that could be useful for a command that's
-          used to inspect an object:  it's source, docs, etc.  Call the built-in pager
-          to do this.
-        - Use a traceback to print the call stack on an exception.
-
-    '''
-    return g
