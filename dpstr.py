@@ -1446,7 +1446,7 @@ if 1:   # Core functionality
         else:
             return editing_commands
     def RemoveCharClass(s: AnyStr, keys: str=""):
-        '''Given s, a string, bytes, or bytearry, remove the characters indicated by the
+        '''Given s, a string, bytes, or bytearray, remove the characters indicated by the
         letters in the keys:
             A   Convert Unicode characters to rough ASCII equivalents
             B   Remove characters under 0x20
@@ -2948,7 +2948,7 @@ if __name__ == "__main__":
             mystring = "cat rat hat"
             substring = "at"
             print(
-                f"FindSubtring({mystring!r}, {substring!r}) = "
+                f"FindSubstring({mystring!r}, {substring!r}) = "
                 f"{FindSubstring(mystring, substring)}"
             )
             # GetStartingChars, GetEndingChars

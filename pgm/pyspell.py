@@ -33,7 +33,6 @@ if 1:  # Header
         t = trm.Trm()
         from lwtest import Assert
         from columnize import Columnize
-        import timer
         import get
         if 0:
             import debug
@@ -65,17 +64,16 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=0):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
-          Tokenize the indicated source code files and list the tokens that may be misspelled.
+          Tokenize the indicated source code files and list the tokens that may be
+          misspelled.
         Options:
-            -a      Process all files on command line (certain files in /plib are ignored
-                    otherwise)
+            -a      Process all files on command line (certain files in /plib are
+                    ignored otherwise)
             -b      Print a bare list of words (no file information)
             -c      Print a columnized list of the words with no file information
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # Don't ignore certain /plib files

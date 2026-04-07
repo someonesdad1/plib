@@ -34,11 +34,6 @@ Reorganization core files
       every script.  These should all have corresponding dputil.py functions that set up
       reasonable defaults.
 
-    - pgm/dp.py
-        - Write a heuristic function that gets all the functions/classes from a python
-          module.  The goal is to have a list of symbols that lwtest.py can go through
-          to comment on test coverage.
-
     - pgm/mathfuncs.py
         - Update to 3.11
             - See pgm/math.symbols.3.11.8, gotten from doc page in browser with "grep '^ *math\.'"
