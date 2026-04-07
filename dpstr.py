@@ -667,6 +667,35 @@ if 1:   # Core functionality
         keep can also be a predicate function, which means this is like filter(seq,
         keep).  
         
+            Here's a use case for this generator.  I will sometimes use a
+            crytographically secure hash function to "fingerprint" some text.  I include
+            a set of questions that can be answered with a set of characters.  For
+            example, I might use the following questions:
+
+                - Name of little league baseball coach?  11
+                - Name of neighbors from with crackerball fireworks?  8
+                - First UNIX password?  8
+                - 10-digit phone number in 1980?  10
+                - Sally's aged dog name?  6
+                - My nickname for Sally's first yellow lab?  10
+
+            The answers are concatenated into a string answers.  Then s =
+            ''.join(Keep(answers, string.ascii_lowercase + string.digits)) returns the
+            answer to be hashed (it would need to be encoded to turn it into bytes for
+            the hashing algorithm).  The questions and the hash in hex digit form are
+            included in the text.  As long as someone can't change the original
+            document, I can prove I authored the text, as only I know the answers to
+            that set of questions.
+
+            It's infeasible for modern hardware to search for a suitable hash collision
+            here if we assume that a brute force attack is the only way someone could
+            find a collision.  The number of 53 character strings of 36 letters is
+            53**36 or 1e62.  Assuming you had hardware that could compute hashes at 1
+            THz (about an order of magnitude more than what is possible in 2026), it
+            would take (1e62 hashes)/(1e12 hashes/s) or 1e50 s.  The age of the universe
+            is less than 1e20 s, so this is 1e30 ages of the universe, an impossibly
+            huge amount of time.
+
         Warning
             As the user, it's your responsibility to make sure none of the items in seq
             change during the processing of this function, as Hashable, a wrapper class,
@@ -1472,6 +1501,8 @@ if 1:   # Core functionality
         characters that don't look similar to Latin letters.  The length of the string may
         increase:  for example, '∞' is changed to 'oo'.  For bytes or bytearray objects, the
         A letter results in an identity transformation.
+
+
         '''
         letters = set("ABbdhlnopWwu780")
         mykeys = set(keys)

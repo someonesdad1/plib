@@ -99,24 +99,21 @@ if 1:  # Header
                 - "fixed" not yet supported
                 - ufloats not yet supported
                 - .spc and .sign attributes not yet supported
-                - width
-                    - Add width attribute; remove width from method calls
-                        - Set to 0 for normal behavior.  Larger integer specifies the
-                          desired width.
-                    - Need an algorithm to make interpolations fit in a desired width.
-                      Must be on a best effort basis, as it will be impossible for some
-                      numbers.  Example 100!**100! won't fit into e.g. 60 columns
-                      because the exponent is 160 digits long.
-                        - See notes above about large number notations
-                    - Typical abbreviation will use ellipsis ⋯ (U+22EF) and truncate
-                      middle digits to get things to fit
             - Big number formatting
                 - Power tower:  10↑↑n == 10**10**...**10, n times
                 - "order" of magnitude n:  how many times you have to take log of a
                   number to get a result between 1 and 10.  Could call this "biglog".
                   See https://en.wikipedia.org/wiki/Super-logarithm
+                    - Ⓛ could be used to denote a really big number
+                    - x = mpf("2.33e395835")
+                    - L = mpmath.log10
+                    - L(L(L(x))) -> mpf('0.7479952346529527')
+                    - So x would be Ⓛ3.748
+                    - Get inverse by t = mpf(10), t**(t**(t**0.748)) -> mpf('2.249e+395891')
             - "unit" keyword to __call__
             - "fixed" keyword:  simulates HP calculator behavior (different than "fix")
+                - Include .us attribute to turn on underscores
+                    - Then 20953700787.4016 -> '21_000_000_000.' to 3 figures
             - Colorized output (see FmtColor below)
                 - A fundamental notion is that colorizing can allow the default
                   formatting to change.  Instead of seing the somewhat ugly default
