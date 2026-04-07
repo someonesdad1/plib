@@ -1,65 +1,25 @@
-- Quantum of memory:  humans (well, this human) are OK with 10 or 20 lines of code
-  changes or substitutions.  When you get much larger than that, it can be confusing to
-  substitute and subject to errors.  
-    - This is important on refactoring or fixing old code, especially if it's important
-      or foundational code.  
-    - Thus, make it a point to supply all the code, even if it's a few lines that
-      change.  When the human is tired, it a recipe for disaster if you don't, which
-      means a frustrated human.
-    - It's also wise to remind the human that they might want to make sure the
-      repository is in a pristine state or that they are on a branch before starting
-      some new work.  Industrial workers in a common environment will know this, but
-      lone wolves will sometimes forget.
+- Code formatting
+    - PEP-8 except for:
+        - No spaces around *, /, //, or **
+        - One space on each side of +, -, %
+        - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
+        - No blank lines in file except if put into docstrings
+    - Important:  please make sure to put a newline after a ':' in a conditional, class
+      or function definition, as lacking it makes it very easy to miss the logic when
+      reading
+    - Triple quotes: use ''' for all docstrings and multi-line strings.
+    - Quotes:  use " for all string definitions, such as 'a = "a string"'.
+    - Naming:  CamelCase naming for classes and functions, snake case for attributes and
+      local variables
+    - Use 'import x' if possible.  Then us x.y notation in code.  'import x as y' is
+      fine too.
+    - Folding blocks:  use 'if 1:  # Comment' to group code for folding editors.  This
+      also allows for easy runtime toggling.
+    - Type annotations:  use type annotations wherever possible
+- Remind me to check the repository commit state before making significant changes
+- Much to most of the time, supply all the code we're working on, as it's too difficult
+  to piece things into an existing file (particularly when I'm tired).  Thus, try to
+  give me the whole class or whole function we're working on.
 - ASCII characters: use plain ASCII wherever possible.  Avoid Unicode punctuation like
-  em-dashes, single and double fancy quotes, etc.  Reason:  these things cause a mess
-  when working with plain text in a terminal (particular when pasted into some python
-  code) and I paste the stuff you provide into my help files a lot.
-- Triple quotes: use ''' for all docstrings and multi-line strings.
-- Quotes:  use " for all string definitions, such as 'a = "a string"'.  Elsewhere,
-  double or single quotes are fine; for example, I prefer to see ''.join(x) rather than
-  "".join(x) (but these are very qualitative personal tastes).
-- Structural linefeeds:  always a newline after ':' (strictly no "one-liners" for if,
-  elif, def, or class).
-- Naming conventions:  use CamelCase for classes and functions; use snake_case for
-  global and local variables. Avoid SHOUTING_SNAKE_CASE if possible.
-    - You routinely use 'res' for 'result'.  I have to do a double-take everytime I see
-      this, as I think 'reserve', 'result', 'residual', and other things.  Can you
-      standardize on using the word result?
-- Code density:  no blank lines between code statements. Blank lines in docstrings are
-  allowed but must contain the current indentation level's spaces.
-- Math spacing
-    - No spaces around *, /, //, or **
-    - One space on each side of +, -, %
-    - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
-- Type annotations:  use type annotations wherever possible, utilizing import typing as
-  ty for abbreviations.
-- Explicit imports:  use the 'import x' or 'import x as y' form only, with one library
-  per line. Reference symbols via the 'long form' x.y to ensure provenance is clear.
-- Folding blocks:  use 'if 1:  # Section comment' to group code for folding editors.
-  This also allows for easy runtime toggling.
-- Circularity watch:  actively scan for circular import risks. Use "late-imports" inside
-  functions or methods to break dependency loops.
-- Test hardiness:  Support the AssertNoStop environment variable in the Assert()
-  function. Perform a 'soft reset' via obj.__init__() on global state objects after a
-  non-blocking failure to maintain a 'clean room' for subsequent tests.
-- Capitalization
-    - When OK:  as e.g. a title for a code section:  # Significant Figure Rounding
-    - Most of the time:  standard sentence structure with capitalized first word,
-      followed by no capitals except for proper nouns or common honorifics
-- Colons in text:  two spaces after the colon.
-- Technicolor in tracebacks:  you don't need to put terminal escape sequences in for me,
-  as I'll do it myself, but it will be rare
-- Core files in /plib
-    - f.py:  flt(float) and cpx(complex) with short string interpolations
-    - trm.py:  Trm(dict) for terminal escape sequences
-    - dpseq.py:  Tools helping deal with sequences
-    - dpstr.py:  Tools helping deal with strings & bytes
-    - dpmath.py:  Tools helping deal with math-related stuff
-    - dpphys.py:  Tools helping deal with physics-related stuff
-    - dptypes.py:  Utility types, such as a dict that's a bijective mapping,
-      CommandDecode, which decodes user strings, Constant which provides runtime
-      "constants" that can be changed in a context manager, Stack based on a deque, and
-      SlushDict, a hashable dict (use with care).
-    - dpdb.py:  Adds come conveniences to the python debugger (primarily colorizing and
-      an 'o' command that dumps and colorizes all the local variables)
-    - dputil.py:  Utility functions
+  em-dashes, single and double fancy quotes, etc.
+
