@@ -535,6 +535,9 @@ if 1:   # Num class
             # Here we could trigger a "Silent Save" to SQLite
             # so the note is immediately persistent.
             self._sync_to_db()
+        def _sync_to_db(self) -> None:
+            'Placeholder for a synchronization'
+            lwtest.ToDo("Num._sync_to_db needs implementation")
         def promote(self) -> "Num":
             '''Attempt to simplify the unit string using high-precision rounding.'''
             if not self.unit:
