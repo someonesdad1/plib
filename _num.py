@@ -580,7 +580,15 @@ else:  # Section: Core Num Class and Unit Registration
                 return self.as_int_or_rat == other_num.as_int_or_rat
             return bool(self.as_mpf == other_num.as_mpf)
         def _s(self, flip: bool) -> str:
-            'Return str() or repr(), depending on self.f'
+            '''Return str() or repr(), depending on self.f
+            This is handy when you're in the REPL, because the default output for
+                """
+                >>> x
+                """
+            when x is a Num is the repr() string.  You can set 'x.f = True' and then
+            you'll get the str() string, which is formatted for the chosen number of
+            significant figures and uses colorizing to indicate type.
+            '''
             if flip:
                 # Normal repr() string
                 if self.mytype == NumType.Int:
@@ -595,6 +603,7 @@ else:  # Section: Core Num Class and Unit Registration
                     s = f"{self.real!r}"
                 return f'Num("{s}", "{self.unit}")'
             else:
+                # Normal str() string
                 if self.mytype == NumType.Int:
                     s = fmt.fmt(self.numer)
                 elif self.mytype == NumType.Rat:
@@ -937,76 +946,7 @@ if 0:  # Section: Discovery Pipe Test
         except Exception as e:
             print(f"{t.red}Error during pipe test:{t.n} {e!r}")
 
-if __name__ == "__main__":  
-    if 1:   # Standard imports
-        pass
-    if 1:   # Custom imports
-        pass
-    if 1:   # Import symbols
-        run = lwtest.run
-        raises = lwtest.raises
-        Assert = lwtest.Assert
-    if 1:   # Utility stuff for a script
-        def GetScreen():
-            'Return (LINES, COLUMNS)'
-            return (
-                int(os.environ.get("LINES", "50")),
-                int(os.environ.get("COLUMNS", "80")) - 1,
-            )
-        def GetColors():
-            t.err = "redl"
-        def Warn(*msg, **kw):
-            print(*msg, file=sys.stderr)
-        def Error(*msg, status=1):
-            Warn(f"{t.err}", end="")
-            Warn(*msg)
-            Warn(f"{t.n}")
-            exit(status)
-        def Usage(status=1):
-            print(dedent(f'''
-            Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
-            Describe behavior
-            Options:
-                -d      Turn on debug printing
-                -n n    Set number of digits [15]
-            '''))
-            exit(status)
-        def ParseCommandLine(d):
-            d["-d"] = False     # Debug printing
-            d["-n"] = 15        # Number of mpmath digits
-            try:
-                opts, args = getopt.getopt(sys.argv[1:], "dh")
-            except getopt.GetoptError as e:
-                print(str(e))
-                exit(1)
-            for o, a in opts:
-                if o[1] in list("d"):
-                    d[o] = not d[o]
-                elif o == "-n":
-                    try:
-                        d[o] = int(a)
-                        if d[o] < 1:
-                            raise ValueError()
-                    except Exception:
-                        Error(f"{o!r} option must be an int >= 1")
-                elif o == "-h":
-                    Usage(status=0)
-            GetColors()
-            g.W, g.L = GetScreen()
-            if d["-d"]:
-                with g:
-                    g.dbg = True
-            return args
-    if 1:
-        d = {}  # Options dictionary
-        args = ParseCommandLine(d)
-        #if args:
-        #    for arg in args:
-        #        pass    # Do stuff
-    if 1:   # Demo & tests for module
-        zero = mpmath.mpf(0)
-        def Demo():
-            pass
+if 1:   # Self-tests
         def Test_Constructor_With_Numbers():
             if 1:   # No input
                 num = Num()
@@ -1031,6 +971,11 @@ if __name__ == "__main__":
                     num = Num(str(x))
                     Assert(num.numer == x and num.denom == 1)
                     Assert(num.mytype == T)
+            if 1:   # Rational
+                x, T = "-3/8", NumType.Rat
+                num = Num(x)
+                Assert(num.numer == -3 and num.denom == 8)
+                Assert(num.mytype == T)
             if 1:   # float
                 x, T = 3095.7357, NumType.Flt
                 num = Num(x)
@@ -1103,7 +1048,7 @@ if __name__ == "__main__":
                     x = Num("1.0", "ft")
                     y = Num("1", "m")
                     result = x + y
-                    expected = "4.2808399000000001"
+                    expected = "4.2808398950131199"
                     Assert(result.real == mpmath.mpf(expected))
                     Assert(result == Num(expected, "ft"))
                 if 1:   # Rational
@@ -1129,7 +1074,7 @@ if __name__ == "__main__":
                     x = Num("1", "ft")
                     y = Num("1", "m")
                     result = x - y
-                    expected = "-2.2808399000000001"
+                    expected = "-2.2808398950131199"
                     Assert(result.real == mpmath.mpf(expected))
                     Assert(result == Num(expected, "ft"))
                 if 1:   # Rational
@@ -1166,6 +1111,77 @@ if __name__ == "__main__":
                     result = x/y
                     expected = Num("1/4", "(in)/(in)")   # (3/8)/(12/8) = 1/4
                     Assert(result == expected)
+
+if __name__ == "__main__":  
+    if 1:   # Standard imports
+        pass
+    if 1:   # Custom imports
+        pass
+    if 1:   # Import symbols
+        run = lwtest.run
+        raises = lwtest.raises
+        Assert = lwtest.Assert
+    if 1:   # Utility stuff for a script
+        def GetScreen():
+            'Return (LINES, COLUMNS)'
+            return (
+                int(os.environ.get("LINES", "50")),
+                int(os.environ.get("COLUMNS", "80")) - 1,
+            )
+        def GetColors():
+            t.err = "redl"
+        def Warn(*msg, **kw):
+            print(*msg, file=sys.stderr)
+        def Error(*msg, status=1):
+            Warn(f"{t.err}", end="")
+            Warn(*msg)
+            Warn(f"{t.n}")
+            exit(status)
+        def Usage(status=1):
+            print(dedent(f'''
+            Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
+            Describe behavior
+            Options:
+                -d      Turn on debug printing
+                -n n    Set number of digits [15]
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-d"] = False     # Debug printing
+            d["-n"] = 15        # Number of mpmath digits
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "dh")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("d"):
+                    d[o] = not d[o]
+                elif o == "-n":
+                    try:
+                        d[o] = int(a)
+                        if d[o] < 1:
+                            raise ValueError()
+                    except Exception:
+                        Error(f"{o!r} option must be an int >= 1")
+                elif o == "-h":
+                    Usage(status=0)
+            GetColors()
+            g.W, g.L = GetScreen()
+            if d["-d"]:
+                with g:
+                    g.dbg = True
+            return args
+    if 1:
+        d = {}  # Options dictionary
+        args = ParseCommandLine(d)
+        #if args:
+        #    for arg in args:
+        #        pass    # Do stuff
+    if 1:   # Demo & tests for module
+        zero = mpmath.mpf(0)
+        def Demo():
+            pass
         if 0:   # Special one-off test area
             Test_Discovery_Pipe()
             exit()
