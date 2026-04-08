@@ -40,7 +40,7 @@ if 1:  # Header
         Constant = dptypes.Constant
         dedent = wrap.dedent
         flt = f.flt
-        t = trm.TrmDPDP()
+        t = trm.TrmDP()
     if 1:   # Global variables
         g = Constant()
         with g:

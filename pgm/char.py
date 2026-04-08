@@ -1,5 +1,7 @@
 '''
 
+- Get rid of encoding stuff (just use what's in codecs)
+- Position the letters as in the following note and put · for missing letters
 - Change the letters printout to the following form:
     Lower   a b c d e f g h i j k l m n o p q r s t u v w x y z
     Upper   A B C D E F G H I J K L M N O P   R S T U V W   Y Z
@@ -33,7 +35,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent, wrap
     import trm
-    t = trm.TrmDPDP()
+    t = trm.TrmDP()
 if 1:  # Global variables
     ii = isinstance
     enc = "UTF-8"
@@ -99,8 +101,7 @@ if 1:  # Global variables
             allowed[replace(word)] = word
 if 1:  # Utility
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [file1 [file2...]]
           Lists the characters used in the indicated files.  Use - as a file
           name to read stdin.  Assumes text files are encoded in {enc}; use -b
@@ -346,35 +347,38 @@ if 1:  # Core functionality
             print(f"0o{n:07o}")
             # Print hex, decimal, octal
     def PrintResults():
-        res = []
+        #results = []
+        results = {}
         for key, val in d["cat"].items():
             cat = d["categories"][key]
             chars = list(val)
             chars.sort()
-            res.append((key, cat, "".join(chars)))
-        res.sort()
+            #results.append((key, cat, "".join(chars)))
+            results[key] = (cat, "".join(chars))
+        #results.sort()
         if d["-u"]:
-            PrintUnicode(res)
+            PrintUnicode(results)
             return
-        w = max([len(i[1]) for i in res])
+        #w = max([len(i[1]) for i in results])
+        w = max([len(results[i][1]) for i in results])
         C = {
-            0: "trq",  # Whitespace
-            1: "roy",  # Ctrl
-            2: "cynl",  # Lowercase
+            0: "whtl",  # Whitespace
+            1: "den",   # Ctrl
+            2: "skyl",  # Lowercase
             3: "ornl",  # Uppercase
-            4: "yell",  # Decimal digits
-            5: "magl",  # Punctuation
-            6: "wht",  # Remaining 7-bit characters
-            7: "yell",  # 8-bit with high bit set
-            8: "grnl",  # Other Unicode
+            4: "yel",   # Decimal digits
+            5: "mag",   # Punctuation
+            6: "wht",   # Remaining 7-bit characters
+            7: "grnl",  # 8-bit with high bit set
+            8: "ygr",   # Other Unicode
         }
-        for i, cat, chars in res:
+        for key, (cat, chars) in results.items():
             characters = Translate(chars)
             if d["-a"] and cat in ("Unicode", "8bit"):
                 continue
             if d["-C"]:
-                print(f"{t(C[i])}", end="")
-            print("{cat:{w}} ".format(**locals()), end="")
+                print(f"{t(C[key])}", end="")
+            print(f"{cat:7s} ", end="")
             PrintCharacters(characters, " " * w)
             if d["-C"]:
                 print(f"{t.n}", end="")

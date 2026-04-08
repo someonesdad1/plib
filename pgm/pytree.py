@@ -51,7 +51,7 @@ if 1:  # Header
         g.dbg = False
         g.klass = "+"
         g.testing = "·"
-        u = trm.TrmDPDP()
+        u = trm.TrmDP()
 if 1:   # Utility
     def GetScreen():
         'Return (LINES, COLUMNS)'

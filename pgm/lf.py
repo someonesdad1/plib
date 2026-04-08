@@ -29,7 +29,7 @@ if 1:  # Header
         from wrap import dedent
         from columnize import Columnize
     if 1:  # Global variables
-        t = trm.TrmDPDP()
+        t = trm.TrmDP()
         class G:
             # Storage for global variables as attributes
             pass
