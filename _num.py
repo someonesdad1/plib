@@ -96,6 +96,20 @@ if 1:   # Types and enums
         int , float , complex , decimal.Decimal ,
         fractions.Fraction , mpmath.mpf , mpmath.mpc ,
         uncertainties.UFloat , "Num" , str , None]
+if 1:   # Utility stuff
+    def Dbg(*p, **kw):
+        if not hasattr(Dbg, "file"):
+            Dbg.file = sys.stdout
+        if g.dbg:
+            if "color" in kw:
+                print(f"{t(kw['color'])}", end="", file=Dbg.file)
+                del kw["color"]
+            else:
+                print(f"{t.dbg}", end="", file=Dbg.file)
+            k = kw.copy()
+            k["file"] = Dbg.file
+            print(*p, **k)
+            print(f"{t.n}", end="", file=Dbg.file)
 if 0:   # Old Num class
     '''Represent a general number useful for routine calculations
         
@@ -395,6 +409,7 @@ else:  # Section: Core Num Class and Unit Registration
                 if unit:
                     RegisterUnit(unit)
                 self.unit = unit
+                self.f = False      # If True, toggle str()/repr() output for REPL
                 if value is None:
                     return
             if 1:  # High-Precision Conversion Logic
@@ -564,32 +579,43 @@ else:  # Section: Core Num Class and Unit Registration
             if target_type <= NumType.Rat.value:
                 return self.as_int_or_rat == other_num.as_int_or_rat
             return bool(self.as_mpf == other_num.as_mpf)
+        def _s(self, flip: bool) -> str:
+            'Return str() or repr(), depending on self.f'
+            if flip:
+                # Normal repr() string
+                if self.mytype == NumType.Int:
+                    s = str(self.numer)
+                elif self.mytype == NumType.Rat:
+                    s = f"{self.numer}/{self.denom}"
+                elif self.mytype == NumType.Cpx:
+                    s = f"{self.real!r}+{self.imag!r}j"
+                elif self.mytype == NumType.Unc:
+                    s = f"{self.real} +/- {self.re_unc}"
+                else:
+                    s = f"{self.real!r}"
+                return f'Num("{s}", "{self.unit}")'
+            else:
+                if self.mytype == NumType.Int:
+                    s = fmt.fmt(self.numer)
+                elif self.mytype == NumType.Rat:
+                    s = fmt.fmt(fractions.Fraction(self.numer, self.denom))
+                elif self.mytype == NumType.Cpx:
+                    s = fmt.fmt(mpmath.mpc(self.real, self.imag))
+                elif self.mytype == NumType.Unc:
+                    s = f"{self.real} +/- {self.re_unc}"
+                else:
+                    s = fmt.fmt(self.real)
+                unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
+                color = Num.type_color.get(self.mytype, t.wht)
+                return f"{color}{s}{t.n}{unit_string}"
         def __str__(self) -> str:
-            if self.mytype == NumType.Int:
-                s = fmt.fmt(self.numer)
-            elif self.mytype == NumType.Rat:
-                s = fmt.fmt(fractions.Fraction(self.numer, self.denom))
-            elif self.mytype == NumType.Cpx:
-                s = fmt.fmt(mpmath.mpc(self.real, self.imag))
-            elif self.mytype == NumType.Unc:
-                s = f"{self.real} +/- {self.re_unc}"
-            else:
-                s = fmt.fmt(self.real)
-            unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
-            color = Num.type_color.get(self.mytype, t.wht)
-            return f"{color}{s}{t.n}{unit_string}"
+            if not self.f:
+                return self._s(False)   # str() behavior
+            return self._s(True)        # repr() behavior
         def __repr__(self) -> str:
-            if self.mytype == NumType.Int:
-                s = str(self.numer)
-            elif self.mytype == NumType.Rat:
-                s = f"{self.numer}/{self.denom}"
-            elif self.mytype == NumType.Cpx:
-                s = f"{self.real!r}+{self.imag!r}j"
-            elif self.mytype == NumType.Unc:
-                s = f"{self.real} +/- {self.re_unc}"
-            else:
-                s = f"{self.real!r}"
-            return f'Num("{s}", "{self.unit}")'
+            if not self.f:
+                return self._s(True)    # repr() behavior
+            return self._s(False)       # str() behavior
         @property
         def unit(self) -> str:
             return self._unit.strip()
@@ -608,25 +634,6 @@ else:  # Section: Core Num Class and Unit Registration
             if self.mytype == NumType.Int:
                 return self.numer
             return fractions.Fraction(self.numer, self.denom)
-        def to(self, unit: str) -> "Num":
-            '''Convert current Num to the specified unit.'''
-            if not unit:
-                return Num(self)
-            arbiter = UnitArbiter()
-            is_ok, factor_str = arbiter.check_conformable(self.unit, unit)
-            if not is_ok:
-                raise ValueError(f"Cannot convert {self.unit} to {unit}")
-            factor = mpmath.mpf(factor_str)
-            res = Num(self)
-            # Switch to Flt if we are scaling
-            if res.mytype <= NumType.Rat:
-                res.real = res.as_mpf*factor
-                res.mytype = NumType.Flt
-            else:
-                res.real = res.real*factor
-                res.imag = res.imag*factor
-            res.unit = unit
-            return res
         def promote(self) -> "Num":
             '''Attempt to simplify the unit string using high-precision rounding.'''
             if not self.unit:
@@ -653,6 +660,37 @@ else:  # Section: Core Num Class and Unit Registration
                     d = +d
                 return mpmath.mpf(str(d))
             return val
+        def to(self, unit: str, auto_promote: bool = True) -> "Num":
+            '''
+            Convert current Num to the specified unit.
+            If auto_promote is True, it will attempt to simplify the 
+            resulting unit string to a standard symbol.
+            '''
+            if not unit:
+                return Num(self)
+            arbiter = UnitArbiter()
+            is_ok, factor_str = arbiter.check_conformable(self.unit, unit)
+            if not is_ok:
+                # Check if 'unit' is actually a known primitive first
+                # If not, try to register it on the fly
+                RegisterUnit(unit)
+                is_ok, factor_str = arbiter.check_conformable(self.unit, unit)
+                if not is_ok:
+                    raise ValueError(f"Incompatible units: {self.unit} and {unit}")
+            factor = mpmath.mpf(factor_str)
+            res = Num(self)
+            # Perform the scaling
+            if res.mytype <= NumType.Rat:
+                res.real = res.as_mpf * factor
+                res.mytype = NumType.Flt
+            else:
+                res.real = res.real * factor
+                res.imag = res.imag * factor
+            res.unit = unit
+            # The "REPL Intelligence" step
+            if auto_promote:
+                return res.promote()
+            return res
 
 if 0:  # Section: Unit Arbiter and Registration
     class UnitArbiter:
@@ -917,19 +955,6 @@ if __name__ == "__main__":
             )
         def GetColors():
             t.err = "redl"
-        def Dbg(*p, **kw):
-            if not hasattr(Dbg, "file"):
-                Dbg.file = sys.stdout
-            if g.dbg:
-                if "color" in kw:
-                    print(f"{t(kw['color'])}", end="", file=Dbg.file)
-                    del kw["color"]
-                else:
-                    print(f"{t.dbg}", end="", file=Dbg.file)
-                k = kw.copy()
-                k["file"] = Dbg.file
-                print(*p, **k)
-                print(f"{t.n}", end="", file=Dbg.file)
         def Warn(*msg, **kw):
             print(*msg, file=sys.stderr)
         def Error(*msg, status=1):
