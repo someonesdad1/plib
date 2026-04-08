@@ -1,27 +1,19 @@
 from __future__ import annotations
 '''
-Tue 7 Apr 2026 Tasks
+Wed 8 Apr 2026 Tasks
 
-- Get multiplication to work:  
-    - Test case:
-            x = Num("1", "ft")  # Is 0.3048 m
-            y = Num("1", "m")   # Is 1 m
-            x - y
-            Should get Num("mpf('-0.69520000000000004')", "ft")
-            but we're getting the negative of the correct answer, so there's a flip
-            somewhere.
-    - Num("2", "V")*Num("3.5", "A") -> Num("7", "(V)*(A)")
-- Add nbs to string between number and unit
-- Consider updating RoundOff to use mpf
-- Need infection model for REPL
-    - You can start off using int, float, complex, but as soon as one of these encounter
-      a Num, a Num is always returned.  But the user has to type Num(x) to start the
-      ball rolling.  The clue in the REPL is that the Num objects will always be
-      colorized, but the python built-in types won't.  Thus, the REPL will behave like
-      you're used to unless you deliberately use Num.
-- Should Num have a .on attribute for colorizing?
-- GNU units
-    - It appears it will accept arbitrary fractions in the "a|b" form
+- Must
+    - I'm going to abbreviate GNU units to gunits
+    - Verify infection model for REPL
+    - Start playing with it in the REPL; it's almost a real calculator
+    - What other __add__/__radd__ methods need to be done?  Can Mike automate this task
+      with what we know now?
+    - Make sure Mike has latest code
+    - We're using 12 digits in RoundOff; this is probably a good heuristic for the
+      usual float stuff, particularly with what's returned by gunits.
+
+- Want
+    - Add nbs to string between number and unit
 
 '''
 if 1:  # Header
@@ -395,7 +387,28 @@ else:  # Section: Core Num Class and Unit Registration
             NumType.Cpx: t("sky", "gry1"),
             NumType.Unc: t("pur", "gry1"),
         }
+        flip = False    # If True, flip str() and repr() behavior
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
+            '''Constructor for the Num instance
+
+            value can be one of the numeric types int, fractions.Fraction, float,
+            decimal.Decimal, mpmath.mpf, complex, mpmath.mpc, uncertainties.ufloat, or a
+            string.  If a string, you can include the unit string with it, separated
+            from the numerical string by one or more string.whitespace characters.  If
+            the unit keyword is used, it will override any unit defined in the value
+            string.
+
+            '''
+            if isinstance(value, str):
+                # Check for a smart split, a rightmost whitespace character that is
+                # between the number and the trailing unit.  _extract_unit() uses
+                # str.rsplit(None, 1) for this case, an excellent tool.  Note the unit
+                # keyword argument overrides the unit string in the value argument if
+                # the keyword argument is not the empty string.
+                val_str, found_unit = self._extract_unit(value)
+                if found_unit:
+                    unit = found_unit if not unit else f"({found_unit})*({unit})"
+                value = val_str # Continue to _parse_string with just the number part
             if 1:  # Default internal state representation
                 self.numer: int = 0
                 self.denom: int = 1
@@ -409,7 +422,6 @@ else:  # Section: Core Num Class and Unit Registration
                 if unit:
                     RegisterUnit(unit)
                 self.unit = unit
-                self.f = False      # If True, toggle str()/repr() output for REPL
                 if value is None:
                     return
             if 1:  # High-Precision Conversion Logic
@@ -451,6 +463,7 @@ else:  # Section: Core Num Class and Unit Registration
                     self.re_unc = mpmath.mpf(str(value.std_dev))
                     self.mytype = NumType.Unc
                 elif isinstance(value, str):
+                    self.unit = unit    # This overrides any unit in value
                     self._parse_string(value)
                 else:
                     raise TypeError(f"Type of {value!r} is not supported")
@@ -482,6 +495,20 @@ else:  # Section: Core Num Class and Unit Registration
                     self.mytype = NumType.Int
                 except Exception as e:
                     raise ValueError(msg) from e
+        def _extract_unit(self, s: str) -> ty.Tuple[str, str]:
+            s = s.strip()
+            # If there's no space, there's definitely no unit-shorthand
+            if " " not in s:
+                return s, ""
+            parts = s.rsplit(None, 1)
+            val_part, unit_part = parts
+            # HEURISTIC: A unit usually starts with a letter, a parenthesis (e.g.
+            # "(m)/(s)"), or a percent sign.  We also check that the val_part doesn't
+            # end with an 'e' (protecting scientific notation like "1.23 e-4")
+            if unit_part[0].isalpha() or unit_part[0] in "(%":
+                if not val_part.lower().endswith("e"):
+                    return val_part.strip(), unit_part.strip()
+            return s, ""
         def _binary_op(self, other: "Num", op_func: ty.Callable) -> "Num":
             target_type = max(self.mytype.value, other.mytype.value)
             if target_type <= NumType.Rat.value:
@@ -580,16 +607,13 @@ else:  # Section: Core Num Class and Unit Registration
                 return self.as_int_or_rat == other_num.as_int_or_rat
             return bool(self.as_mpf == other_num.as_mpf)
         def _s(self, flip: bool) -> str:
-            '''Return str() or repr(), depending on self.f
-            This is handy when you're in the REPL, because the default output for
-                """
-                >>> x
-                """
-            when x is a Num is the repr() string.  You can set 'x.f = True' and then
-            you'll get the str() string, which is formatted for the chosen number of
-            significant figures and uses colorizing to indicate type.
+            '''Return str() or repr(), depending on Num.flip This is handy when you're
+            in the debugger, because the default output for 'p x' where x is a Num
+            instance is the repr() string.  Set 'x.f = True' and then you'll get the
+            str() string, which is formatted for the chosen number of significant
+            figures and uses colorizing to indicate type.
             '''
-            if flip:
+            if Num.flip:
                 # Normal repr() string
                 if self.mytype == NumType.Int:
                     s = str(self.numer)
@@ -625,6 +649,12 @@ else:  # Section: Core Num Class and Unit Registration
             if not self.f:
                 return self._s(True)    # repr() behavior
             return self._s(False)       # str() behavior
+        @property
+        def f(self) -> bool:
+            return Num.flip
+        @f.setter
+        def f(self, value) -> None:
+            Num.flip = bool(value)
         @property
         def unit(self) -> str:
             return self._unit.strip()
