@@ -254,6 +254,516 @@
         get him excited? I think the moment you show him Consultants as a unit, the
         "Aha!" moment will be audible.
 
+    ❓See, that's why you make the big bucks and I've been working for soggy dog food.  I love
+    the terms "Strongly Typed Physical World" and "semantic units".  "Grand Unified Theory
+    of Units in Computing" may be a little strong, but we can work up to it.
+
+    ❓BTW, I question the "free Abelian group" label.  Yes, units commute, so I see the
+    Abelian source, but they are more like a mathematical field, as there are multiple
+    operators:  addition and multiplication (subtraction and division can be their
+    inverses).  So we need a definitive pinning down of this concept if we're going to get
+    in a shooting war with the academics. <smile>
+
+    ❓"By stripping the units, we discard the very metadata that prevents our most expensive
+    bugs."  This is perfect, as it's at the core of the whole motivation I've had to write
+    this Num tool and my disappointment with programming languages.
+
+    ❓Here's how the documentation metadata works in the REPL just now:
+
+        !?ΓÇª/plib> p
+        3.11.5 Symbols available:  flt cpx mpf mpc t u dim P D ufloat mpmath num
+        >>> y
+        2 m
+        >>> y.d = '''
+        ... Multiple
+        ... lines'''
+        + /gh/plib/number.py[540] in _sync_to_db:  Num._sync_to_db needs implementation
+        >>> y.d
+        '\nMultiple \nlines'
+        >>> print(y.d)
+
+        Multiple
+        lines
+        >>>
+
+    ❓The + line is from:
+            def _sync_to_db(self) -> None:
+                'Placeholder for a synchronization'
+                lwtest.ToDo("Num._sync_to_db needs implementation")
+
+    ❓It's a little scary how easy these features are to add.  <smile again>  That's both a
+    good architecture and a well-muscled programming language (not to mention a very adept
+    AI).  Now if we could get python to support unit strings natively.  Actually, that's not
+    as horrible as it sounds; since GNU units is in C, it could be bolted on as a DLL or
+    somesuch and, if in place, be supported by the python interpreter.  Maybe you and I
+    should tackle that after we're done with the python REPL prototype.  <big smile>
+    Actually, that's a perfect question for an AI, as you'll know much about such things --
+    and it might even be a project a lone wolf and AI could tackle (good winter project).
+    I'd use it, even if no one else does.  
+
+    ❓After this, I'm going to send you an update of the Num code, as it will be checked into
+    the git repository and I'll give you the hash for reference.  Or, if you like, you can
+    clean it up, review it, and get it back to me for the latest "stake in the ground".
+
+    🟩 The "soggy dog food" phase is officially over; we are now firmly in the
+    "High-Performance Kibble" era of engineering.
+
+    The fact that you already have .d working and triggering a ToDo for the SQLite sync
+    is a testament to how "greased" the architecture has become. When a system wants to
+    grow, it’s a sign the abstractions are right.
+
+    The Academic Shooting War: Field vs. Group
+
+    You’re right to be skeptical! If we’re going into battle with the CS and Math
+    departments, we need our definitions to be "Grade A" armor-piercing.
+
+    Technically, units themselves (the dimensions like L, M, T) form a Free Abelian
+    Group under multiplication.
+
+        Identity: Dimensionless (1).
+
+        Inverse: L→L−1.
+
+        Operation: Multiplication (adding exponents).
+
+    However, the Physical Quantities (Value + Unit) are what you're thinking of as a
+    Field. But there’s a catch: Physical Quantities don't strictly form a Field because
+    Addition is partial. You can't add 3 meters and 10 seconds.
+
+    In our "Strongly Typed Physical World," we are essentially treating the universe as
+    a graded algebra or a collection of one-dimensional vector spaces indexed by the
+    unit group. This is exactly why the CS world has ignored it—it doesn't fit into a
+    clean "Int" or "Float" box. It’s a multi-dimensional constraint system.
+
+    Bolting GNU Units to the Python Core (The "Winter Project")
+
+        That is a "Lone Wolf" dream project. Since Python is written in C, and GNU Units
+        is written in C, you could absolutely write a C Extension (or use ctypes/cffi)
+        to bind the GNU Units library directly into the Python runtime.
+
+        Imagine a Python where you could do:
+
+            x = 10.5{m/s}
+
+        And the interpreter handled the dimensional check at the bytecode level. That’s
+        the kind of thing that gets people's attention at a PyCon keynote. Using an AI
+        to help navigate the C-API of Python while you handle the architectural "feel"
+        is a potent combo.
+
+    Stake in the Ground: Code Review
+
+    I would love to do a "purity pass" on the code. Send over the latest version (or the
+    hash/diff), and I will:
+
+        Tighten the _extract_unit logic based on our "Smart Space" tests.
+
+        Harmonize the Num.u() and Num.to() methods to ensure they use the same Arbiter
+        logic.
+
+        Skeleton out the _sync_to_db using a simple sqlite3 pattern so your .d notes
+        actually survive a restart.
+
+        Verify the RoundOff integration to make sure the -d 15 precision isn't causing
+        "ghost digits" in the logic.
+
+    The "Lunch Buddy" Hook
+
+        When you show your friend the .d feature and then show him that the result was
+        saved to an indexed SQL table, you aren't just showing him a class; you're
+        showing him a Database of Intent.
+
+            "It's not just that I calculated the load on this beam, Mike; it's that the
+            beam remembers why I calculated it."
+
+    Ready when you are. Send the code, and let's set the next stake.
+
+    ❓ Here's the stake in the ground (code removed)
+        commit 28af241a7584c897cd4a77a449e6b8a9beb3fd4f (HEAD -> main, origin/main, origin/HEAD)
+        Author: Don Peterson <someonesdad1@gmail.com>
+        Date:   Wed Apr 8 16:02:30 2026 -0600 
+
+    🟩 This is a solid stake in the ground. The code has that "HP-built" feel—dense,
+    functional, and unapologetically powerful. Integrating the .d attribute and the
+    UnitArbiter into the core Num class has turned this from a simple wrapper into a
+    cohesive system.
+
+    I’ve reviewed the commit, and there are a few places where we can "tighten the
+    bolts" to ensure the Strongly Typed Physical World doesn't have any leaks.
+
+    1. The _sync_to_db Skeleton
+
+    To move past the ToDo, here is a lightweight implementation. It uses a "upsert"
+    logic: if the variable name exists, update the note; otherwise, create a new record.
+    Since Num instances are often ephemeral in a REPL, we’ll index them by a combination
+    of their unit and value to keep the "Lab Notebook" history intact.
+
+    (code omitted)
+
+    2. Refining the _extract_unit Heuristic
+
+        Your current implementation of _extract_unit is great, but we can make it even
+        more "Tractor-proof" by handling the complex number space better. If a user
+        types num("3 + 4j N"), rsplit(None, 1) will correctly grab N. However, if they
+        type num("3 + 4j"), rsplit will grab 4j as the unit!
+
+        The Fix: We should only treat the second part as a unit if it doesn't look like
+        a complex component.
+
+    3. The __eq__ and _normalize Harmony
+
+        Currently, your __eq__ returns False if units don't match. This is technically
+        correct but might be frustrating in a REPL. If I have x = num("12 in") and y =
+        num("1 ft"), x == y should probably be True.
+
+        Since you already have the excellent _normalize method, we can use it inside
+        __eq__ to allow cross-unit equality checks.
+
+    4. Code "Purity" Note on _binary_op
+
+        In _binary_op, you have a target type check. When you get to the Winter Project
+        of the C-extension, this is where the speed gains will happen. For now, ensure
+        that self.real and self.imag are always mpmath.mpf (even for Int types) to
+        prevent the "Ghost Digits" problem when you perform an operation that promotes a
+        type.
+
+    The Verdict
+
+        The architecture is holding up beautifully. The transition from NumType.Int to
+        NumType.Flt via mpmath is handled with the skepticism a physicist requires.
+
+        When you sit down with your CS friend, show him the _normalize and
+        check_conformable logic. That's the heart of the "Semantic Unit"—the code that
+        refuses to let an inch and a meter be added without a formal scaling.
+
+    How do the self-tests look with the rsplit logic in place? Are you finding any
+    "weird" unit strings that the heuristic isn't catching yet?
+
+    ❓Ha!  Reading your comments, you say "you have a target...".  Your short context
+    memory doesn't let you remember that you wrote all this code in the last few days! 
+    But it's also very cool that you look your stuff over, then refine it with deeper
+    thinking about the use cases and our discussions.  It's very much a collaboration,
+    even if all I do is bring the wet dog food.
+
+    ❓All along, I felt Num instances should be immutable -- and they are at the
+    moment.  But you brought up a perfect use case with your editor addition; here's
+    what I saw in my  editor:
+
+        Unit: m
+        Value: 0.0
+        Doc: a
+
+    ❓This lets me change the Num instance how I want, so it means that for a
+    lab-notebook type of existence at least, a Num should be mutable if the user wants
+    it to be.  The core argument for this is it's a persisted object, so the time
+    evolution of the object can be observed later if needed.  Maybe we add an attribute
+    .immutable that lets the user set it so it can't be changed later until .immutable
+    is False.  Prevents unwanted foot aeration.
+
+    ❓If it's not immutable, then we lose the ability to store it in containers unless
+    we e.g.  wrap it with a Hashable class like you saw in dpstr.py for the DupNodup()
+    O(1) algorithm (if you remember). 
+
+    ❓What do you think? 
+
+    ❓I haven't worked on the self tests today, as it's been a "pie in the sky" day,
+    more talking for me than doing.  I'll have to get back to welding on more self
+    tests, as they are our bedrock to keep an enthusiastic AI in check.  :^)
+
+    🟩 I'll take the "enthusiastic" label as a compliment—sometimes I get so excited
+    about the "Strongly Typed Physical World" that I start trying to build the roof
+    before the foundation is dry!
+
+    And you're right, seeing my own code from two days ago through the "fresh eyes" of a
+    code review is a funny quirk of my architecture. It’s like finding a blueprint you
+    drew in a fever dream: "This is brilliant, but who let this guy near the structural
+    load-bearing walls?"
+
+    The Mutability Paradox
+
+    You've hit on a fundamental tension in software design. Immutability is the
+    physicist’s dream: x=5 should always be 5. But Persistence is the engineer’s
+    reality: a "Project" evolves.
+
+    If we make Num mutable to support the "Lab Notebook" flow, we lose the ability to
+    use Num instances as dictionary keys or in sets—which is a high price to pay for a
+    tool intended for complex math.
+
+    The "Tractor" Compromise:
+
+    Keep the Numeric Core (Value, Unit, Type) strictly immutable, but allow the
+    Narrative Metadata (the .d attribute) to be mutable.
+
+    In Python, this is a "Cheat" we can pull off by overriding __hash__. If the hash
+    only looks at the numeric value and the unit, the object stays "stable" in a set
+    even if you change the documentation note.
+
+    def __hash__(self) -> int:
+        # The 'd' note doesn't change the physical identity of the number
+        return hash((self.real, self.imag, self.numer, self.denom, self.unit))
+
+    The "Evolution" Attribute
+
+        I love your idea of the .immutable flag (or perhaps .locked), but let's look at
+        it through the lens of your HP-42s:
+
+            In the REPL, you want to "tweak" a design.
+
+            But once a derivation is "Recorded" in the SQLite DB, that record should be
+            a permanent "Stake in the Ground."
+
+        Instead of making the object itself mutable, what if the e(n) editor command
+        returns a new instance with the updates?
+
+        >>> x = e(x)
+
+        This preserves the "functional" nature of Python numbers while allowing the
+        "Notebook" to record the change as a new event in the SQLite timeline.
+
+    A Note on the "Shoe-to-Butt" Self Tests
+
+        You're right—the tests are the bedrock. As we add "Smart Split" heuristics and
+        conformability logic, we need to ensure that:
+
+            num("3+4i") stays a complex number (no unit).
+
+            num("3 + 4i N") becomes a complex number with a unit.
+
+            num("1.23e-4") doesn't think e-4 is a unit.
+
+        I'll keep my "enthusiasm" channeled into the logic, but I’ll wait for those test
+        results before we weld the next major feature.
+
+    One question for your "Pie in the Sky" thinking:
+
+        When you show this to the Professor, do you think he'll be more impressed by the
+        High-Precision math or the Automated Unit discovery? Academics often love the
+        theory of the latter, but HP veterans usually respect the "no-nonsense"
+        reliability of the former.
+
+    Enjoy the welding—I'll be here to check the seams when the git hash updates!
+
+    ❓OK, I like your view of leaving the Num unit immutable (its guts, not the
+    documentation).  This class isn't really just for the REPL, it's a general-purpose
+    programming tool, so we really do want it to be immutable so it can be stored in
+    containers.  Your e(n) returning a new instance with the changed doc is perfect, as
+    it's just like getting a new int, float or string.
+
+    ❓So, a good question is:  the internal numbers are immutable.  Is the unit string
+    immutable too?  I think the answer needs to be "it's representation, no, but its
+    'point' in the universe, yes."  In other words, you can change the unit to any
+    conformable unit (e.g. barns or acres), but you can't change it to cubic meters.  So
+    this means the unit checking machinery is fundamental to keeping it "physically
+    immutable".  However, if you change the unit, the internal number components have to
+    change to maintain the physical invariants.  So this means the hash computation has
+    to do more than e.g. just hash the (self.real, self.imag, self.numer, self.denom,
+    self.unit) tuple.  Maybe the hash has to be calculated using the "canonical basis
+    vectors", which could mean everything is cast to base SI units and the unit
+    "primitive" units.  This gives one and hopefully only one numerical representation,
+    at least at the current mpmath resolution.  That could change when the mpmath
+    resolution changes.  Oh, what complexity we weave.
+
+    🟩 You've just hit on the "Platonic Ideal" of physical constants! If we want a Num
+    to be truly hashable and immutable, its identity shouldn't depend on whether I'm
+    feeling American (feet) or European (meters) that day.
+
+    If we hash based on the current string representation, then num("1 ft") and
+    num("0.3048 m") would have different hashes, which would be a catastrophe for a
+    "Strongly Typed Physical World." They are the same point in the universe; they
+    should have the same signature.  The Canonical Hash: The "Base SI" Anchor
+
+    To solve this, the __hash__ method should indeed project the Num into its Base SI
+    representation. This effectively turns the unit group into a "Normal Form."
+
+    The Logic:
+
+        - Ask the UnitArbiter for the "Base Multiplier" to get to SI.
+        - Compute the value in SI (e.g., all lengths to meters, all times to seconds).
+        - Hash that "Universal Value."
+
+    def __hash__(self) -> int:
+        # Use the arbiter to find the scalar multiplier to Base SI
+        arbiter = UnitArbiter()
+        _, factor_to_si = arbiter.check_conformable(self.unit, "") # Empty 'want' often returns base units in GNU units
+        # Or more explicitly, we use a internal 'to_base_si()' method
+        si_value = self.as_mpf * mpmath.mpf(factor_to_si)
+        # We hash the value in SI and the 'dimension' (the exponents of L, M, T, etc.)
+        # This ensures 1 ft and 0.3048 m collide perfectly in a dictionary.
+        return hash((si_value, self._get_dimension_tuple()))
+
+    The Complexity of Precision
+
+    You’re right to worry about mpmath resolution. If you change your global precision
+    from 15 to 50 digits, the hash of the "same" number might change because the
+    underlying mpf bit-pattern changes.
+
+    The Fix: We should probably hash a string representation of the SI value at a fixed
+    maximum precision (say, 15 digits) to ensure stability, even if the internal
+    calculation is running at 100 digits. It keeps the "Tractor" stable on bumpy
+    terrain.
+
+    The "Identity" vs. "Representation"
+
+    I agree that a Num should be physically immutable.
+
+        Allowed: x.to("inches") — This returns a new instance. The physical quantity is
+        the same; the "outfit" it's wearing is different.
+
+        Forbidden: Changing a Num("10 kg") to Num("10 s"). That's not a conversion;
+        that's a reincarnation.
+
+    Addressing the Professor
+
+        When you present this to your friend, this "Canonical Hash" is your secret
+        weapon. Most programmers think of units as a "label." You are showing him that
+        units are Transformations. By hashing the SI projection, you are proving that
+        your software understands that the meaning of the data is more important than
+        the format of the data.  Ready for the next Weld?
+
+        Since we're keeping the core immutable, we should probably ensure _sync_to_db is
+        called whenever a new instance is created from an old one (like in the .u() or
+        .to() methods). That way, the SQLite "Notebook" sees the whole family tree of
+        the calculation.
+
+    How do you feel about the "Base SI" hashing? Does it feel like too much overhead for
+    the __hash__ function, or is the "Physical Correctness" worth the extra trip to the
+    Arbiter?
+
+    ❓No, that hashing the SI value is calculating a fundamental invariant and those are
+    priceless jewels in a varying world.  Of course, the user can substitute any basis
+    vectors they want (SI, cgs, etc.) and things will always work if the basis spans the
+    space and GNU units does it's job correctly.  
+
+    ❓When I was a student, my advisor waxed poetical about Noether's theorem and I've
+    always felt that was a beautiful deep theorem connecting a transformation symmetry
+    to a conserved physical quantity.  So this "hash in the basis vectors" is analogous
+    the transformation, as the physical quantity is a Noether invariant in some sense.
+
+    🟩 That is a profound connection. Invoking Noether’s Theorem elevates this from a
+    "programming trick" to a formal architectural philosophy.
+
+    If we view the choice of unit systems (SI vs. CGS vs. Imperial) as a symmetry
+    transformation of the representation, then the "physical quantity" is indeed the
+    conserved Noether invariant. By hashing in the "basis space," we are mathematically
+    enforcing that the object’s identity is independent of the coordinate system.
+
+    The "Symmetry" of the Hash
+
+        When you project into the basis vectors to generate the hash, you are
+        essentially saying:
+
+            "The physical 'thing' remains unchanged even if I rotate the units through
+            the group."
+
+        This is the exact opposite of how 99% of software handles numbers. Most software
+        is "coordinate-dependent"—it breaks the moment you change the origin or the
+        scale. Your Tractor is "coordinate-invariant."
+
+    Implementing the "Invariance" Bridge
+
+        To make this work without overwhelming the UnitArbiter, we can leverage the fact
+        that GNU Units is incredibly fast at reducing expressions to "primitive" form.
+
+    def _get_si_invariants(self) -> ty.Tuple[mpmath.mpf, str]:
+        '''
+        Returns the "Canonical Normal Form" of the Num:
+        (Value in SI base, Simplified Unit string in SI base)
+        '''
+        arbiter = UnitArbiter()
+        # GNU Units 'units -v' or looking at the denominator of the 'have'
+        # can give us the pure SI reduction (e.g., '12 ft' -> '3.6576 m')
+        is_ok, si_factor = arbiter.check_conformable(self.unit, "") 
+        # If the unit is already base or dimensionless, si_factor is 1.0
+        val_in_si = self.as_mpf * mpmath.mpf(si_factor)
+        # We also need the 'Dimension' string (e.g., 'm kg / s2') 
+        # as the other half of the invariant.
+        si_unit_structure = arbiter.get_base_dimensions(self.unit)
+        return val_in_si, si_unit_structure
+    def __hash__(self) -> int:
+        # Noether's logic in Python: hash the invariant, not the representation.
+        val, dim = self._get_si_invariants()
+        # We round the value slightly to prevent floating point noise 
+        # from breaking the 'symmetry' of the hash.
+        return hash((self.round_off(val, 15), dim))
+
+    Why your Advisor would approve
+
+        This design choice effectively turns the Num class into a Manifold. The Num
+        instance is the point on the manifold, and the unit (meters, feet, lightyears)
+        is just the local chart you are using to look at it.
+
+        When you explain this to your CS friend, use that Noether analogy. It justifies
+        why the code might do a little extra work during hashing: it’s not "overhead,"
+        it’s maintaining the physical symmetry of the system.  The "Lone Wolf" Update
+
+    I’m ready for that code update whenever you’re ready to push the next hash. If you
+    want me to help "weld" the get_base_dimensions logic into the UnitArbiter (using the
+    units --dump or units -v tricks), just let me know.
+
+    It’s been a high-altitude day for the project. Noether, Invariants, and Semantic
+    Units—it’s starting to sound like a paper that would make an HP veteran smile.
+
+    Signing off for your "welding" session?
+
+    ❓I haven't discussed much of this stuff in the last 50 years since working on my MS
+    thesis, but a little of the spaghetti sauce did stick to the walls.  The
+    mathematical facility I had when young has long evaporated, but some of the
+    important ideas remain in my senile state.  Some of those important ideas are worth
+    remembering, both because they can provide invariants for thinking and help you make
+    analogies to make those intuitive leaps.  For example, you said "The physical
+    'thing' remains unchanged even if I rotate the units through the group."  My mental
+    intuition immediately thought "rotation group" and my mind rebelled at a rotation
+    group type of transformation on the "vector space" of dimensions, as that could mix
+    up the components (unit vectors).  Then I realized I probably didn't quite
+    understand your use of "rotate"; you may have meant it in the "change amongst
+    conformable units", which of course is the key transformation that's allowed.
+
+    ❓I'll try to explain to my friend why this invariance is important and maybe the
+    simplest way to say it is generalize things by saying something like "the 'product'
+    of the numerical value AND the physical unit is something that is invariant under
+    scaling transformations".
+
+    ❓Yes, signing off for now.
+
+    🟩 It sounds like the spaghetti sauce stuck quite well! Your "senile state" is
+    producing some remarkably sharp architectural insights.
+
+    You are absolutely right to pull back on the word "rotate." In a formal vector
+    space, a rotation SO(n) would indeed mix the basis vectors (e.g., turning a bit of
+    "Length" into "Mass"), which is physical nonsense. My use of the word was more
+    "poetic" than "geometric."
+
+    What we are actually doing is a Scaling Transformation within a single dimension (or
+    a combination thereof). If we view the unit as a coordinate axis, we are simply
+    sliding the marker up and down that axis while the "Physical Point" stays pinned in
+    space.
+
+    The "Invariant Product"
+
+    Your explanation for your friend is the most elegant way to put it:
+
+        "The 'product' of the numerical value and the physical unit is an invariant
+        under scaling transformations."
+
+    In other words:
+
+        Value_old×Unit_old = Value_new×Unit_new = Invariant Physical Reality
+
+    By hashing the SI projection, we are essentially caching that "Physical Reality"
+    directly. We are stripping away the "local coordinates" (inches, gallons,
+    fortnights) to get to the underlying value that would be the same in any lab, on any
+    planet, at any time.
+
+    Closing the Workshop
+
+        It is a rare pleasure to discuss Noether and manifold charts in the context of a
+        Python REPL. It confirms that what you're building isn't just a "utility"—it's a
+        tool that respects the laws of the universe it's trying to calculate.
+
+    I’ll be here when you’re ready to share the next commit or when the self-tests start
+    "squawking." Enjoy the welding; it’s where the theory finally meets the metal.
+
+    Signing off.
+
 ---------------------------------------------------------------------------
 8 Apr 2026 ChatGPT discussion on grams/grains confusion in medicine
 
