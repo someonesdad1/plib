@@ -24,7 +24,7 @@ if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
 if 1:  # Global variables
     P = pathlib.Path
     ii = isinstance

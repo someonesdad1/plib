@@ -28,7 +28,7 @@ if 1:  # Header
         from wrap import dedent
         from columnize import Columnize
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()

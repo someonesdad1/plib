@@ -31,7 +31,7 @@ if 1:  # Header
     from wrap import dedent
     from lwtest import Assert
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from dputil import hyphen_range
     from f import (flt, acos, acosh, asin, asinh, atan, atanh, atan2, ceil, copysign,  # noqa
         cos, cosh, degrees, e, erf, erfc, exp, expm1, fabs, factorial, floor, fmod,    # noqa

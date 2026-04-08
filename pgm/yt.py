@@ -3,7 +3,7 @@ Make an HTML file of URLs to youtube videos
 '''
 if 1:   # Header
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from wrap import dedent
     import dptime
     import dputil

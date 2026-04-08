@@ -39,7 +39,7 @@ if 1:  # Header
         from f import flt
         from frange import frange
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from columnize import Columnize
         from dputil import Len
         if len(sys.argv) > 1:

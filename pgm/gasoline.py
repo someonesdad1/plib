@@ -28,7 +28,7 @@ if 1:  # Header
     from f import flt
     from frange import frange
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     # Global variables
     ii = isinstance
     t.cost = t("ornl")

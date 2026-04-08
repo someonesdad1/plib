@@ -25,7 +25,7 @@ if 1:  # Header
         from columnize import Columnize
         from wrap import wrap, dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from f import flt
         try:
             import mpmath

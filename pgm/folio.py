@@ -28,7 +28,7 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from lwtest import Assert
         import termtables as tt
         from dpprint import PP

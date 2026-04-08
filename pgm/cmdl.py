@@ -23,7 +23,7 @@ if 1:  # Standard imports
 if 1:  # Custom imports
     from wrap import wrap, dedent
     import trm
-    C = trm.Trm()
+    C = trm.TrmDP()
     if 0:
         import debug
         debug.SetDebugger()

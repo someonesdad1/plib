@@ -144,7 +144,7 @@ if 1:  # Standard imports
 if 1:  # Custom imports
     from wrap import wrap, dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from columnize import Columnize
     from wsl import wsl  # wsl is True if we're running under WSL
     from dpprint import PP

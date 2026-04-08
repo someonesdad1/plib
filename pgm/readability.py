@@ -52,7 +52,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         import get
         # Load a dictionary of number of syllables if available (otherwise,
         # the number of syllables in each word will be found by the

@@ -57,7 +57,7 @@ if 1:  # Header
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
-        t = trm.Trm()
+        t = trm.TrmDP()
         # The following makes the script's output always have escape codes for color, letting you
         # save the results to a file and view later with e.g. /usr/bin/less.
         t.on = True

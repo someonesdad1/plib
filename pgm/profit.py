@@ -34,7 +34,7 @@ if 1:  # Header
     # Custom imports
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from f import flt
     from transpose import Transpose
     from lwtest import Assert

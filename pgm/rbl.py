@@ -32,7 +32,7 @@ if 1:  # Custom imports
     from fel import GetEmptyLines
     from lwtest import Assert
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     if 0:
         import debug
         debug.SetDebugger()

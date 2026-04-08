@@ -23,7 +23,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from wsl import wsl
     import dputil
     t.e = t("ornl")

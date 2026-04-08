@@ -25,7 +25,7 @@ if 1:  # Header
         from columnize import Columnize
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from lwtest import Assert
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

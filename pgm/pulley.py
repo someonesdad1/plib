@@ -26,7 +26,7 @@ if 1:  # Custom imports
     from f import flt, cpx, sin, acos, sqrt, pi, Base
     import root
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from lwtest import run, raises, assert_equal, Assert
 if 1:  # Global variables
     ii = isinstance

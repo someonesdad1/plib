@@ -30,7 +30,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
 if 1:  # Global variables
     class G:
         pass

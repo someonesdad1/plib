@@ -35,7 +35,7 @@ if 1:  # Header
         from get import GetNumber
         from u import ParseUnit, ParseUnitString
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         # Constants
         m3_per_ft3 = flt(0.0283168)

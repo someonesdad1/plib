@@ -27,7 +27,7 @@ if 1:  # Header
         from wrap import wrap, dedent
         from color import Color
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from asciify import Asciify
         from dpstr import Scramble
         import ruler

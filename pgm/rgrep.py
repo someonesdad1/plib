@@ -29,7 +29,7 @@ if 1:  # Custom imports
     from wrap import dedent, wrap
     from dpstr import RegexpDecorate
     import trm
-    T = trm.Trm()
+    T = trm.TrmDP()
     from lwtest import run, raises, assert_equal, Assert
     if 0:
         import debug

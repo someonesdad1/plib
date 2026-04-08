@@ -32,7 +32,7 @@ if 1:  # Custom imports
     from wrap import dedent
     from columnize import Columnize
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from f import flt
     if 0:
         import debug

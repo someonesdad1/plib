@@ -86,7 +86,7 @@ if 1:  # Header
         import trm
         import termtables as tt
     if 1:  # Global variables
-        t = trm.Trm()
+        t = trm.TrmDP()
         W = int(os.environ["COLUMNS"]) - 1
         x = flt(0)
         x.N = 3

@@ -26,7 +26,7 @@ if 1:  # Custom imports
     from fraction import FormatFraction
     from f import flt
     import trm
-    C = trm.Trm()
+    C = trm.TrmDP()
     if 1:
         import debug
         debug.SetDebugger()

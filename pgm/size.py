@@ -26,7 +26,7 @@ if 1:  # Custom imports
     from wrap import dedent
     from f import flt
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
 if 1:  # Global variables
     P = pathlib.Path
     flt(0).N = 2  # Number of significant figures for sizes with SI suffix

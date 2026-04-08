@@ -26,7 +26,7 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from get import GetLines
         from lwtest import Assert
         from uncertainties import ufloat, UFloat, ufloat_fromstr

@@ -36,7 +36,7 @@ if 1:  # Header
         from fpformat import FPFormat
         from columnize import Columnize
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from u import u, ParseUnit, SI_prefixes
         from dputil import PP
         from f import flt

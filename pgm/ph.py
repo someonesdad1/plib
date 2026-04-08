@@ -27,7 +27,7 @@ if 1:  # Header
     from wrap import wrap, dedent
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     # Global variables
     ii = isinstance
     W = int(os.environ.get("COLUMNS", "80")) - 1

@@ -54,7 +54,7 @@ if 1:  # Header
         import tempfile
     if 1:  # Custom imports
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from wrap import dedent
         from wsl import wsl
         from lwtest import Assert

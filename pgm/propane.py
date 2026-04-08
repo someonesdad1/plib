@@ -44,7 +44,7 @@ if 1:  # Header
         from f import flt, ceil
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from lwtest import Assert
         if 0:
             import debug

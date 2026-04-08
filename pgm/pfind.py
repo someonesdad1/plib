@@ -37,7 +37,7 @@ if 1:  # Header
         from color import Color
         from dpstr import RegexpDecorate
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from columnize import Columnize
         from dbg import Debug
     # Global variables

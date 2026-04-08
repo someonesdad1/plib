@@ -27,7 +27,7 @@ if 1:   # Header
         import trm
     if 1:   # Import symbols
         Columnize = columnize.Columnize
-        t = trm.Trm()
+        t = trm.TrmDP()
         t.err = t.red
 if 1:   # Core functionality
     def GetInternalImports(file_path, all_module_names):

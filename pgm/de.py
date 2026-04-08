@@ -43,7 +43,7 @@ if 1:  # Header
         from u import u
         from fraction import FormatFraction, ToFraction
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         import sizes
         if 1:
             import debug

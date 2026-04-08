@@ -25,7 +25,7 @@ if 1:  # Header
         from wrap import dedent
         import columnize
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         P = pathlib.Path
         ii = isinstance

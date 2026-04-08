@@ -3,7 +3,6 @@ from __future__ import annotations
 Wed 8 Apr 2026 Tasks
 
 - Must
-    - I'm going to abbreviate GNU units to gunits
     - Verify infection model for REPL
     - Start playing with it in the REPL; it's almost a real calculator
     - What other __add__/__radd__ methods need to be done?  Can Mike automate this task
@@ -18,25 +17,18 @@ Wed 8 Apr 2026 Tasks
 '''
 if 1:  # Header
     if 1:   # Standard imports
-        import collections
         import decimal
         import enum
         import fcntl
         import fractions
-        import getopt
         import operator
         import os
         import pathlib
-        import re
-        import string
         import subprocess
         import sys
         import threading
-        import time
         import typing as ty
     if 1:   # Custom imports
-        import columnize
-        import dpstr
         import dpmath
         import dptypes
         import fmt
@@ -64,14 +56,6 @@ if 1:  # Header
             - Num.on?  Turns colorizing on/off
         
         '''
-    if 1:   # Import symbols
-        Path = pathlib.Path
-        defaultdict = collections.defaultdict
-        deque = collections.deque
-        namedtuple = collections.namedtuple
-        #
-        Columnize = columnize.Columnize
-        dedent = wrap.dedent
     if 1:   # Global variables
         t = trm.TrmDP()
         t.dbg = "#bdf6fe"
@@ -102,7 +86,7 @@ if 1:   # Utility stuff
             k["file"] = Dbg.file
             print(*p, **k)
             print(f"{t.n}", end="", file=Dbg.file)
-if 0:   # Old Num class
+if 0:   # Documentation
     '''Represent a general number useful for routine calculations
         
             Warning:  The internal representation uses mpmath, so it's your responsibility
@@ -110,29 +94,68 @@ if 0:   # Old Num class
             problems.
             
             The vision for this number class is for a "simple" view of the numerical
-            universe in a python REPL (read-eval-print loop).  If you studied math as 
-            e.g. an engineer/scientist in college, then you learned about some different
-            number fields:  integers, rationals, reals, and complex numbers, the bedrock of
-            practical math.  When doing calculations, we smoothly move between these fields
-            as needed, converting things almost subconsciously, but it's harder for the
-            computer stuff because these things (numbers) are usually types that often can't 
-            unconsciously interact.  My vision for this Num class was to see if the
-            following number types could be put into a logical single container:
-                
-                These "blackboard" symbols are used to denote the mathematical sets:
+            universe in a python REPL (read-eval-print loop) or for a programming task.
+            This class encapsulates what I learned when young doing calculations:  we
+            smoothly moved through integers, rational numbers, real numbers, complex
+            numbers, and numbers with uncertainty.  Doing physical calculations 
+            meant that physical units were intimately coupled with the numbers.
+            too.  
+
+            I wanted to see if it was possible to abstract these different number sets
+            into one "more abstract" number.  I'll use the "blackboard" symbols are used
+            to denote the mathematical number sets:
+
                     ℕ   Natural numbers:  the integers 1, 2, ...
                     ℤ   Positive and negative integers and zero
                     ℝ   Real numbers
                     ℂ   Complex numbers:  a pair of real numbers
             
-                python's int, a representation of ℤ
-                python's fractions.Fraction, a representation of ℚ
-                python's float ℝ
-                python's decimal.Decimal, another representation of ℝ
-                python's complex ℂ
-                mpmath's mpf, another representation of ℝ
-                mpmath's mpc, another representation of ℂ
+            In python, we have a pretty good representation of these number sets:
+
+                Python type                 Represents
+                ---------------------       ----------
+                int                             ℤ
+                fractions.Fraction              ℚ
+                float                           ℝ
+                decimal.Decimal                 ℝ
+                complex                         ℂ
+                mpmath.mpf                      ℝ
+                mpmath.mpc                      ℂ
             
+            The Number class uses two python integers to represent ℤ and ℚ.  ℝ and ℂ are
+            represented by two mpmath.mpf numbers for the real and imaginary components.
+            Uncertainty in the real and imaginary components is modeled using linear
+            uncertainty propagation.  This adds two more mpmath.mpf components, the
+            uncertainties of the real and imaginary parts.  When modeling the
+            uncertainty of a complex number, we're really modeling two random variables
+            with a possible correlation between them, so another mpmath.mpf number
+            represents the correlation, a number on [-1, 1].  You can think of the value
+            of the real or imaginary component as the "mean" and the uncertainty as the
+            "standard deviation" of these random variables.
+
+            Units are handled by letting you write them as strings.  Behind the scenes,
+            the GNU units tool handles the conversion mechanics, unit definitions, and
+            dimensional algebra.  
+
+            Uncertainty is handled by using linear uncertainty propagation.  
+
+            Python has the python uncertainties module (PUM), an excellent and mature
+            tool.  It works well, but is limited to python's built-in floating point
+            representation of about 15 digits.  This doesn't have much practical effect,
+            as the vast majority of problems are handled with perhaps half of these
+            digits.  We need to extend things to the complex domain, so we're dealing
+            with two random real variables with a possible correlation.  Python's
+            uncertainties package can handle n real variables with a known covariance
+            matrix, so this is the most pragmatic tool, as it's written and working.
+            However, if we do use PUM, we'll lose the desirable arbitrary precision
+            behavior gotten with using mpmath.  So I decided to utilize two more
+            mpmath.mpf numbers to represent the real and imaginary parts' uncertainty.
+            This decision meant having to do the linear uncertainty propagation
+            calculations ourselves, but this isn't a hardship, as mpmath addresses the
+            calculation of derivatives, needed for function evaluations with uncertainty.
+
+
+
             Two other "types" needed to be addressed:
             
                 - Because real-world practical problems include uncertainty, we need
@@ -248,9 +271,9 @@ if 0:   # Old Num class
                             self.mytype = NumType.Rat
                         except Exception as e: raise ValueError(msg) from e
                     elif "j" in normalized:
-                        re, im = dpmath.ParseComplex(value)
-                        self.real = mpmath.mpf(re)
-                        self.imag = mpmath.mpf(im)
+                        real, imag = dpmath.ParseComplex(value)
+                        self.real = mpmath.mpf(real)
+                        self.imag = mpmath.mpf(imag)
                         self.mytype = NumType.Cpx
                     elif "." in normalized or "e" in normalized:
                         try:
@@ -1144,7 +1167,7 @@ if 1:   # Self-tests
 
 if __name__ == "__main__":  
     if 1:   # Standard imports
-        pass
+        import getopt
     if 1:   # Custom imports
         pass
     if 1:   # Import symbols
@@ -1168,7 +1191,7 @@ if __name__ == "__main__":
             Warn(f"{t.n}")
             exit(status)
         def Usage(status=1):
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
             Describe behavior
             Options:

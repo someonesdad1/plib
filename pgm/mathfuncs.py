@@ -5,7 +5,7 @@ Print out a table showing the math/cmath functions and their return types.
 from wrap import dedent
 from dpstr import alen
 import trm
-t = trm.Trm()
+t = trm.TrmDP()
 
 b = t.mag
 i = t.lwn

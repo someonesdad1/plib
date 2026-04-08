@@ -72,7 +72,7 @@ if 1:  # Header
     from wrap import wrap, dedent
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from lwtest import Assert
     if 0:
         from hexdump import hexdump

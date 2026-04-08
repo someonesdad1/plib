@@ -34,7 +34,7 @@ if 1:  # Header
     from lwtest import Assert
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     t.always = True
     # Global variables
     ii = isinstance

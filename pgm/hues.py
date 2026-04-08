@@ -46,7 +46,7 @@ if 1:  # Header
     from wrap import wrap, dedent
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     t.on = True
     from dpseq import iDistribute
     # Global variables

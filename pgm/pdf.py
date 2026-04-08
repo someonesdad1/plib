@@ -24,7 +24,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1

@@ -46,7 +46,7 @@ if 1:  # Header
     if 1:  # Custom imports
         import shop_util
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from f import flt
         from dpprint import PP
         pp = PP()  # Screen width aware form of pprint.pprint

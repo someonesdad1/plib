@@ -40,7 +40,7 @@ if 1:  # Header
         from f import pi, flt
         from frange import frange
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from elliptic import EllipseCircumference
         from wrap import dedent
     if 1:  # Global variables

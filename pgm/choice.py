@@ -37,7 +37,7 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from lwtest import Assert
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

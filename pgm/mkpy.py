@@ -31,7 +31,7 @@ if 1:  # Header
         import time
     if 1:  # Custom imports
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from get import GetLines
         from wrap import dedent
         from dpprint import PP

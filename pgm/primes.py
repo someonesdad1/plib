@@ -17,7 +17,7 @@ if 1:  # Header
         import dparith
         import trm
     if 1:  # Global variables
-        t = trm.Trm()
+        t = trm.TrmDP()
         t.prime = t.redl
         t.number = t.skyl
         nl = "\n"

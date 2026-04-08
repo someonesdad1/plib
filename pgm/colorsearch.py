@@ -30,7 +30,7 @@ if 1:  # Header
     if 1:  # Import symbols
         defaultdict = collections.defaultdict
         #
-        t = trm.Trm()
+        t = trm.TrmDP()
         dedent = wrap.dedent
     if 1:  # Global variables
         t.always = True     # Always print escape sequences

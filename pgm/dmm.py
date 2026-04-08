@@ -50,7 +50,7 @@ if 1:  # Header
         from wrap import wrap, dedent
         from color import Color
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from lwtest import Assert
         from f import flt
         from si import SI

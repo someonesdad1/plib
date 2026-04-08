@@ -36,7 +36,7 @@ if 1:  # Header
     # Custom imports
     from wrap import dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from u import u, ParseUnit
     from f import flt
     from water import FrictionFactor, WaterDensity, WaterDynamicViscosity

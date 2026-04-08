@@ -32,7 +32,7 @@ if 1:  # Header
         import u
         from f import flt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()

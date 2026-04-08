@@ -3,7 +3,7 @@ PBS list of 100 great to read books in the US.
     https://www.pbs.org/the-great-american-read/books/#/
 '''
 import trm
-t = trm.Trm()
+t = trm.TrmDP()
 data = '''
     1 | To Kill a Mockingbird | Harper Lee 
     2 | Outlander (Series) | Diana Gabaldon 

@@ -2,7 +2,7 @@
 from math import log10
 from columnize import Columnize
 import trm
-t = trm.Trm()
+t = trm.TrmDP()
 
 t.l = t.pur
 t.o = t.orn

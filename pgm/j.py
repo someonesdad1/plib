@@ -25,7 +25,7 @@ if 1:  # Header
         import trm
         from dpstr import Edit
     # Global variables
-        t = trm.TrmDP()
+        t = trm.TrmDPDP()
         P = pathlib.Path
         ii = isinstance
         t.c = t("skyl")

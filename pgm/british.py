@@ -26,7 +26,7 @@ if 1:  # Header
         from wrap import dedent
         from columnize import Columnize
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         stdin = "stdin"
         # regexp to convert all 7-bit punctuation to spaces

@@ -46,7 +46,7 @@ if 1:  # Header
             pass
         g = G()  # Storage for global variables as attributes
         g.dbg = False
-        t = trm.Trm(default=2)
+        t = trm.TrmDP(default=2)
         t.dbg = t.lil
         t.on = False if g.dbg else True
         ii = isinstance

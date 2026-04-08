@@ -25,7 +25,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from dpstr import RegexpDecorate
         from extensions import extensions
 if 1:  # Utility

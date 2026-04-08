@@ -96,7 +96,7 @@ if 1:  # Header
         from f import flt
         from wrap import wrap, dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from columnize import Columnize
         from primes import IsPrime, AllFactors
     if 1:  # Global variables

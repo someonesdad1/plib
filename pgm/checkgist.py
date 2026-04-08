@@ -39,7 +39,7 @@ if 1:  # Header
         g = Constant()
         g.dbg = False
         g.gistname = "def GetGist():"
-        t = trm.Trm()
+        t = trm.TrmDP()
         # These are filenames to ignore
         with g:
             g.ignore = set([

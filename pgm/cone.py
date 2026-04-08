@@ -24,7 +24,7 @@ if 1:  # Custom imports
     from get import GetNumber as GN
     from f import flt, pi, sin, atan, degrees, radians
     import trm
-    C = trm.Trm()
+    C = trm.TrmDP()
 if __name__ == "__main__":
     dbg = False
     if dbg:

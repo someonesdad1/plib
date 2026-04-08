@@ -51,7 +51,7 @@ if 1:  # Custom imports
     from wrap import dedent
     from dptypes import Constant
 if 1:  # Global variables
-    t = trm.Trm(default=2)
+    t = trm.TrmDP(default=2)
     sep = "@@"  # Separates datafile records
     nl = "\n"
     ff = "\n\x0c\n"  # Separates output records

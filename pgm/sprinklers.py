@@ -36,7 +36,7 @@ if 1:  # Header
         from dpstr import Keep
         from get import GetClosest
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from wrap import dedent
         from lwtest import Assert
     if 1:  # Global variables

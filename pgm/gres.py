@@ -35,7 +35,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
 def ParseCommandLine():
     d["-i"] = False  # Compile regexp with re.I
     d["-@"] = []  # Read regex's from file

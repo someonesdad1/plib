@@ -89,7 +89,7 @@ if 1:  # Header
         from u import u, ParseUnit
         from cmddecode import CommandDecode
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from launch import Launch
         import root
         from wsl import wsl

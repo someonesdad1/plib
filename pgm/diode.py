@@ -39,7 +39,7 @@ if 1:  # Header
         from frange import frange
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from lwtest import Assert
         from scipy.interpolate import interp1d
         from dpprint import PP

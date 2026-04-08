@@ -26,7 +26,7 @@ if 1:  # Custom imports
     from lwtest import Assert
     from f import flt, sqrt
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
 if 1:  # Global variables
     debug = 0  # Turns on debug printing
     nl = "\n"

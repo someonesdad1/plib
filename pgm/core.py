@@ -23,7 +23,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width
         if 0:

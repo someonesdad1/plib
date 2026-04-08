@@ -33,7 +33,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent, wrap
     import trm
-    t = trm.Trm()
+    t = trm.TrmDPDP()
 if 1:  # Global variables
     ii = isinstance
     enc = "UTF-8"

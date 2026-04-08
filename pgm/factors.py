@@ -18,7 +18,7 @@ if 1:  # Header
         from primes import AllFactors, IsPrime, FactorList
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:   # Global variables
         t.num = t.viol
         t.cnt = t.ornl

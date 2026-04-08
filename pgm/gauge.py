@@ -61,7 +61,7 @@ if 1:  # Header
         from wrap import dedent
         from f import flt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from columnize import Columnize
         from gauge_sizes import gauges
         from u import u, ParseUnit

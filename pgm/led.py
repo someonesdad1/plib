@@ -31,7 +31,7 @@ if 1:  # Header
         from resistors import FindClosest
         from fpformat import FPFormat
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from dpprint import PP
     if 1:  # Global variables
         pp = PP()   # Get pprint with current screen width

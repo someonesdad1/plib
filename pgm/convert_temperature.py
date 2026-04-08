@@ -25,7 +25,7 @@ if 1:  # Header
         from sig import GetSigFig
         from f import flt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from wrap import dedent
         from lwtest import Assert, assert_equal
         if 0:

@@ -29,7 +29,7 @@ if 1:  # Header
         from get import GetNumber
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from dpprint import PP
         pp = PP()  # Screen width aware form of pprint.pprint
         from wsl import wsl  # wsl is True when running under WSL Linux

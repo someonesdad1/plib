@@ -27,7 +27,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from f import flt
         if 1:
             import debug

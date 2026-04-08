@@ -20,7 +20,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
 def Usage(status=1):
     print(
         dedent(f'''

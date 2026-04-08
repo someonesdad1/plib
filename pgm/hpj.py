@@ -66,7 +66,7 @@ if 1:
         import debug
         debug.SetDebugger()
     # Global variables
-    t = trm.Trm()
+    t = trm.TrmDP()
 if 1:  # Classes
     class Article:
         def __init__(

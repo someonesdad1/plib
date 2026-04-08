@@ -50,7 +50,7 @@ if 1:  # Header
         have_color = True
         from color import Color
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         t.always = True
     else:
         try:

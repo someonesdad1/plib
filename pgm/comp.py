@@ -653,7 +653,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from columnize import Columnize
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()

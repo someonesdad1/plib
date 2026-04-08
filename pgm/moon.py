@@ -82,7 +82,7 @@ if 1:  # Header
         from wrap import dedent
         from meeus import IsDST
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         t.yr = t.grn
         t.new = t.gry
         t.full = t.wht

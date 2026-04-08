@@ -28,7 +28,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         if 0:  # Drops into debugger on exception
             import debug
             debug.SetDebugger()

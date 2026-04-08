@@ -44,7 +44,7 @@ if 1:  # Header
         from columnize import Columnize
         from globalcontainer import Global, Variable, Constant
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception

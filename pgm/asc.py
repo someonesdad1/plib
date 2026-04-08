@@ -35,7 +35,7 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        t = trm.Trm()
+        t = trm.TrmDP()
         class Global:
             pass
         g = Global()

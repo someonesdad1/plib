@@ -21,7 +21,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from f import flt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from wrap import dedent
         import termtables as tt
         if len(sys.argv) > 1:

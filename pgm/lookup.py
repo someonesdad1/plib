@@ -63,7 +63,7 @@ if 1:   # Custom imports
     from get import GetTokens
     if 1:   # Use new color module
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     else:
         import color as color
 if 1:   # Global variables

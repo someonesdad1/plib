@@ -22,7 +22,7 @@ if 1:  # Header
     from wrap import wrap, dedent
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     # Global variables
     ii = isinstance
     class g:

@@ -1,6 +1,6 @@
 from wrap import dedent
 import trm
-t = trm.Trm()
+t = trm.TrmDP()
 
 t.one = t.redl
 t.zero = t.grnl

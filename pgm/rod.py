@@ -22,7 +22,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from wrap import dedent
         from f import flt as f, pi
         from u import u, ParseUnit

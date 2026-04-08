@@ -31,7 +31,7 @@ if 1:  # Header
         from f import flt
         from u import u, ParseUnit
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         class G:
             pass

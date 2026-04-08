@@ -23,7 +23,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from bidict import bidict
         from get import GetLines
         from wrap import dedent

@@ -79,7 +79,7 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
-        t = trm.Trm()
+        t = trm.TrmDP()
         t.dbg = t.lil
         # app to open a file with registered application
         if wsl:

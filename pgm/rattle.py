@@ -41,7 +41,7 @@ if 1:  # Header
         from wrap import wrap, dedent
         from color import Color
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from u import u
         from f import flt, sqrt
         import get

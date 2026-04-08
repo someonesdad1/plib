@@ -50,7 +50,7 @@ if 1:  # Header
     from wrap import wrap, dedent, HangingIndent
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from get import GetLines
     from lwtest import Assert
     if 0:

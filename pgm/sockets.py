@@ -9,7 +9,7 @@ if 1:  # Imports & globals
     import sys
     from columnize import Columnize
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     w = t("wht")  # White
     h = t("ornl")  # Highlight color
 else:

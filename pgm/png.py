@@ -16,7 +16,7 @@ https://www.tutorialspoint.com/python_penetration_testing/python_penetration_tes
 import os
 from time import time
 import trm
-t = trm.Trm()
+t = trm.TrmDP()
 
 ip = "192.168.0."
 ping = "ping -c 1 "

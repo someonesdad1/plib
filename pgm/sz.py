@@ -32,7 +32,7 @@ if 1:  # Custom imports
         import color as C
     else:
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)

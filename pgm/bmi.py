@@ -25,7 +25,7 @@ if 1:  # Header
         from f import flt
         from frange import frange
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         lb2kg = 0.453592
         in2m = 0.0254

@@ -28,7 +28,7 @@ if 1:  # Custom imports
     from wrap import wrap, dedent
     from color import Color
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from columnize import Columnize
     import strdiff
     if 0:

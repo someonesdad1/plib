@@ -33,7 +33,7 @@ if 1:  # Header
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
-        t = trm.Trm()
+        t = trm.TrmDP()
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))

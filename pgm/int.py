@@ -29,7 +29,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         import primes
     if 1:  # Global variables
         class g:

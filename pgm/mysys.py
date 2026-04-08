@@ -14,7 +14,7 @@ if 1:   # Header
         import trm
         import wrap
     if 1:   # Global variables
-        t = trm.Trm()
+        t = trm.TrmDP()
         sp = " "
         nl = "\n"
 if 1:   # Core functionality

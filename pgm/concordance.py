@@ -29,7 +29,7 @@ if 1:  # Header
         from wrap import dedent
         from dpstr import RegexpDecorate
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()

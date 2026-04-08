@@ -53,7 +53,7 @@ if 1:  # Header
         from wrap import dedent
         from u import u
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         ii = isinstance
         # Data for Clausing 5914 lathe

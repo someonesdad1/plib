@@ -28,7 +28,7 @@ if 1:  # Header
         from f import flt
         import termtables as tt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         try:
             # This option library can generate a PostScript plot of the layout
             from g import *

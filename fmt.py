@@ -101,14 +101,21 @@ if 1:  # Header
                 - .spc and .sign attributes not yet supported
             - Big number formatting
                 - Power tower:  10↑↑n == 10**10**...**10, n times
+                    - Could be 1een, but it would be easy to miss the two e's
+                    - Or 1.234↑↑12
+                    - Various arrows:  ↑ ⇑ ⇧ ⭡ ￪ ⭥⭍
+                        - 1.234⭍12 1.234⇑12 1.234⇧12 1.234￪12 1.234↑12
+                    - 🟤🟣🟢🟡🟠🔵🔴⚫⚪ or 🟫🟪🟩🟨🟧🟦🟥 are good in Windows Terminal
+                      because highly visible
                 - "order" of magnitude n:  how many times you have to take log of a
                   number to get a result between 1 and 10.  Could call this "biglog".
-                  See https://en.wikipedia.org/wiki/Super-logarithm
-                    - Ⓛ could be used to denote a really big number
+                  See https://en.wikipedia.org/wiki/Iterated_logarithm (base 10) and
+                  "level index", the same thing except with the natural log
+                    - ⊛ could be used to denote a really big number
                     - x = mpf("2.33e395835")
                     - L = mpmath.log10
                     - L(L(L(x))) -> mpf('0.7479952346529527')
-                    - So x would be Ⓛ3.748
+                    - So x would be ⊛3.748
                     - Get inverse by t = mpf(10), t**(t**(t**0.748)) -> mpf('2.249e+395891')
             - "unit" keyword to __call__
             - "fixed" keyword:  simulates HP calculator behavior (different than "fix")

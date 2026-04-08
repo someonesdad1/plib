@@ -14,7 +14,7 @@ if 1:  # Header
     if 1:   # Custom imports
         import termtables as tt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from wrap import dedent
         from get import GetInt
     if 1:   # Global variables

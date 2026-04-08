@@ -32,7 +32,7 @@ if 1:  # Header
         from f import flt
         from columnize import Columnize
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         #from months import months
         import dptime
     if 1:  # Global variables

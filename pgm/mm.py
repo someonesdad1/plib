@@ -24,7 +24,7 @@ if 1:  # Custom imports
     from frange import frange
     from columnize import Columnize
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
 if 1:  # Global variables
     in2mm = flt(25.4)
     class g:

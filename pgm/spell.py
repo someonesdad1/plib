@@ -35,7 +35,7 @@ if 1:  # Header
         import url as URL
         from columnize import Columnize
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
     if 1:  # Global variables
         class G:
             pass

@@ -32,7 +32,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from resistors import resistors, FindClosest
     # Note:  leave the use of sig.py.  Changing to flt's with f.py
     # increases the running time of a typical problem by an order of

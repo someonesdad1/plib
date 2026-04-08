@@ -45,7 +45,7 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import trm
-    C = trm.Trm()
+    C = trm.TrmDP()
 if 1:  # Global variables
     nl = "\n"
     comment = re.compile(r"/\*(.*?)\*/", re.S)

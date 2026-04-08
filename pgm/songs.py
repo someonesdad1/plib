@@ -2,7 +2,7 @@ if 1:   # Imports
     import collections
     from collections import namedtuple
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from dputil import PP
     from get import GetTextLines
     import requests

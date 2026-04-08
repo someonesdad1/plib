@@ -89,7 +89,7 @@ if 1:  # Header
         from f import flt
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()

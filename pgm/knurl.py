@@ -33,7 +33,7 @@ if 1:  # Header
         from u import ParseUnit
         from f import flt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from columnize import Columnize
     if 1:  # Global variables
         class G:

@@ -38,7 +38,7 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from get import GetLines
         from columnize import Columnize
         if 1:

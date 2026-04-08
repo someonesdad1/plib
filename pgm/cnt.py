@@ -46,7 +46,7 @@ if 1:  # Custom imports
     from fpformat import FPFormat
     from roundoff import RoundOff
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     if 0:
         import debug
         debug.SetDebugger()

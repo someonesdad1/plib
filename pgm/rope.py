@@ -23,7 +23,7 @@ if 1:  # Header
     from f import flt
     from get import GetFraction
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from fraction import FormatFraction
     if 1:
         import debug

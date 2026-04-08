@@ -30,7 +30,7 @@ if 1:  # Header
         import timer
         from f import flt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from lwtest import Assert
         from u import u, ParseUnit
         from dpprint import PP

@@ -29,7 +29,7 @@ if 1:  # Header
         from si import GetSI
         from lwtest import Assert
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from dpprint import PP
         pp = PP()  # Screen width aware form of pprint.pprint
         from get import GetLines

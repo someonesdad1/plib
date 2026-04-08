@@ -49,7 +49,7 @@ if 1:  # Header
     # Custom imports
     from wrap import wrap, dedent
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     from f import flt, pi, sqrt
     import u
     # Global variables

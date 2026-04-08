@@ -65,7 +65,7 @@ if 1:  # Header
         wrap = wrap.wrap
         flt = f.flt
         fromto = u.fromto
-        t = trm.Trm()
+        t = trm.TrmDP()
         to = u.to
         u = u.u
     if 1:  # Global variables

@@ -30,7 +30,7 @@ if 1:  # Header
         from g import *
         from f import flt
         import trm
-        t = trm.Trm()
+        t = trm.TrmDP()
         from columnize import Columnize
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

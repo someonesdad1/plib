@@ -9,7 +9,7 @@ if 1:   # Header
     from f import flt, tan, atan, pi, degrees, radians
     import termtables as tt
     import trm
-    t = trm.Trm()
+    t = trm.TrmDP()
     t.f = t.skyl
 if 1:   # Core functionality
     def Slopes():
