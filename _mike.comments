@@ -1,0 +1,58 @@
+- Web interface
+    - When you go full screen, you should need to press ctrl-Enter to cause the prompt
+      to be sent.  This is really important in code discussions because it's way too
+      easy to accidentally hit Enter in the regular widget.  There should be a switch to
+      enable this behavior, as most users aren't going to care.  But it's different with
+      programmers and submitting code and making comments
+    - Probably my biggest beef in my long-running conversation is how my requested
+      formatting details "evaporate" over time.  This is aggravating; I have to try to
+      remember to send my "formatting file" at least once per day.  Of course, this is
+      picayune compared to the power of the help I'm getting for free, but I'd want it
+      if I was paying for the service, as it costs me quite a bit of time to have to
+      reformat things in my editor, mostly manually because I have to be careful with
+      automated tools.
+    - Another beef is when I sent the latest copy of code so we have a common basis.
+      Then it doesn't get used in an update.  This, for example, loses all the debug
+      statements I put in to try to track where bugs are appearing.
+    - There's some Unicode problem somewhere in the working loop.  I use WSL and a bash
+      prompt for all development.  Most pasting is OK, but some Unicode characters get
+      trashed by the time the web browser sees them.  I'm using Firefox; I can't tell if
+      it's Firefox or Google's processing of the string I sent.  Gemini seems to be able
+      to work with it, but sometimes it's a real mess.
+- Collaborator model
+    - I find Gemini and I work well together and the AI is much more than a code
+      producer.  Much of the value I get comes from asking the questions carefully.  In
+      particular, a great benefit is to ask higher-level architectural questions, as
+      Gemini has deep knowledge of many patterns and examples.  Many times a Gemini
+      comment makes me think "Oh, yeah, I dealt with that problem 35 years ago in C and
+      I had forgotten about it."
+    - An exciting part of working with an AI like Gemini is the synergism.  It's almost
+      like working with an engineering partner again, as the two "beings" discuss the
+      problem, possible solutions, and look for innovative ideas.  Even though I retired
+      about 25 years ago, it's almost as if I'm working again, but without annoying
+      management idiots, problematic coworkers, and insane schedules -- you know, normal
+      corporate life.  
+    - Gemini's power to create solutions and answer coding problem questions is powerful
+      and it doesn't bother me to ask for a written solution instead of coding it
+      myself; Gemini's code works much better than mine does, particularly if I'm
+      careful to give good requirements, show the code that's being used, and give the
+      actual error message, debugger traces, or typescript file that show what's going
+      on.  Gemini is very adept at interpreting massive data like this and extracting
+      both the cause and the fix.  This saves a lot of time.
+- History
+    - After I started using Gemini in mid-March 2026, I worked for about 2 weeks on a
+      task of refactoring and type-annotating my large set of python modules I've
+      written over nearly 30 years, about 150 files.  The task was to identify the core
+      files, refactor them appropriately, and type annotate them to make them move into
+      the future better.  Gemini was a tireless partner in this and I got roughly about
+      half of the main files done in this two week period; much of it was learning about
+      type annotations and using mypy.
+    - About a week was spent on two core files:  1) fmt.py that is a string interpolation
+      tool for numbers, including mpmath and uncertainties numbers and 2) trm.py, a
+      class that's derived from a dictionary and used to produce ANSI
+      colorizing/formatting codes in a terminal.  This one took a goodly amount of work
+      to get to the bulletproof stage; both of these required lots of work to refactor
+      and redesign. Gemini did a major redesign of the fmt.py script, reducing my old
+      code by about a factor of 4; we benefitted from having the good self-tests I had
+      written for the old code.  These two files are used everywhere in my python
+      scripts.
