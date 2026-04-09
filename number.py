@@ -2,19 +2,15 @@ from __future__ import annotations
 '''
 Wed 8 Apr 2026 Tasks
 
-- Must
-    - Verify infection model for REPL
-    - Add u option that lets you interact with units server
-        - x.u("17 yards + 2 feet + 5 inches, m") -> 16.2814 at current format precision
-    - Start playing with it in the REPL; it's almost a real calculator
-    - What other __add__/__radd__ methods need to be done?  Can Mike automate this task
-      with what we know now?
-    - Make sure Mike has latest code
-    - We're using 12 digits in RoundOff; this is probably a good heuristic for the
-      usual float stuff, particularly with what's returned by gunits.
-
-- Want
-    - Add nbs to string between number and unit
+- Verify infection model for REPL
+- Should handle lbm/in³:  translate Unicode exponents to regular digits
+- Start playing with it in the REPL; it's almost a real calculator
+- What other __add__/__radd__ methods need to be done?  Can Mike automate this task with
+  what we know now?
+- Make sure Mike has latest code
+- We're using 12 digits in RoundOff; this is probably a good heuristic for the usual
+  float stuff, particularly with what's returned by gunits.
+- Add nbs to string between number and unit
 
 '''
 if 1:  # Header
@@ -63,144 +59,105 @@ if 1:  # Header
         t.dbg = "#bdf6fe"
         g = dptypes.Constant()
         g.dbg = True if 0 else False
-if 1:   # Types and enums
-    class NumType(enum.IntEnum):
-        Int = 1
-        Rat = 2
-        Flt = 3
-        Cpx = 4
-        Unc = 5
-    NumericalTypes = ty.Union[
-        int , float , complex , decimal.Decimal ,
-        fractions.Fraction , mpmath.mpf , mpmath.mpc ,
-        uncertainties.UFloat , "Num" , str , None]
-if 1:   # Utility stuff
-    def Dbg(*p, **kw):
-        if not hasattr(Dbg, "file"):
-            Dbg.file = sys.stdout
-        if g.dbg:
-            if "color" in kw:
-                print(f"{t(kw['color'])}", end="", file=Dbg.file)
-                del kw["color"]
-            else:
-                print(f"{t.dbg}", end="", file=Dbg.file)
-            k = kw.copy()
-            k["file"] = Dbg.file
-            print(*p, **k)
-            print(f"{t.n}", end="", file=Dbg.file)
-if 0:   # Documentation
-    '''Represent a general number useful for routine calculations
-        
-            Warning:  The internal representation uses mpmath, so it's your responsibility
-            as the user to ensure the mpmath context has sufficient resolution for your
-            problems.
+        g.X = False
+    if 1:   # Types and enums
+        class NumType(enum.IntEnum):
+            Int = 1
+            Rat = 2
+            Flt = 3
+            Cpx = 4
+            Unc = 5
+        NumericalTypes = ty.Union[
+            int , float , complex , decimal.Decimal ,
+            fractions.Fraction , mpmath.mpf , mpmath.mpc ,
+            uncertainties.UFloat , "Num" , str , None]
+    if 1:   # Utility stuff
+        def Dbg(*p, **kw):
+            if not hasattr(Dbg, "file"):
+                Dbg.file = sys.stdout
+            if g.dbg:
+                if "color" in kw:
+                    print(f"{t(kw['color'])}", end="", file=Dbg.file)
+                    del kw["color"]
+                else:
+                    print(f"{t.dbg}", end="", file=Dbg.file)
+                k = kw.copy()
+                k["file"] = Dbg.file
+                print(*p, **k)
+                print(f"{t.n}", end="", file=Dbg.file)
+    if 0:   # Documentation
+        '''Represent a general number useful for routine calculations
             
-            The vision for this number class is for a "simple" view of the numerical
-            universe in a python REPL (read-eval-print loop) or for a programming task.
-            This class encapsulates what I learned when young doing calculations:  we
-            smoothly moved through integers, rational numbers, real numbers, complex
-            numbers, and numbers with uncertainty.  Doing physical calculations 
-            meant that physical units were intimately coupled with the numbers.
-            too.  
+                Caution:  The internal representation uses the mpmath library, so it's
+                your responsibility as the user to ensure the mpmath context has
+                sufficient resolution for your problems.  Example:  'mpmath.mp.dps = 30'
+                to set 30 digits of resolution; the default is 15, about the same as a
+                python float.
 
-            I wanted to see if it was possible to abstract these different number sets
-            into one "more abstract" number.  I'll use the "blackboard" symbols are used
-            to denote the mathematical number sets:
+                The Num class tries to be a container for the common numbers used
+                for the problems we do in the real world.  It can deal with 
+                    
+                    - integers
+                    - fractions
+                    - floating point numbers
+                    - complex numbers
+                    - real and complex numbers with uncertainty
+                        - Uses linear uncertainty propagation
+                    - physical and logical units for these numbers
+                        - GNU units program used for unit conversion fractors and
+                          dimensional algebra.  Because of this, you may want to
+                          familiarize yourself with its syntax and capabilities.
 
-                    ℕ   Natural numbers:  the integers 1, 2, ...
-                    ℤ   Positive and negative integers and zero
-                    ℝ   Real numbers
-                    ℂ   Complex numbers:  a pair of real numbers
+                The internal representation of the Num class uses 
+                    
+                    - Two python integers for integers and fractions
+                    - Two mpmath.mpf instances for the real and imaginary components
+                    - Two mpmath.mpf instances for the uncertainties in the real and
+                      imaginary components
+                    - One mpmath.mpf instance for the correlation coefficient between
+                      the real and imaginary components
+
+                In calculations, there's an internal type hierarchy that causes type
+                promotion when needed (in the enum NumType):
+
+                    Int < Rat < Flt < Cpx < Unc
+
+                In binary operations, the type of the result is determined by the Num
+                instance's largest NumType.
+
+                Units are handled by letting you write them as strings.  Behind the scenes,
+                the GNU units tool handles the conversion mechanics, unit definitions, and
+                dimensional algebra.  
+
+                Uncertainty is handled by using linear uncertainty propagation.  
+                
+                "Logical" units
+
+                    We usually think of units as e.g. the familiar SI units.  However,
+                    almost all practical calculations involve some types of units.  For
+                    example, if you're measuring ut pet food mass to feed some dogs and
+                    cats, you'd probably want the calculation to use the "units"
+                    kg_cat_food and kg_dog_food, assuming the dogs and cats get fed
+                    different foods.  This "unit orthogonality" helps keeps the animals
+                    fed properly, avoiding a mistake of mixing the foods, which might
+                    show up in a calculation as having units of kg_cat_food*kg_dog_food
+                    or a sum of 'kg_cat_food + kg_dog_food'.  
+
+                    It's a shame the programming tools we have don't natively support
+                    both physical and logical units.  One of my goals in this Num class
+                    was to provide a tool to do just this, because when the units in
+                    some arithmetical calculation aren't consistent, a logical error has
+                    been made.  Every scientist or engineer has learned to use such
+                    dimensional errors as red flags.
+
+                    The interesting feature of the Num class is that you can add logical
+                    units dynamically, i.e., while you're doing your calculation.  This
+                    is a powerful aid to doing a correct calculation, as the GNU units
+                    program will tell you if the units haven't been used correctly.
+                    Imagine how many bugs could be reduced in the world's programs if we
+                    had this feature in our programming environments natively.
             
-            In python, we have a pretty good representation of these number sets:
-
-                Python type                 Represents
-                ---------------------       ----------
-                int                             ℤ
-                fractions.Fraction              ℚ
-                float                           ℝ
-                decimal.Decimal                 ℝ
-                complex                         ℂ
-                mpmath.mpf                      ℝ
-                mpmath.mpc                      ℂ
-            
-            The Number class uses two python integers to represent ℤ and ℚ.  ℝ and ℂ are
-            represented by two mpmath.mpf numbers for the real and imaginary components.
-            Uncertainty in the real and imaginary components is modeled using linear
-            uncertainty propagation.  This adds two more mpmath.mpf components, the
-            uncertainties of the real and imaginary parts.  When modeling the
-            uncertainty of a complex number, we're really modeling two random variables
-            with a possible correlation between them, so another mpmath.mpf number
-            represents the correlation, a number on [-1, 1].  You can think of the value
-            of the real or imaginary component as the "mean" and the uncertainty as the
-            "standard deviation" of these random variables.
-
-            Units are handled by letting you write them as strings.  Behind the scenes,
-            the GNU units tool handles the conversion mechanics, unit definitions, and
-            dimensional algebra.  
-
-            Uncertainty is handled by using linear uncertainty propagation.  
-
-            Python has the python uncertainties module (PUM), an excellent and mature
-            tool.  It works well, but is limited to python's built-in floating point
-            representation of about 15 digits.  This doesn't have much practical effect,
-            as the vast majority of problems are handled with perhaps half of these
-            digits.  We need to extend things to the complex domain, so we're dealing
-            with two random real variables with a possible correlation.  Python's
-            uncertainties package can handle n real variables with a known covariance
-            matrix, so this is the most pragmatic tool, as it's written and working.
-            However, if we do use PUM, we'll lose the desirable arbitrary precision
-            behavior gotten with using mpmath.  So I decided to utilize two more
-            mpmath.mpf numbers to represent the real and imaginary parts' uncertainty.
-            This decision meant having to do the linear uncertainty propagation
-            calculations ourselves, but this isn't a hardship, as mpmath addresses the
-            calculation of derivatives, needed for function evaluations with uncertainty.
-
-
-
-            Two other "types" needed to be addressed:
-            
-                - Because real-world practical problems include uncertainty, we need
-                  some way to capture the notion of physical uncertainty in the numbers.
-                  Python's uncertainties package is a good tool, but it lacks the
-                  machinery to handle uncertainty in complex numbers, something I wanted
-                  this Num class to handle.  If your first reaction is "that's not
-                  needed", consider the output of an LCR meter: in general, you're given
-                  back a complex impedance Z = ESR + X*i and the two real numbers can
-                  have different (though perhaps correlated) uncertainty.  Though there
-                  are other "number" types (vectors, matrices, quaternions, etc.) that
-                  pop up in routine calculations, the Num type handles most of the
-                  practical work.
-            
-                - Numbers based on physical measurement include units, which form their
-                  own dimensional algebra and complicate things, as two real numbers x =
-                  "3.4 m/s" and y = "6.7 A" are different types and have more
-                  complicated arithmetic properties than "bare" numbers.  For example,
-                  you cannot add x and y, but you're allowed to multiply them.
-            
-            Here's a very important practical notion of "logical" units.  We usually
-            think of units as e.g. the familiar SI units.  However, almost all practical
-            calculations involve some types of units.  For example, if you're measuring
-            out pet food mass to feed some dogs and cats, you'd probably want the
-            calculation to use the "units" kg_cat_food and kg_dog_food, assuming the
-            dogs and cats get fed different foods.  This "unit orthogonality" helps
-            keeps the animals fed properly, avoiding a mistake of mixing the foods,
-            which might show up in a calculation as having units of
-            kg_cat_food*kg_dog_food or a sum of 'kg_cat_food + kg_dog_food'.  The
-            example isn't trivial -- if you're not convinced, look up the
-            non-chump-change units mistake of the Mars Climate Orbiter, a loss of about
-            half a billion 2026 dollars.  It's a shame the programming tools we have
-            don't natively support both physical and logical units.  One of my goals in
-            this Num class was providing a tool to do just this, because when the units
-            in some arithmetical calculation aren't consistent, it's likely an error has
-            been made.  Every scientist or engineer has learned to use such errors as
-            red flags.
-        
-            Note for constructor
-                # Note the user can supply a new unit string, changing the dimension
-                # of value.  This is a deliberately allowed pattern:  the user needs
-                # the number, but wants to change the unit "vector".
-    '''
+        '''
 
 if 1:   # Num class 
     class Num:
@@ -895,7 +852,46 @@ if 1:   # Self-tests
                     result = x/y
                     expected = Num("1/4", "(in)/(in)")   # (3/8)/(12/8) = 1/4
                     Assert(result == expected)
+        def Test_Corners():
+            N = Num
+            if 1:   # 0 and 1
+                # Addition
+                Assert(N(0) + N(0) == N("0+0i") == N("0/1") == N("0.-0.i"))
+                Assert(N(1) + N(1) == N("2+0i") == N("4/2"))
+                Assert(N(-1) + N(-1) == N("-2+0i") == N("-4/2"))
+                # Subtraction
+                Assert(N(0) - N(0) == N("0+0i") == N("0/1") == N("0.-0.i"))
+                Assert(N(1) - N(1) == N("0+0i") == N("0/1") == N("0.-0.i"))
+                Assert(N(-1) - N(-1) == N("0+0i") == N("0/1") == N("0.-0.i"))
+                # Multiplication
+                Assert(N(0)*N(0) == N("0+0i") == N("0/1") == N("0.-0.i"))
+                Assert(N(1)*N(1) == N("1+0i") == N("2/2"))
+                # Division
+                Assert(N(0)/N(1) == N("0+0i") == N("0/1") == N("0.-0.i"))
+                Assert(N(1)/N(1) == N("1+0i") == N("2/2"))
+            if 1:   # With units
+                with g:
+                    g.X = 1
+                Assert(N("0 m") + N("0 m") == N("0 m"))
+            if 1:   # "1+2i m" * "3/4 A":  hope we don't get mA
+                a = N("1+2i m")
+                b = N("3/4 A")
+                lwtest.ToDo("Bug in '1+2i m'*'3/4 A' -> 0.00+0.00j (m)*(A)")
+                breakpoint() # ∞∞ 
+                Assert(a*b == N("0.75+1.5i m*A"))
+'''
+Other tests
+    - '0 m' + '0 J' -> error
+    - '1 m' + '1 J' -> error
+    - '3 m' % '14 j' (error, units must be conformable)
+    - General:  x ⚬ y OK if units are conformable, result gets units of 1st arg
+    - inf and nan
+        - '3 + nan i'?, should stay in ℂ?
+    - Nails:  ϵ + i, 1 + ϵi
+    - '1.23453094830853048309739047394739473947394739473947e4 m3' Does GNU units barf
+      on this?  No, handles it fine; appears to handle unlimited digits.
 
+'''
 if __name__ == "__main__":  
     if 1:   # Standard imports
         import getopt

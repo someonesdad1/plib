@@ -1,0 +1,58 @@
+                Here's an example of use in a python REPL (read-eval-print loop) to
+                estimate the material cost to make 22 concrete round stepping stones for
+                a back yard project.  The intent is to show the following features of
+                the Num class
+
+                    - The GNU units program can probably handle almost any units that
+                      you are likely to use
+                    - Python's syntax lets you use Unicode symbols, making things easier
+                      to read
+                    - You can type numbers in as you're accustomed to
+                    - You can add comments and documentation to keep track of your
+                      thinking.  This makes it easier to review later and understand
+                      what you did.
+                    - The default display precision of the Num class is 3 digits, which
+                      should serve nicely for most practical problems.
+                    - You'll see "bags" and "stones" used as units.  They are actually
+                      added as dynamic units to the GNU units program.  The strategic
+                      value of this is that these "logical" and "physical" units must
+                      algebraically combine correctly or a syntax error results, telling
+                      you there's a calculation mistake.
+                    - lb means "pounds" in the US and is a unit of mass.  You can also
+                      use the more correct "lbm" if you wish.  Pounds are also used as a
+                      force, but GNU units expects you to use "lbf" for these units.
+
+                The problem's input information is:
+
+                    - The density of the finished concrete is 137 lb/ft³
+                    - The concrete mix comes in 90 lb bags that cost $3 each
+                    - The shape of a stepping stone is cylindrical
+                    - The diameter of a stepping stone is 1-1/3 yards
+                    - The thickness of a stepping stone is 3-3/16 inches
+
+                The problem's output is to determine the cost of the bags of concrete.
+
+                The algorithm is 
+
+                    - Calculate Vstep, the volume of each concrete step
+                    - Multiply Vstep by the number of steps to make, Nsteps, to get the
+                      Vconcrete, the volume of concrete needed
+                    - Divide Vconcrete by Concrete_density to get the mass of concrete
+                      needed Mconcrete
+                    - Divide Mconcrete by Mbag, the mass of each bag of concrete, to get
+                      the number of bags of concrete needed, Nbags.  Round this up to
+                      the next largest integer with Nbags = mpmath.ceil(Nbags).
+                    - Multipy
+
+
+                Assume the density of the finished concrete will be
+                137 lb/ft³ and the mix comes in 90 lb bags.  We'll assume the
+                calculation from the density tells us the needed number of bags to
+                purchase (we'll ignore the mass of water added).  The stones are 1-1/3
+                yards in diameter each and 3-3/16 inches thick.
+
+                step_stone_diameter = Num("1-1/3 yd")
+                step_stone_thickness = Num("3-3/15 inch")
+                number_of_stepping_stones = Num("22 stones")
+                concrete_density = Num("0.08 lbm/in3")
+                concrete_bag_mass = Num("90 lbm/bag")

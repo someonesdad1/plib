@@ -85,14 +85,14 @@ if 1:  # Header
             }
         else:
             popular_sizes = {
-                10: t.grnl,
-                12: t.denl,
-                14: t.brnl,
-                16: t("whtl", "mag"),
-                18: t("denl"),
-                20: t.magl,
-                24: t.denl,
-                28: t.ornl,
+                10: t.grn,
+                12: t.den,
+                14: t.brn,
+                16: t("wht", "mag"),
+                18: t("den"),
+                20: t.mag,
+                24: t.den,
+                28: t.orn,
             }
         # Used for formatting numbers
         fp = FPFormat(4)

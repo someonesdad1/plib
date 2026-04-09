@@ -176,7 +176,7 @@ if 1:  # Header
 
         '''
 
-if 0:  # Utility
+if 1:  # Utility
     # This is from lwtest.py and is inserted here to avoid a circular import
     def Assert(cond, msg="", debug=False):
         '''Replacement for assert but it can't be optimized out.  If debug is True,
@@ -1618,7 +1618,9 @@ else:   # New TakeApart/Fmt
                     sign = "-" if s.startswith("-") else ""
                     return DecomposedNumber(sign, s, 0, True)
                 s = format(x, f'.{n-1}e').lower()
-            assert s and 'e' in s
+            else:
+                raise Exception("Unhandled type")
+            Assert(s and 'e' in s)
             significand, exp = s.split('e')
             exponent = int(exp)
             sign = '-' if significand.startswith('-') else ''
