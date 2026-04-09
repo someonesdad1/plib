@@ -75,6 +75,10 @@ Input information
 Here's how this problem might be solved in a python script (once the guts are working
 I'll put it in a REPL dialog)
 
+    if 1:   # Define our semantic units first
+        arb = UnitArbiter()
+        arb.add_primitive("step")
+        arb.add_unit("steps step")
     if 1:   # Define the input quantities
         number_of_steps = Num("22 steps")
 ❓      number_of_steps.add_unit("step steps")   # 'step' and 'steps' are the same

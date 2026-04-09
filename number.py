@@ -22,8 +22,10 @@ if 1:  # Header
         import operator
         import os
         import pathlib
+        import shutil
         import subprocess
         import sys
+        import tempfile
         import threading
         import typing as ty
     if 1:   # Custom imports
@@ -55,6 +57,7 @@ if 1:  # Header
         
         '''
     if 1:   # Global variables
+        Path = pathlib.Path
         t = trm.TrmDP()
         t.dbg = "#bdf6fe"
         g = dptypes.Constant()
@@ -159,7 +162,7 @@ if 1:  # Header
             
         '''
 
-if 1:   # Num class 
+if 0:   # Num class 
     class Num:
         '''Represent a general number useful for routine calculations'''
         type_color = {
@@ -182,6 +185,9 @@ if 1:   # Num class
 
             '''
             self._doc = ""  # The mutable metadata
+            self.main_config = "/home/don/.0rc/bin/definitions.units"
+            self.dynamic_config_path = "/home/don/.units_dynamic"
+            UnitArbiter(self.main_config, self.dynamic_config_path)
             if isinstance(value, str):
                 # Check for a smart split, a rightmost whitespace character that is
                 # between the number and the trailing unit.  _extract_unit() uses
@@ -552,85 +558,204 @@ if 1:   # Num class
             if auto_promote:
                 return res.promote()
             return res
+        def add_unit(self, definition: str):
+                '''
+                Noether REPL: Teaches the system a new unit.
+                Example: x.add_unit("bag 90 lb")
+                '''
+                arb = UnitArbiter()
+                # The Arbiter handles the gatekeeping and the file append
+                arb.add_unit(definition)
+                # We don't necessarily need a local _restart_arbiter if the
+                # Arbiter class handles its own restart, but it's good for
+                # internal Num state consistency if we had any cached values.
 
-if 1:  # Unit arbiter and registration
+if 0:  # Unit arbiter and registration
     class UnitArbiter:
-        '''A singleton with a lock for GNU Units communication.'''
-        _instance: ty.Optional["UnitArbiter"] = None
-        _lock = threading.Lock()
+        _instance = None
         def __new__(cls):
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = super(UnitArbiter, cls).__new__(cls)
-                    cls._instance._init_arbiter()
+            if cls._instance is None:
+                cls._instance = super(UnitArbiter, cls).__new__(cls)
+                cls._instance._initialized = False
             return cls._instance
-        def _init_arbiter(self):
-            self.path = os.path.expanduser("~/.units_dynamic")
-            if not os.path.exists(self.path):
-                open(self.path, "a").close()
+        def __init__(self, main_config="", dynamic_config=""):
+            UnitArbiter(self.main_config, self.dynamic_config_path)
+            if self._initialized:
+                return
+            self.main_config = main_config
+            # Path for the dynamic units file (Noether's "Memory")
+            if dynamic_config:
+                self.dynamic_path = dynamic_config
+            else:
+                self.dynamic_path = Path("~/.units_dynamic").expanduser()
+            if not self.dynamic_path.exists():
+                self.dynamic_path.touch()
             self.proc = None
             self._start_process()
+            self._initialized = True
         def _start_process(self):
+            '''Starts or Restarts the GNU Units pipe with -q (quiet) and -v (verbose).'''
             if self.proc:
                 self.proc.terminate()
-            # Forced high precision to ensure RoundOff has enough data
-            cmd = ["units", "-q", "-d", "15", "-f", "/home/don/.0rc/bin/definitions.units", "-f", self.path]
-            Dbg(f"Starting 'units' process with command\n  {cmd}")
+                self.proc.wait()
+            # Load standard units then our dynamic ones
+            # Use -v to get the 'verbose' output which check_conformable relies on
+            cmd = ["units", "-q", "-v", "-f", "", "-f", str(self.dynamic_path)]
             self.proc = subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1
+                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, text=True, bufsize=1
             )
-        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
-            '''Returns (is_match, multiplier_or_error_string)'''
-            with self._lock:
-                try:
-                    if not have or not want:
-                        return False, "0"
-                    query = f"{have}\n{want}\n"
-                    self.proc.stdin.write(query)
-                    self.proc.stdin.flush()
-                    line_1 = self.proc.stdout.readline().strip()
-                    if "conformability error" in line_1:
-                        self.proc.stdout.readline() # Consume line 2
-                        self.proc.stdout.readline() # Consume line 3
-                        return False, line_1
-                    if not line_1 or "error" in line_1 or "unknown" in line_1.lower():
-                        return False, line_1
-                    line_2 = self.proc.stdout.readline().strip()
-                    factor_string = line_1.split()[-1]
-                    return True, factor_string
-                except Exception as e:
-                    self._start_process()
-                    return False, str(e)
-        def discover_best_unit(self, unit_expr: str) -> str:
-            '''Return the standard named unit equivalent to the expression.'''
-            if not unit_expr:
-                return ""
-            with self._lock:
-                try:
-                    query = f"{unit_expr}\n?\nquit\n"
-                    self.proc.stdin.write(query)
-                    self.proc.stdin.flush()
-                    candidates = []
-                    while True:
-                        line = self.proc.stdout.readline().strip()
-                        if not line or "You want:" in line:
-                            break
-                        parts = line.split()
-                        if parts:
-                            candidates.append(parts[0])
-                    priority = ["N", "J", "W", "Pa", "V", "A", "Ohm", "Hz", "F", "H", "T", "Wb"]
-                    for p in priority:
-                        if p in candidates:
-                            return p
-                    return unit_expr
-                except Exception as e:
-                    self._start_process()
-                    return unit_expr
+        def _check_definition(self, definition: str) -> tuple[bool, str]:
+            '''The Gatekeeper: Uses 'units -c' to verify syntax and check for loops.'''
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+                tmp.write(definition + "\n")
+                tmp_path = tmp.name
+            # -c checks for irreducible or circular definitions
+            cmd = ["units", "-c", "-q", "-f", "", "-f", str(self.dynamic_path), "-f", tmp_path]
+            try:
+                # Added a short timeout to prevent "Infinite Loop" hangs
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
+                is_ok = (result.returncode == 0)
+                error_msg = result.stderr or result.stdout
+            except subprocess.TimeoutExpired:
+                is_ok = False
+                error_msg = "Checking hung (possible infinite circular definition)."
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+            return is_ok, error_msg
+        def add_primitive(self, unit_name: str):
+            '''Defines a new fundamental dimension (e.g., 'step !').'''
+            definition = f"{unit_name.strip()} !"
+            self._commit_unit(definition)
+        def add_unit(self, definition: str):
+            '''Adds a scaling definition (e.g., 'steps 2 step').'''
+            # Clean common user errors (like '=') but rely on -c for the final word
+            sanitized = definition.replace("=", "").strip()
+            self._commit_unit(sanitized)
+        def _commit_unit(self, entry: str):
+            '''Vets and appends the entry to the dynamic config file.'''
+            is_ok, error = self._check_definition(entry)
+            if is_ok:
+                with open(self.dynamic_path, "a") as f:
+                    f.write(f"{entry}\n")
+                self._start_process()
+                print(f"Noether REPL learned: {entry}")
+            else:
+                print(f"✔  Unit Definition Error: {error.strip()}")
+                print("Action: Entry rejected. Fix syntax and try again.")
+        def check_conformable(self, have: str, want: str) -> tuple[bool, str]:
+            '''
+            Asks the Units pipe if 'have' can convert to 'want'.
+            Returns (True, "multiplier") or (False, "error message").
+            '''
+            if not self.proc or self.proc.poll() is not None:
+                self._start_process()
+            try:
+                # Send the request to the pipe
+                self.proc.stdin.write(f"{have}\n{want}\n")
+                self.proc.stdin.flush()
+                # Read result lines
+                line1 = self.proc.stdout.readline().strip()
+                line2 = self.proc.stdout.readline().strip()
+                if "*" in line1:
+                    # Success: return the multiplier (usually the second line is the '/')
+                    multiplier = line1.replace("*", "").strip()
+                    return True, multiplier
+                else:
+                    # Failure: line1 might be 'conformability error'
+                    return False, f"{line1} {line2}".strip()
+            except Exception as e:
+                return False, f"Pipe communication error: {str(e)}"
+        def get_base_dimensions(self, unit_str: str) -> str:
+            '''Reduces a unit to its primitive SI components for hashing/invariance.'''
+            # Shortcut: asking for conversion to '' (empty) often triggers base reduction
+            ok, res = self.check_conformable(unit_str, "")
+            # This part requires parsing the 'v' (verbose) output for base units
+            # For now, returning the raw result string
+            return res if ok else "dimensionless"
+else:
+    class UnitArbiter:
+        _instance = None
+        # Class-level configuration defaults
+        # Set these once at the start of your session if they differ from defaults
+        main_config = "/home/don/.0rc/bin/definitions.units"
+        dynamic_config = "/home/don/.units_dynamic"
+        def __new__(cls):
+            if cls._instance is None:
+                cls._instance = super(UnitArbiter, cls).__new__(cls)
+                cls._instance._initialized = False
+            return cls._instance
+        def __init__(self):
+            if self._initialized:
+                return
+            self.dynamic_path = Path(self.dynamic_config).expanduser()
+            if not self.dynamic_path.exists():
+                self.dynamic_path.touch()
+            self.proc = None
+            self._start_process()
+            self._initialized = True
+        def _start_process(self):
+            '''Starts/Restarts the GNU Units pipe with custom config paths.'''
+            if self.proc:
+                self.proc.terminate()
+                self.proc.wait()
+            # -f "" loads the standard units library
+            # -f self.main_config loads your static custom definitions
+            # -f self.dynamic_path loads Noether's "learned" units
+            cmd = ["units", "-q", "-v", "-f", "", "-f", self.main_config, "-f", str(self.dynamic_path)]
+            self.proc = subprocess.Popen(
+                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, text=True, bufsize=1
+            )
+        def is_known_unit(self, unit_str: str) -> bool:
+            '''Check if a unit is already defined without attempting a conversion.'''
+            if not unit_str: return True
+            # Converting a unit to itself is the fastest way to check existence
+            ok, _ = self.check_conformable(unit_str, unit_str)
+            return ok
+        def _check_definition(self, definition: str) -> tuple[bool, str]:
+            '''Gatekeeper: Verifies syntax/loops using 'units -c'.'''
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+                tmp.write(definition + "\n")
+                tmp_path = tmp.name
+            cmd = ["units", "-c", "-q", "-f", "", "-f", self.main_config, "-f", str(self.dynamic_path), "-f", tmp_path]
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
+                is_ok = (result.returncode == 0)
+                error_msg = result.stderr or result.stdout
+            except subprocess.TimeoutExpired:
+                is_ok, error_msg = False, "Circular definition detected (Check timed out)."
+            finally:
+                if os.path.exists(tmp_path): os.remove(tmp_path)
+            return is_ok, error_msg
+        def add_primitive(self, unit_name: str):
+            self._commit_unit(f"{unit_name.strip()} !")
+        def add_unit(self, definition: str):
+            sanitized = definition.replace("=", "").strip()
+            self._commit_unit(sanitized)
+        def _commit_unit(self, entry: str):
+            is_ok, error = self._check_definition(entry)
+            if is_ok:
+                with open(self.dynamic_path, "a") as f:
+                    f.write(f"{entry}\n")
+                self._start_process()
+                print(f"Γ¥ô Noether REPL learned: {entry}")
+            else:
+                print(f"!! Unit Error: {error.strip()}")
+        def check_conformable(self, have: str, want: str) -> tuple[bool, str]:
+            if not self.proc or self.proc.poll() is not None:
+                self._start_process()
+            try:
+                self.proc.stdin.write(f"{have}\n{want}\n")
+                self.proc.stdin.flush()
+                line1 = self.proc.stdout.readline().strip()
+                line2 = self.proc.stdout.readline().strip()
+                if "*" in line1:
+                    return True, line1.replace("*", "").strip()
+                return False, f"{line1} {line2}"
+            except Exception as e:
+                return False, str(e)
 
 if 1:  # Utility functions
     def RegisterUnit(unit_name: ty.Optional[str]) -> None:
@@ -640,6 +765,7 @@ if 1:  # Utility functions
         arbiter = UnitArbiter()
         # Existence check: compare unit to itself.
         # This avoids dimension mismatches with '1'.
+        breakpoint() # ∞∞ 
         is_known, message = arbiter.check_conformable(unit_name, unit_name)
         if not is_known and "unknown" in message.lower():
             arbiter.add_primitive(unit_name)
@@ -656,6 +782,10 @@ if 1:  # Utility functions
         # ... logic to read the file back and update n.d ...
         print(f"Updated {n.unit} metadata.")
 
+if 1:  # Temp experiment
+    x = Num("1 step")
+    x.add_unit("steps = step")
+    exit()
 if 0:  # Section: Discovery Pipe Test
     def Test_Discovery_Pipe():
         '''Test if '?' dump works over a non-interactive pipe without a pager.'''
@@ -686,7 +816,6 @@ if 0:  # Section: Discovery Pipe Test
                 print(f"{t.red}Failure:{t.n} Captured only {lines_captured} lines. Pager might be blocking.")
         except Exception as e:
             print(f"{t.red}Error during pipe test:{t.n} {e!r}")
-
 if 1:   # Self-tests
         def Test_Constructor_With_Numbers():
             if 1:   # No input
