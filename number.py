@@ -15,6 +15,7 @@ if 1:  # Header
         import enum
         import fcntl
         import fractions
+        import inspect
         import operator
         import os
         import pathlib
@@ -84,6 +85,20 @@ if 1:  # Header
                 k["file"] = Dbg.file
                 print(*p, **k)
                 print(f"{t.n}", end="", file=Dbg.file)
+        def get_caller_info() -> tuple[str, int]:
+            'Returns (file_name, line_number) for the frame above the caller'
+            # frame 0 is get_caller_info
+            # frame 1 is Warn
+            # frame 2 is the code that called Warn
+            frame = inspect.stack()[2]
+            return os.path.basename(frame.filename), frame.lineno
+        def Warn(*p, **kw):
+            'Write a message to stderr with location from where called'
+            fname, line = get_caller_info()
+            k = kw.copy()
+            k["file"] = sys.stderr
+            print(f"[{fname}:{line}]:  ", end="", file=sys.stderr)
+            print(*p, **k)
     if 0:   # Documentation
         '''Represent a general number useful for routine calculations
             
@@ -158,7 +173,7 @@ if 1:  # Header
             
         '''
 
-if 1:   # NumericMixin 
+if 1:   # NumericMixin:  class to add dunder math methods
     class NumericMixin:
         '''Boilerplate to make Num behave like a native Python number.'''
         @property
@@ -170,11 +185,12 @@ if 1:   # NumericMixin
         def __neg__(self) -> "Num":
             return self * -1
         def __pos__(self) -> "Num":
-            return self
+            return self * 1
         def __abs__(self) -> "Num":
             res = Num(self)
             res.real = abs(res.real)
             res.numer = abs(res.numer)
+            res.denom = abs(res.denom)
             res.imag = abs(res.imag)
             return res
         def __radd__(self, other):
@@ -456,41 +472,46 @@ if 1:   # Num
             if target_type <= NumType.Rat.value:
                 return self.as_int_or_rat == other_num.as_int_or_rat
             return bool(self.as_mpf == other_num.as_mpf)
-        def _s(self, flip: bool) -> str:
-            if Num.flip:
-                if self.mytype == NumType.Int:
-                    s = str(self.numer)
-                elif self.mytype == NumType.Rat:
-                    s = f"{self.numer}/{self.denom}"
-                elif self.mytype == NumType.Cpx:
-                    s = f"{self.real!r}+{self.imag!r}j"
-                elif self.mytype == NumType.Unc:
-                    s = f"{self.real} +/- {self.re_unc}"
-                else:
-                    s = f"{self.real!r}"
-                return f'Num("{s}", "{self.unit}")'
+        def _s(self) -> str:
+            '''Return the str() representation.  This will be the colorized and
+            formatted version.
+            '''
+            if self.mytype == NumType.Int:
+                s = fmt.fmt(self.numer)
+            elif self.mytype == NumType.Rat:
+                s = fmt.fmt(fractions.Fraction(self.numer, self.denom))
+            elif self.mytype == NumType.Cpx:
+                s = fmt.fmt(mpmath.mpc(self.real, self.imag))
+            elif self.mytype == NumType.Unc:
+                s = f"{self.real} +/- {self.re_unc}"
+                Warn("str() not right for Unc type")
             else:
-                if self.mytype == NumType.Int:
-                    s = fmt.fmt(self.numer)
-                elif self.mytype == NumType.Rat:
-                    s = fmt.fmt(fractions.Fraction(self.numer, self.denom))
-                elif self.mytype == NumType.Cpx:
-                    s = fmt.fmt(mpmath.mpc(self.real, self.imag))
-                elif self.mytype == NumType.Unc:
-                    s = f"{self.real} +/- {self.re_unc}"
-                else:
-                    s = fmt.fmt(self.real)
-                unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
-                color = Num.type_color.get(self.mytype, t.wht)
-                return f"{color}{s}{t.n}{unit_string}"
+                s = fmt.fmt(self.real)
+            unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
+            color = Num.type_color.get(self.mytype, t.wht)
+            return f"{color}{s}{t.n}{unit_string}"
+        def _r(self) -> str:
+            '''Return the repr() representation.  This will be the pure string form that
+            can be used as the argument to the constructor to reproduce the number.
+            '''
+            if self.mytype == NumType.Int:
+                s = str(self.numer)
+            elif self.mytype == NumType.Rat:
+                s = f"{self.numer}/{self.denom}"
+            elif self.mytype == NumType.Cpx:
+                s = f"{self.real!r}+{self.imag!r}j"
+                Warn("repr() not right for Unc type")
+            elif self.mytype == NumType.Unc:
+                s = f"{self.real} +/- {self.re_unc}"
+            else:
+                s = f"{self.real!r}"
+            if self.unit.strip():
+                s += f" {self.unit}"
+            return f"Num('{s}')"
         def __str__(self) -> str:
-            if not self.f:
-                return self._s(False)
-            return self._s(True)
+            return self._r() if Num.flip else self._s()
         def __repr__(self) -> str:
-            if not self.f:
-                return self._s(True)
-            return self._s(False)
+            return self._s() if Num.flip else self._r()
         def u(self, conversion_str: str) -> "Num":
             if "," not in conversion_str:
                 raise ValueError("Format must be '<from> , <to>'")
@@ -850,7 +871,8 @@ if 1:   # Self-tests
                     x = Num("1.0", "ft")
                     y = Num("1", "m")
                     result = x + y
-                    expected = "4.2808398950131199"
+                    expected = "4.28083989501312"   # 15 digit GNU units answer
+                    expected = "4.2808399000000001"
                     Assert(result.real == mpmath.mpf(expected))
                     Assert(result == Num(expected, "ft"))
                 if 1:   # Rational
@@ -913,6 +935,12 @@ if 1:   # Self-tests
                     result = x/y
                     expected = Num("1/4", "(in)/(in)")   # (3/8)/(12/8) = 1/4
                     Assert(result == expected)
+        def Test_Unit_Vector():
+            '''The .u component is used to normalize to a "unit vector" in the
+            particular "unit" vector's direction.  This is the same thing you do
+            to normalize in linear vector spaces:  u_vector = v/|v|.  This needs
+            a careful test, as it's a central concept.
+            '''
         def Test_Corners():
             N = Num
             if 1:   # 0 and 1
