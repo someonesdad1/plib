@@ -55,6 +55,7 @@ if 1:  # Header
         '''
     if 1:   # Global variables
         Path = pathlib.Path
+        Assert = lwtest.Assert
         t = trm.TrmDP()
         t.dbg = "#bdf6fe"
         g = dptypes.Constant()
@@ -93,10 +94,23 @@ if 1:  # Header
             frame = inspect.stack()[2]
             return os.path.basename(frame.filename), frame.lineno
         def Warn(*p, **kw):
-            'Write a message to stderr in red color with location from where called'
+            '''Write a message to stderr in red color with location from where called.
+            To minimize the number of messages, you can set single=True and the message
+            will be printed only once.
+            '''
+            if not hasattr(Warn, "single"):
+                Warn.single = False
+                Warn.already_printed = set()
             fname, line = get_caller_info()
-            k = kw.copy()
+            k = kw.copy()   # Only modify a copy of kw
             k["file"] = sys.stderr
+            Warn.single = bool(k.get("single", False))  # See if only print once
+            if "single" in k:
+                del k["single"]
+            if Warn.single and p in Warn.already_printed:
+                return
+            Warn.already_printed.add(p)
+            # Print the warning
             print(f"{t.red}[{fname}:{line}]:  ", end="", file=sys.stderr)
             print(*p, **k)
             print(f"{t.n}", end="", file=sys.stderr)
@@ -259,11 +273,8 @@ if 1:   # Num
             NumType.Unc: t("pur", "gry1"),
         }
         flip = False  # If True, flip str() and repr() behavior
-        # When debugging in the REPL or working on code, you can set this bool to False
-        # to have the ANSI color escape sequences stripped from the output, making
-        # things easier to read.  The easiest way to do this is set the .color property
-        # to False.
-        Num.show_color = True
+        show_color = True   # If True, strip escape sequences from str()/repr() output
+        # Note:  it's easiest to set the color property of an instance to set Num.show_color
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
             '''Constructor for the Num instance, an immutable number container'''
             self._doc = ""
@@ -517,10 +528,8 @@ if 1:   # Num
             result = f"Num('{s}')"
             return result
         def __str__(self) -> str:
-            Warn("test msg from repr")
             return self._r() if Num.flip else self._s()
         def __repr__(self) -> str:
-            Warn("test msg from repr")
             return self._s() if Num.flip else self._r()
         def u(self, conversion_str: str) -> "Num":
             if "," not in conversion_str:
@@ -601,7 +610,7 @@ if 1:   # Num
                     return self._unit.strip()
                 @unit.setter
                 def unit(self, value: str) -> None:
-                    Warn("make sure changing .unit changes value to keep invariant")
+                    Warn("Make sure changing .unit changes value to keep invariant", single=True)
                     self._unit = value.strip() if value else ""
             if 1:   # as_mpf:  return current value as an mpf
                 @property
@@ -628,6 +637,19 @@ if 1:   # Num
                 def d(self, text: str) -> None:
                     self._doc = text
                     self._sync_to_db()
+            if 1:   # color:  if True, allow return of escape codes
+                @property
+                def color(self) -> bool:
+                    return Num.show_color
+                @d.setter
+                def color(self, value: bool) -> None:
+                    Num.show_color = bool(value)
+            if 1:   # num:  x/x.num returns Num("1 <x's units>")
+                @property
+                def num(self) -> Num:
+                    y = Num(self)
+                    y._unit = ""
+                    return y
 if 1:  # Unit arbiter
     class UnitArbiter:
         _instance = None
@@ -958,11 +980,20 @@ if 1:   # Self-tests
                     expected = Num("1/4", "(in)/(in)")   # (3/8)/(12/8) = 1/4
                     Assert(result == expected)
         def Test_Unit_Vector():
-            '''The .u component is used to normalize to a "unit vector" in the
+            '''The .num component is used to normalize to a "unit vector" in the
             particular "unit" vector's direction.  This is the same thing you do
             to normalize in linear vector spaces:  u_vector = v/|v|.  This needs
-            a careful test, as it's a central concept.
+            a test, as it's a central concept.
             '''
+            x = Num("1.23 A")
+            Assert(x.real == mpmath.mpf("1.23"))
+            Assert(x.unit == "A")
+            y = x/x.num
+            # Now y is in some sense a unit vector in the units space
+            Assert(y == Num("1 A"))
+            Assert(y.unit == x.unit)    # Make sure units didn't change
+            Assert(x.num*y == x)        # Demonstrate the Noether invariance
+
         def Test_Corners():
             N = Num
             if 1:   # 0 and 1
@@ -990,8 +1021,11 @@ if 1:   # Self-tests
                 lwtest.ToDo("Bug in '1+2i m'*'3/4 A' -> 0.00+0.00j (m)*(A)")
                 breakpoint() # ∞∞ 
                 Assert(a*b == N("0.75+1.5i m*A"))
+if __name__ == "__main__":  
+    Test_Unit_Vector()
+    exit()
 '''
-Other tests
+Other tests needed:
     - '0 m' + '0 J' -> error
     - '1 m' + '1 J' -> error
     - '3 m' % '14 j' (error, units must be conformable)
@@ -1021,13 +1055,13 @@ if __name__ == "__main__":
             )
         def GetColors():
             t.err = "redl"
-        def Warn(*msg, **kw):
-            print(*msg, file=sys.stderr)
-        def Error(*msg, status=1):
-            Warn(f"{t.err}", end="")
-            Warn(*msg)
-            Warn(f"{t.n}")
-            exit(status)
+        #def Warn(*msg, **kw):
+        #    print(*msg, file=sys.stderr)
+        #def Error(*msg, status=1):
+        #    Warn(f"{t.err}", end="")
+        #    Warn(*msg)
+        #    Warn(f"{t.n}")
+        #    exit(status)
         def Usage(status=1):
             print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
