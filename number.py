@@ -93,12 +93,13 @@ if 1:  # Header
             frame = inspect.stack()[2]
             return os.path.basename(frame.filename), frame.lineno
         def Warn(*p, **kw):
-            'Write a message to stderr with location from where called'
+            'Write a message to stderr in red color with location from where called'
             fname, line = get_caller_info()
             k = kw.copy()
             k["file"] = sys.stderr
-            print(f"[{fname}:{line}]:  ", end="", file=sys.stderr)
+            print(f"{t.red}[{fname}:{line}]:  ", end="", file=sys.stderr)
             print(*p, **k)
+            print(f"{t.n}", end="", file=sys.stderr)
     if 0:   # Documentation
         '''Represent a general number useful for routine calculations
             
@@ -258,6 +259,11 @@ if 1:   # Num
             NumType.Unc: t("pur", "gry1"),
         }
         flip = False  # If True, flip str() and repr() behavior
+        # When debugging in the REPL or working on code, you can set this bool to False
+        # to have the ANSI color escape sequences stripped from the output, making
+        # things easier to read.  The easiest way to do this is set the .color property
+        # to False.
+        Num.show_color = True
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
             '''Constructor for the Num instance, an immutable number container'''
             self._doc = ""
@@ -489,7 +495,8 @@ if 1:   # Num
                 s = fmt.fmt(self.real)
             unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
             color = Num.type_color.get(self.mytype, t.wht)
-            return f"{color}{s}{t.n}{unit_string}"
+            result = f"{color}{s}{t.n}{unit_string}"
+            return result
         def _r(self) -> str:
             '''Return the repr() representation.  This will be the pure string form that
             can be used as the argument to the constructor to reproduce the number.
@@ -507,10 +514,13 @@ if 1:   # Num
                 s = f"{self.real!r}"
             if self.unit.strip():
                 s += f" {self.unit}"
-            return f"Num('{s}')"
+            result = f"Num('{s}')"
+            return result
         def __str__(self) -> str:
+            Warn("test msg from repr")
             return self._r() if Num.flip else self._s()
         def __repr__(self) -> str:
+            Warn("test msg from repr")
             return self._s() if Num.flip else self._r()
         def u(self, conversion_str: str) -> "Num":
             if "," not in conversion_str:
@@ -525,37 +535,6 @@ if 1:   # Num
                     raise ValueError(f"Could not parse units result '{result_str}': {e}")
             else:
                 raise ValueError(f"GNU Units Error: {result_str}")
-        @property
-        def f(self) -> bool:
-            return Num.flip
-        @f.setter
-        def f(self, value) -> None:
-            Num.flip = bool(value)
-        @property
-        def unit(self) -> str:
-            return self._unit.strip()
-        @unit.setter
-        def unit(self, value: str) -> None:
-            self._unit = value.strip() if value else ""
-        @property
-        def as_mpf(self) -> mpmath.mpf:
-            if self.mytype == NumType.Int:
-                return mpmath.mpf(str(self.numer))
-            if self.mytype == NumType.Rat:
-                return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
-            return self.real
-        @property
-        def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
-            if self.mytype == NumType.Int:
-                return self.numer
-            return fractions.Fraction(self.numer, self.denom)
-        @property
-        def d(self) -> str:
-            return self._doc
-        @d.setter
-        def d(self, text: str) -> None:
-            self._doc = text
-            self._sync_to_db()
         def _sync_to_db(self) -> None:
             lwtest.ToDo("Num._sync_to_db needs implementation")
         def promote(self) -> "Num":
@@ -606,6 +585,49 @@ if 1:   # Num
         def add_unit(self, definition: str) -> None:
             arb = UnitArbiter()
             arb.add_unit(definition)
+        if 1:   # Properties
+            if 1:   # f:  exchanges the repr() and str() strings.  This is handy in the
+                    # debugger, as 'p x' shows the repr() string and often you want to see the
+                    # str() string.
+                @property
+                def f(self) -> bool:
+                    return Num.flip
+                @f.setter
+                def f(self, value) -> None:
+                    Num.flip = bool(value)
+            if 1:   # unit:  gets or changes the unit attribute.
+                @property
+                def unit(self) -> str:
+                    return self._unit.strip()
+                @unit.setter
+                def unit(self, value: str) -> None:
+                    Warn("make sure changing .unit changes value to keep invariant")
+                    self._unit = value.strip() if value else ""
+            if 1:   # as_mpf:  return current value as an mpf
+                @property
+                def as_mpf(self) -> mpmath.mpf:
+                    if self.mytype == NumType.Int:
+                        return mpmath.mpf(str(self.numer))
+                    if self.mytype == NumType.Rat:
+                        return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
+                    return self.real
+            if 1:   # as_int_or_rat:  return current value as an int or fractions.Fraction
+                @property
+                def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
+                    if self.mytype == NumType.Int:
+                        return self.numer
+                    return fractions.Fraction(self.numer, self.denom)
+            if 1:   # d:  set or return the instance's documentation string, held
+                    # internally in self._doc.  Note the setter method cause a logging
+                    # to the database for persistence, just as if you had written in a
+                    # lab notebook.
+                @property
+                def d(self) -> str:
+                    return self._doc
+                @d.setter
+                def d(self, text: str) -> None:
+                    self._doc = text
+                    self._sync_to_db()
 if 1:  # Unit arbiter
     class UnitArbiter:
         _instance = None
