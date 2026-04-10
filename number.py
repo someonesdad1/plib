@@ -1,16 +1,12 @@
 from __future__ import annotations
 '''
-Wed 8 Apr 2026 Tasks
+Fri 10 Apr 2026 Tasks
 
+- Get some key unit tests for __add__, __radd__, and __iadd__ and friends
 - Verify infection model for REPL
 - Should handle lbm/in³:  translate Unicode exponents to regular digits
-- Start playing with it in the REPL; it's almost a real calculator
-- What other __add__/__radd__ methods need to be done?  Can Mike automate this task with
-  what we know now?
-- Make sure Mike has latest code
-- We're using 12 digits in RoundOff; this is probably a good heuristic for the usual
-  float stuff, particularly with what's returned by gunits.
-- Add nbs to string between number and unit
+- Start playing with it in the REPL; it's nearly a real calculator
+- Add nbs to string between number and unit in fmt.py
 
 '''
 if 1:  # Header
@@ -162,8 +158,81 @@ if 1:  # Header
             
         '''
 
-if 0:   # Num class 
-    class Num:
+if 1:   # NumericMixin 
+    class NumericMixin:
+        '''Boilerplate to make Num behave like a native Python number.'''
+        @property
+        def u(self) -> "Num":
+            '''Returns the unit-component (the 'unit vector') of this Num.'''
+            basis = Num(1)
+            basis.unit = self.unit
+            return basis
+        def __neg__(self) -> "Num":
+            return self * -1
+        def __pos__(self) -> "Num":
+            return self
+        def __abs__(self) -> "Num":
+            res = Num(self)
+            res.real = abs(res.real)
+            res.numer = abs(res.numer)
+            res.imag = abs(res.imag)
+            return res
+        def __radd__(self, other):
+            return Num(other) + self
+        def __rsub__(self, other):
+            return Num(other) - self
+        def __rmul__(self, other):
+            return Num(other) * self
+        def __rtruediv__(self, other):
+            return Num(other) / self
+        def __rfloordiv__(self, other):
+            return Num(other) // self
+        def __rmod__(self, other):
+            return Num(other) % self
+        def __rpow__(self, other):
+            return Num(other) ** self
+        def __iadd__(self, other):
+            return self + other
+        def __isub__(self, other):
+            return self - other
+        def __imul__(self, other):
+            return self * other
+        def __itruediv__(self, other):
+            return self / other
+        def __floordiv__(self, other):
+            other_num = self._normalize(Num(other))
+            return Num(self.as_mpf // other_num.as_mpf)
+        def __mod__(self, other):
+            other_num = self._normalize(Num(other))
+            return Num(self.as_mpf % other_num.as_mpf)
+        def __pow__(self, other):
+            '''Note: Powers change units! (m)**2 = m^2'''
+            other_val = float(Num(other).as_mpf)
+            res = Num(self.as_mpf ** other_val)
+            if self.unit:
+                res.unit = f"({self.unit})^{other_val}"
+            return res
+        def __int__(self):
+            return int(self.as_mpf)
+        def __float__(self):
+            return float(self.as_mpf)
+        def __complex__(self):
+            return complex(self.real, self.imag)
+        def __index__(self):
+            '''Allows Num to be used for slicing/bin() if it's an integer.'''
+            if self.mytype in (NumType.Int, NumType.Rat):
+                return int(self.as_int_or_rat)
+            raise TypeError("Only integer-like Nums can be used as indices")
+        def __round__(self, ndigits=0):
+            return Num(mpmath.nround(self.as_mpf, ndigits), self.unit)
+        def __trunc__(self):
+            return Num(int(mpmath.trunc(self.as_mpf)), self.unit)
+        def __floor__(self):
+            return Num(int(mpmath.floor(self.as_mpf)), self.unit)
+        def __ceil__(self):
+            return Num(int(mpmath.ceil(self.as_mpf)), self.unit)
+if 1:   # Num 
+    class Num(NumericMixin):
         '''Represent a general number useful for routine calculations'''
         type_color = {
             NumType.Int: t("mag", "gry1"),
@@ -172,32 +241,15 @@ if 0:   # Num class
             NumType.Cpx: t("sky", "gry1"),
             NumType.Unc: t("pur", "gry1"),
         }
-        flip = False    # If True, flip str() and repr() behavior
+        flip = False  # If True, flip str() and repr() behavior
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
-            '''Constructor for the Num instance, an immutable number container
-
-            value can be one of the numeric types int, fractions.Fraction, float,
-            decimal.Decimal, mpmath.mpf, complex, mpmath.mpc, uncertainties.ufloat, or a
-            string.  If a string, you can include the unit string with it, separated
-            from the numerical string by one or more string.whitespace characters.  If
-            the unit keyword is used, it will override any unit defined in the value
-            string.
-
-            '''
-            self._doc = ""  # The mutable metadata
-            self.main_config = "/home/don/.0rc/bin/definitions.units"
-            self.dynamic_config_path = "/home/don/.units_dynamic"
-            UnitArbiter(self.main_config, self.dynamic_config_path)
+            '''Constructor for the Num instance, an immutable number container'''
+            self._doc = ""
             if isinstance(value, str):
-                # Check for a smart split, a rightmost whitespace character that is
-                # between the number and the trailing unit.  _extract_unit() uses
-                # str.rsplit(None, 1) for this case, an excellent tool.  Note the unit
-                # keyword argument overrides the unit string in the value argument if
-                # the keyword argument is not the empty string.
                 val_str, found_unit = self._extract_unit(value)
                 if found_unit:
                     unit = found_unit if not unit else f"({found_unit})*({unit})"
-                value = val_str # Continue to _parse_string with just the number part
+                value = val_str
             if 1:  # Default internal state representation
                 self.numer: int = 0
                 self.denom: int = 1
@@ -252,14 +304,23 @@ if 0:   # Num class
                     self.re_unc = mpmath.mpf(str(value.std_dev))
                     self.mytype = NumType.Unc
                 elif isinstance(value, str):
-                    self.unit = unit    # This overrides any unit in value
                     self._parse_string(value)
                 else:
                     raise TypeError(f"Type of {value!r} is not supported")
         def _parse_string(self, value: str) -> None:
             msg = f"{value!r} not recognized as a number"
             normalized = set(value.lower().replace("i", "j").strip())
-            if "/" in normalized:
+            if "-" in value and "/" in value: # Handle 1-1/3
+                try:
+                    whole, frac = value.split("-")
+                    num, den = [int(i) for i in frac.split("/")]
+                    w_val = int(whole)
+                    self.numer = w_val*den + num
+                    self.denom = den
+                    self.mytype = NumType.Rat
+                except Exception as e:
+                    raise ValueError(msg) from e
+            elif "/" in normalized:
                 try:
                     parts = [int(i) for i in value.split("/")]
                     self.numer = parts[0]
@@ -286,14 +347,10 @@ if 0:   # Num class
                     raise ValueError(msg) from e
         def _extract_unit(self, s: str) -> ty.Tuple[str, str]:
             s = s.strip()
-            # If there's no space, there's definitely no unit-shorthand
             if " " not in s:
                 return s, ""
             parts = s.rsplit(None, 1)
             val_part, unit_part = parts
-            # HEURISTIC: A unit usually starts with a letter, a parenthesis (e.g.
-            # "(m)/(s)"), or a percent sign.  We also check that the val_part doesn't
-            # end with an 'e' (protecting scientific notation like "1.23 e-4")
             if unit_part[0].isalpha() or unit_part[0] in "(%":
                 if not val_part.lower().endswith("e"):
                     return val_part.strip(), unit_part.strip()
@@ -313,21 +370,25 @@ if 0:   # Num class
                 return Num(op_func(a_complex, b_complex))
             return Num(op_func(a_val, b_val))
         def _normalize(self, other: "Num") -> "Num":
-            '''Returns a copy of other scaled to self.unit.'''
-            if (not self.unit and not other.unit) or (self.unit == other.unit):
+            """Adjusts 'other' to match 'self.unit' if they are conformable."""
+            if self.unit == other.unit:
                 return Num(other)
+            # If one has a unit and the other doesn't, they are NOT conformable
+            if bool(self.unit) != bool(other.unit):
+                raise ValueError(f"Unit Mismatch: '{self.unit}' is not conformable with dimensionless '{other.unit}'")
             arbiter = UnitArbiter()
             is_ok, factor_str = arbiter.check_conformable(other.unit, self.unit)
             if not is_ok:
-                raise ValueError(f"Unit Mismatch: {self.unit} vs {other.unit}")
+                # Let the Arbiter's error message explain the physical incompatibility
+                raise ValueError(f"Unit Mismatch: {factor_str}")
             factor = mpmath.mpf(factor_str)
             adjusted = Num(other)
             if adjusted.mytype <= NumType.Rat:
-                adjusted.real = adjusted.as_mpf*factor
+                adjusted.real = adjusted.as_mpf * factor
                 adjusted.mytype = NumType.Flt
             else:
-                adjusted.real = adjusted.real*factor
-                adjusted.imag = adjusted.imag*factor
+                adjusted.real = adjusted.real * factor
+                adjusted.imag = adjusted.imag * factor
             adjusted.unit = self.unit
             return adjusted
         def __add__(self, other: ty.Any) -> "Num":
@@ -396,14 +457,7 @@ if 0:   # Num class
                 return self.as_int_or_rat == other_num.as_int_or_rat
             return bool(self.as_mpf == other_num.as_mpf)
         def _s(self, flip: bool) -> str:
-            '''Return str() or repr(), depending on Num.flip This is handy when you're
-            in the debugger, because the default output for 'p x' where x is a Num
-            instance is the repr() string.  Set 'x.f = True' and then you'll get the
-            str() string, which is formatted for the chosen number of significant
-            figures and uses colorizing to indicate type.
-            '''
             if Num.flip:
-                # Normal repr() string
                 if self.mytype == NumType.Int:
                     s = str(self.numer)
                 elif self.mytype == NumType.Rat:
@@ -416,7 +470,6 @@ if 0:   # Num class
                     s = f"{self.real!r}"
                 return f'Num("{s}", "{self.unit}")'
             else:
-                # Normal str() string
                 if self.mytype == NumType.Int:
                     s = fmt.fmt(self.numer)
                 elif self.mytype == NumType.Rat:
@@ -432,38 +485,24 @@ if 0:   # Num class
                 return f"{color}{s}{t.n}{unit_string}"
         def __str__(self) -> str:
             if not self.f:
-                return self._s(False)   # str() behavior
-            return self._s(True)        # repr() behavior
+                return self._s(False)
+            return self._s(True)
         def __repr__(self) -> str:
             if not self.f:
-                return self._s(True)    # repr() behavior
-            return self._s(False)       # str() behavior
+                return self._s(True)
+            return self._s(False)
         def u(self, conversion_str: str) -> "Num":
-            '''
-            Conversion utility bridge to GNU units.
-            Input format: "<from_expr> , <to_expr>"
-            Example: x.u("17 yards + 2 feet + 5 inches, m")
-            '''
             if "," not in conversion_str:
                 raise ValueError("Format must be '<from> , <to>'")
-            # Split into 'have' and 'want'
             have, want = [part.strip() for part in conversion_str.split(",", 1)]
             arbiter = UnitArbiter()
-            # We use check_conformable under the hood because it handles 
-            # the multi-line pipe logic and error catching for us.
             is_ok, result_str = arbiter.check_conformable(have, want)
             if is_ok:
-                # GNU units returns the multiplier. 
-                # We create a new Num with that magnitude and the 'want' unit.
-                # Note: We use Num(result_str, want) which will handle 
-                # the high-precision string -> mpf/Rat conversion.
                 try:
                     return Num(result_str, want)
                 except Exception as e:
                     raise ValueError(f"Could not parse units result '{result_str}': {e}")
             else:
-                # Pass the GNU units error (e.g., 'Unknown unit', 'conformability error')
-                # straight back to the user.
                 raise ValueError(f"GNU Units Error: {result_str}")
         @property
         def f(self) -> bool:
@@ -490,19 +529,15 @@ if 0:   # Num class
                 return self.numer
             return fractions.Fraction(self.numer, self.denom)
         @property
-        def d(self):
+        def d(self) -> str:
             return self._doc
         @d.setter
-        def d(self, text):
+        def d(self, text: str) -> None:
             self._doc = text
-            # Here we could trigger a "Silent Save" to SQLite
-            # so the note is immediately persistent.
             self._sync_to_db()
         def _sync_to_db(self) -> None:
-            'Placeholder for a synchronization'
             lwtest.ToDo("Num._sync_to_db needs implementation")
         def promote(self) -> "Num":
-            '''Attempt to simplify the unit string using high-precision rounding.'''
             if not self.unit:
                 return self
             arbiter = UnitArbiter()
@@ -512,12 +547,10 @@ if 0:   # Num class
             is_ok, factor_str = arbiter.check_conformable(self.unit, candidate)
             if is_ok:
                 factor = mpmath.mpf(factor_str)
-                # Check if factor is 1.0 within 12 digits
                 if self.round_off(factor, digits=12) == 1:
                     return self.to(candidate)
             return self
         def round_off(self, val: ty.Any, digits: int = 12) -> ty.Any:
-            '''Round the significand to clean up floating point noise.'''
             if isinstance(val, (int, fractions.Fraction)):
                 return val
             if isinstance(val, mpmath.mpf):
@@ -528,198 +561,87 @@ if 0:   # Num class
                 return mpmath.mpf(str(d))
             return val
         def to(self, unit: str, auto_promote: bool = True) -> "Num":
-            '''
-            Convert current Num to the specified unit.
-            If auto_promote is True, it will attempt to simplify the 
-            resulting unit string to a standard symbol.
-            '''
             if not unit:
                 return Num(self)
             arbiter = UnitArbiter()
             is_ok, factor_str = arbiter.check_conformable(self.unit, unit)
             if not is_ok:
-                # Check if 'unit' is actually a known primitive first
-                # If not, try to register it on the fly
                 RegisterUnit(unit)
                 is_ok, factor_str = arbiter.check_conformable(self.unit, unit)
                 if not is_ok:
                     raise ValueError(f"Incompatible units: {self.unit} and {unit}")
             factor = mpmath.mpf(factor_str)
             res = Num(self)
-            # Perform the scaling
             if res.mytype <= NumType.Rat:
-                res.real = res.as_mpf * factor
+                res.real = res.as_mpf*factor
                 res.mytype = NumType.Flt
             else:
-                res.real = res.real * factor
-                res.imag = res.imag * factor
+                res.real = res.real*factor
+                res.imag = res.imag*factor
             res.unit = unit
-            # The "REPL Intelligence" step
             if auto_promote:
                 return res.promote()
             return res
-        def add_unit(self, definition: str):
-                '''
-                Noether REPL: Teaches the system a new unit.
-                Example: x.add_unit("bag 90 lb")
-                '''
-                arb = UnitArbiter()
-                # The Arbiter handles the gatekeeping and the file append
-                arb.add_unit(definition)
-                # We don't necessarily need a local _restart_arbiter if the
-                # Arbiter class handles its own restart, but it's good for
-                # internal Num state consistency if we had any cached values.
-
-if 0:  # Unit arbiter and registration
-    class UnitArbiter:
-        _instance = None
-        def __new__(cls):
-            if cls._instance is None:
-                cls._instance = super(UnitArbiter, cls).__new__(cls)
-                cls._instance._initialized = False
-            return cls._instance
-        def __init__(self, main_config="", dynamic_config=""):
-            UnitArbiter(self.main_config, self.dynamic_config_path)
-            if self._initialized:
-                return
-            self.main_config = main_config
-            # Path for the dynamic units file (Noether's "Memory")
-            if dynamic_config:
-                self.dynamic_path = dynamic_config
-            else:
-                self.dynamic_path = Path("~/.units_dynamic").expanduser()
-            if not self.dynamic_path.exists():
-                self.dynamic_path.touch()
-            self.proc = None
-            self._start_process()
-            self._initialized = True
-        def _start_process(self):
-            '''Starts or Restarts the GNU Units pipe with -q (quiet) and -v (verbose).'''
-            if self.proc:
-                self.proc.terminate()
-                self.proc.wait()
-            # Load standard units then our dynamic ones
-            # Use -v to get the 'verbose' output which check_conformable relies on
-            cmd = ["units", "-q", "-v", "-f", "", "-f", str(self.dynamic_path)]
-            self.proc = subprocess.Popen(
-                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, text=True, bufsize=1
-            )
-        def _check_definition(self, definition: str) -> tuple[bool, str]:
-            '''The Gatekeeper: Uses 'units -c' to verify syntax and check for loops.'''
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
-                tmp.write(definition + "\n")
-                tmp_path = tmp.name
-            # -c checks for irreducible or circular definitions
-            cmd = ["units", "-c", "-q", "-f", "", "-f", str(self.dynamic_path), "-f", tmp_path]
-            try:
-                # Added a short timeout to prevent "Infinite Loop" hangs
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
-                is_ok = (result.returncode == 0)
-                error_msg = result.stderr or result.stdout
-            except subprocess.TimeoutExpired:
-                is_ok = False
-                error_msg = "Checking hung (possible infinite circular definition)."
-            finally:
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
-            return is_ok, error_msg
-        def add_primitive(self, unit_name: str):
-            '''Defines a new fundamental dimension (e.g., 'step !').'''
-            definition = f"{unit_name.strip()} !"
-            self._commit_unit(definition)
-        def add_unit(self, definition: str):
-            '''Adds a scaling definition (e.g., 'steps 2 step').'''
-            # Clean common user errors (like '=') but rely on -c for the final word
-            sanitized = definition.replace("=", "").strip()
-            self._commit_unit(sanitized)
-        def _commit_unit(self, entry: str):
-            '''Vets and appends the entry to the dynamic config file.'''
-            is_ok, error = self._check_definition(entry)
-            if is_ok:
-                with open(self.dynamic_path, "a") as f:
-                    f.write(f"{entry}\n")
-                self._start_process()
-                print(f"Noether REPL learned: {entry}")
-            else:
-                print(f"✔  Unit Definition Error: {error.strip()}")
-                print("Action: Entry rejected. Fix syntax and try again.")
-        def check_conformable(self, have: str, want: str) -> tuple[bool, str]:
-            '''
-            Asks the Units pipe if 'have' can convert to 'want'.
-            Returns (True, "multiplier") or (False, "error message").
-            '''
-            if not self.proc or self.proc.poll() is not None:
-                self._start_process()
-            try:
-                # Send the request to the pipe
-                self.proc.stdin.write(f"{have}\n{want}\n")
-                self.proc.stdin.flush()
-                # Read result lines
-                line1 = self.proc.stdout.readline().strip()
-                line2 = self.proc.stdout.readline().strip()
-                if "*" in line1:
-                    # Success: return the multiplier (usually the second line is the '/')
-                    multiplier = line1.replace("*", "").strip()
-                    return True, multiplier
-                else:
-                    # Failure: line1 might be 'conformability error'
-                    return False, f"{line1} {line2}".strip()
-            except Exception as e:
-                return False, f"Pipe communication error: {str(e)}"
-        def get_base_dimensions(self, unit_str: str) -> str:
-            '''Reduces a unit to its primitive SI components for hashing/invariance.'''
-            # Shortcut: asking for conversion to '' (empty) often triggers base reduction
-            ok, res = self.check_conformable(unit_str, "")
-            # This part requires parsing the 'v' (verbose) output for base units
-            # For now, returning the raw result string
-            return res if ok else "dimensionless"
-else:
+        def add_unit(self, definition: str) -> None:
+            arb = UnitArbiter()
+            arb.add_unit(definition)
+if 1:  # Unit arbiter
     class UnitArbiter:
         _instance = None
         # Class-level configuration defaults
-        # Set these once at the start of your session if they differ from defaults
-        main_config = "/home/don/.0rc/bin/definitions.units"
-        dynamic_config = "/home/don/.units_dynamic"
-        def __new__(cls):
+        units_bin: str = "units"
+        main_config: str = ""
+        dynamic_config: str = "~/.units_dynamic"
+        def __new__(cls) -> "UnitArbiter":
             if cls._instance is None:
                 cls._instance = super(UnitArbiter, cls).__new__(cls)
                 cls._instance._initialized = False
             return cls._instance
-        def __init__(self):
+        def __init__(self) -> None:
             if self._initialized:
                 return
-            self.dynamic_path = Path(self.dynamic_config).expanduser()
+            # Resolve all paths to handle ~ expansion
+            self.bin_path = str(Path(UnitArbiter.units_bin).expanduser())
+            self.dynamic_path = Path(UnitArbiter.dynamic_config).expanduser()
             if not self.dynamic_path.exists():
                 self.dynamic_path.touch()
             self.proc = None
             self._start_process()
             self._initialized = True
-        def _start_process(self):
-            '''Starts/Restarts the GNU Units pipe with custom config paths.'''
+        def _start_process(self) -> None:
             if self.proc:
-                self.proc.terminate()
-                self.proc.wait()
-            # -f "" loads the standard units library
-            # -f self.main_config loads your static custom definitions
-            # -f self.dynamic_path loads Noether's "learned" units
-            cmd = ["units", "-q", "-v", "-f", "", "-f", self.main_config, "-f", str(self.dynamic_path)]
+                try:
+                    self.proc.terminate()
+                    self.proc.wait(timeout=0.5)
+                except:
+                    self.proc.kill()
+            # Build command: [bin] -q [-f main] -f dynamic
+            cmd = [self.bin_path, "-q"]
+            if UnitArbiter.main_config:
+                main_p = str(Path(UnitArbiter.main_config).expanduser())
+                cmd.extend(["-f", main_p])
+            cmd.extend(["-f", str(self.dynamic_path)])
             self.proc = subprocess.Popen(
                 cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, bufsize=1
             )
         def is_known_unit(self, unit_str: str) -> bool:
-            '''Check if a unit is already defined without attempting a conversion.'''
-            if not unit_str: return True
-            # Converting a unit to itself is the fastest way to check existence
+            '''Checks if GNU Units recognizes the unit string.'''
+            if not unit_str:
+                return True
+            # If we can check conformability against itself, it's a known unit
             ok, _ = self.check_conformable(unit_str, unit_str)
             return ok
-        def _check_definition(self, definition: str) -> tuple[bool, str]:
-            '''Gatekeeper: Verifies syntax/loops using 'units -c'.'''
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
+            '''Runs units -c to validate a new unit definition before committing.'''
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
                 tmp.write(definition + "\n")
                 tmp_path = tmp.name
-            cmd = ["units", "-c", "-q", "-f", "", "-f", self.main_config, "-f", str(self.dynamic_path), "-f", tmp_path]
+            cmd = [self.bin_path, "-c", "-q"]
+            if UnitArbiter.main_config:
+                main_p = str(Path(UnitArbiter.main_config).expanduser())
+                cmd.extend(["-f", main_p])
+            cmd.extend(["-f", str(self.dynamic_path), "-f", tmp_path])
             try:
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
                 is_ok = (result.returncode == 0)
@@ -727,48 +649,84 @@ else:
             except subprocess.TimeoutExpired:
                 is_ok, error_msg = False, "Circular definition detected (Check timed out)."
             finally:
-                if os.path.exists(tmp_path): os.remove(tmp_path)
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
             return is_ok, error_msg
-        def add_primitive(self, unit_name: str):
+        def add_primitive(self, unit_name: str) -> None:
+            '''Adds a new base dimension (primitive) to the dynamic units file.'''
             self._commit_unit(f"{unit_name.strip()} !")
-        def add_unit(self, definition: str):
+        def add_unit(self, definition: str) -> None:
+            '''Adds a derived unit (e.g., 'mph = mile/hr') to the dynamic units file.'''
             sanitized = definition.replace("=", "").strip()
             self._commit_unit(sanitized)
-        def _commit_unit(self, entry: str):
+        def _commit_unit(self, entry: str) -> None:
+            '''Validates and appends a unit entry to the persistent dynamic file.'''
+            # First, check if this exact entry already exists in the dynamic file
+            if self.dynamic_path.exists():
+                with open(self.dynamic_path, "r") as f:
+                    if entry in f.read():
+                        return
             is_ok, error = self._check_definition(entry)
             if is_ok:
                 with open(self.dynamic_path, "a") as f:
                     f.write(f"{entry}\n")
                 self._start_process()
-                print(f"Γ¥ô Noether REPL learned: {entry}")
+                # Silencing the "learned" print to keep REPL startup clean
             else:
-                print(f"!! Unit Error: {error.strip()}")
-        def check_conformable(self, have: str, want: str) -> tuple[bool, str]:
+                # Only complain if there's an actual error
+                if "not found" not in error.lower():
+                    print(f"Unit Definition Error: {error.strip()}")
+        def _translate_unicode(self, s: str) -> str:
+                """Sanitizes exponents and common symbols for the units binary."""
+                exp_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
+                out = ""
+                for char in s:
+                    if char in "⁰¹²³⁴⁵⁶⁷⁸⁹":
+                        out += "^" + char.translate(exp_map)
+                    else:
+                        out += char
+                return out
+        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
+            """Queries the running units process with safety checks for empty strings."""
+            if not have or not want:
+                if have == want:
+                    return True, "1.0"
+                return False, f"Cannot conform '{have}' to '{want}'"
             if not self.proc or self.proc.poll() is not None:
                 self._start_process()
+            have = self._translate_unicode(have)
+            want = self._translate_unicode(want)
             try:
+                # We MUST use -q but AVOID -v here because -v adds extra lines of output
+                # that break our synchronized readline logic.
                 self.proc.stdin.write(f"{have}\n{want}\n")
                 self.proc.stdin.flush()
-                line1 = self.proc.stdout.readline().strip()
-                line2 = self.proc.stdout.readline().strip()
-                if "*" in line1:
-                    return True, line1.replace("*", "").strip()
-                return False, f"{line1} {line2}"
+                # Read until we find a conversion factor or an error
+                # GNU Units usually outputs the * factor first, then the / factor.
+                for _ in range(5):  # Safety limit to prevent infinite hang
+                    line = self.proc.stdout.readline().strip()
+                    if not line:
+                        continue
+                    if line.startswith("*"):
+                        return True, line.replace("*", "").strip()
+                    if line == "1" or line == "1.0":
+                        return True, "1.0"
+                    if "conformability error" in line.lower():
+                        return False, f"Incompatible dimensions: {have} vs {want} ({line})"
+                return False, "Unexpected output format from units process"
             except Exception as e:
+                self._start_process()
                 return False, str(e)
 
 if 1:  # Utility functions
-    def RegisterUnit(unit_name: ty.Optional[str]) -> None:
-        '''Register a new primitive unit if it is unknown to the arbiter.'''
-        if not unit_name:
-            return
-        arbiter = UnitArbiter()
-        # Existence check: compare unit to itself.
-        # This avoids dimension mismatches with '1'.
-        breakpoint() # ∞∞ 
-        is_known, message = arbiter.check_conformable(unit_name, unit_name)
-        if not is_known and "unknown" in message.lower():
-            arbiter.add_primitive(unit_name)
+    def RegisterUnit(unit_name: str) -> None:
+        '''
+        Gatekeeper for the Num constructor. If a unit is unknown,
+        it is registered as a new primitive dimension.
+        '''
+        arb = UnitArbiter()
+        if not arb.is_known_unit(unit_name):
+            arb.add_primitive(unit_name)
     def e(n: "Num"):
         '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
         import tempfile, os, subprocess
@@ -782,40 +740,14 @@ if 1:  # Utility functions
         # ... logic to read the file back and update n.d ...
         print(f"Updated {n.unit} metadata.")
 
-if 1:  # Temp experiment
+if 1:   # Set up config files
+    UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
+    UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
+    UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
+if 0:  # Temp experiment
     x = Num("1 step")
     x.add_unit("steps = step")
     exit()
-if 0:  # Section: Discovery Pipe Test
-    def Test_Discovery_Pipe():
-        '''Test if '?' dump works over a non-interactive pipe without a pager.'''
-        arbiter = UnitArbiter()
-        unit_to_test = "kg m^2 / s^2"
-        try:
-            Dbg(f"Testing discovery pipe for: {unit_to_test}", color="sky")
-            # We send the unit, then the '?', then 'quit' just to be safe
-            query = f"{unit_to_test}\n?\nquit\n"
-            arbiter.proc.stdin.write(query)
-            arbiter.proc.stdin.flush()
-            Dbg("Reading response from pipe...", color="mag")
-            lines_captured = 0
-            # We'll read until the pipe is empty or we hit a timeout
-            while lines_captured < 100:
-                line = arbiter.proc.stdout.readline().strip()
-                if not line:
-                    break
-                # We expect to see units like 'joule', 'newton meter', etc.
-                Dbg(f"  [{lines_captured:02d}] {line}")
-                lines_captured += 1
-                # If we see the next prompt, we're done with the list
-                if "You want:" in line:
-                    break
-            if lines_captured > 5:
-                print(f"{t.grn}Success:{t.n} Captured {lines_captured} conformable units.")
-            else:
-                print(f"{t.red}Failure:{t.n} Captured only {lines_captured} lines. Pager might be blocking.")
-        except Exception as e:
-            print(f"{t.red}Error during pipe test:{t.n} {e!r}")
 if 1:   # Self-tests
         def Test_Constructor_With_Numbers():
             if 1:   # No input
@@ -1081,18 +1013,9 @@ if __name__ == "__main__":
                 with g:
                     g.dbg = True
             return args
-    if 1:
-        d = {}  # Options dictionary
-        args = ParseCommandLine(d)
-        #if args:
-        #    for arg in args:
-        #        pass    # Do stuff
-    if 1:   # Demo & tests for module
-        zero = mpmath.mpf(0)
-        def Demo():
-            pass
-        if 0:   # Special one-off test area
-            Test_Discovery_Pipe()
-            exit()
-            
-        exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
+    d = {}  # Options dictionary
+    args = ParseCommandLine(d)
+    #if args:
+    #    for arg in args:
+    #        pass    # Do stuff
+    exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])

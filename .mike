@@ -3,10 +3,9 @@
         - No spaces around *, /, //, or **
         - One space on each side of +, -, %
         - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
-        - No blank lines in file except if put into docstrings
+        - No blank lines or whitespace-only lines except in docstrings
     - Important:  please make sure to put a newline after a ':' in a conditional, class
-      or function definition, as lacking it makes it very easy to miss the logic when
-      reading
+      or function definition, as lacking it makes it easy to miss the logic when reading
     - Triple quotes: use ''' for all docstrings and multi-line strings.
     - Quotes:  use " for all string definitions, such as 'a = "a string"'.
     - Naming:  CamelCase naming for classes and functions, snake case for attributes and
