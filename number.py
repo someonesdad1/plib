@@ -293,14 +293,16 @@ if 1:   # Num
         # The following dictionary lets the user select which preferred set of
         # unit he wants to use.
         systems = {
-                "default": set()
+                "default": set(),
+                "dirt":  set("ft lb yd".split())
         }
         active_system = "default"
+        Fmt = fmt.Fmt()
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
             '''Constructor for the Num instance, an immutable number container'''
             self._doc = ""
             self.arb = UnitArbiter()    # Convenience arbiter for new units
-            self.fmt = fmt.Fmt()        # Convenience formatter
+            self.fmt = Num.Fmt          # Formatter 
             if isinstance(value, str):
                 val_str, found_unit = self._extract_unit(value)
                 if found_unit:
@@ -794,12 +796,7 @@ if 1:   # Num
                     y = Num(self)
                     y._unit = ""
                     return y
-            if 1:   # pi:  convenience to get pi as a Num
-                @property
-                def pi(self) -> Num:
-                    y = Num(str(mpmath.pi))
-                    y._unit = ""
-                    return y
+
 if 1:  # Unit arbiter
     class UnitArbiter:
         _instance = None
