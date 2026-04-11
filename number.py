@@ -19,6 +19,7 @@ if 1:  # Header
         import operator
         import os
         import pathlib
+        import re
         import shutil
         import subprocess
         import sys
@@ -233,10 +234,16 @@ if 1:   # NumericMixin:  class to add dunder math methods
         def __pow__(self, other):
             '''Note: Powers change units! (m)**2 = m^2'''
             other_val = float(Num(other).as_mpf)
-            res = Num(self.as_mpf ** other_val)
-            if self.unit:
-                res.unit = f"({self.unit})^{other_val}"
-            return res
+            res_val = self.as_mpf ** other_val
+            
+            # Create the messy intermediate unit
+            messy_unit = f"({self.unit})^{other_val}" if self.unit else ""
+            
+            # Clean it immediately
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(res_val, messy_unit)
+            
+            return Num(clean_val, unit=clean_unit)
         def __int__(self):
             return int(self.as_mpf)
         def __float__(self):
@@ -443,44 +450,58 @@ if 1:   # Num
             return adjusted
         def __add__(self, other: ty.Any) -> "Num":
             other_num = Num(other)
-            adjusted = self._normalize(other_num)
+            adjusted = self._normalize(other_num, operation='add') # Note the 'add' flag
             result = self._binary_op(adjusted, operator.add)
-            result.unit = self.unit
-            return result
+            
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(result.as_mpf, self.unit)
+            return Num(clean_val, unit=clean_unit)
         def __sub__(self, other: ty.Any) -> "Num":
             other_num = Num(other)
-            adjusted = self._normalize(other_num)
+            adjusted = self._normalize(other_num, operation='sub') # Note the 'sub' flag
             result = self._binary_op(adjusted, operator.sub)
-            result.unit = self.unit
-            return result
+            
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(result.as_mpf, self.unit)
+            return Num(clean_val, unit=clean_unit)
         def __mul__(self, other: ty.Any) -> "Num":
             other_num = Num(other)
             result = self._binary_op(other_num, operator.mul)
+            
+            # Build the messy string
             if not self.unit and not other_num.unit:
-                result.unit = ""
+                messy = ""
             elif self.unit and not other_num.unit:
-                result.unit = self.unit
+                messy = self.unit
             elif not self.unit and other_num.unit:
-                result.unit = other_num.unit
+                messy = other_num.unit
             else:
-                result.unit = f"({self.unit})*({other_num.unit})"
-            return result
-        def __rmul__(self, other: ty.Any) -> "Num":
-            return self.__mul__(other)
+                messy = f"({self.unit})*({other_num.unit})"
+            
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(result.as_mpf, messy)
+            return Num(clean_val, unit=clean_unit)
         def __truediv__(self, other: ty.Any) -> "Num":
             other_num = Num(other)
             if other_num.as_mpf == 0:
                 raise ZeroDivisionError("Tractor at 0 divisor.")
             result = self._binary_op(other_num, operator.truediv)
+            
+            # Build the messy string
             if not self.unit and not other_num.unit:
-                result.unit = ""
+                messy = ""
             elif self.unit and not other_num.unit:
-                result.unit = self.unit
+                messy = self.unit
             elif not self.unit and other_num.unit:
-                result.unit = f"1/({other_num.unit})"
+                messy = f"1/({other_num.unit})"
             else:
-                result.unit = f"({self.unit})/({other_num.unit})"
-            return result
+                messy = f"({self.unit})/({other_num.unit})"
+                
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(result.as_mpf, messy)
+            return Num(clean_val, unit=clean_unit)
+        def __rmul__(self, other: ty.Any) -> "Num":
+            return self.__mul__(other)
         def __rtruediv__(self, other: ty.Any) -> "Num":
             return Num(other)/self
         def _compare(self, other: ty.Any, op_func: ty.Callable) -> bool:
@@ -843,23 +864,55 @@ if 1:  # Unit arbiter
                 return False, str(e)
         def simplify(self, value: mpmath.mpf, unit_str: str) -> tuple[mpmath.mpf, str]:
             """
-            Reduces 'yard^2 * inches / ft^3 * lb' into its most human-readable form.
+            The 'Magic Wand': Reduces complex unit strings into their simplest form
+            based on the user's implicit history.
             """
             if not unit_str or unit_str == "1":
                 return value, ""
-            # 1. Ask GNU Units for the 'primitive' reduction (e.g., kg, m, s)
-            # We use the -one-line flag to get the reduced form.
-            reduced_unit = self._query_units_for_reduction(unit_str)
-            # 2. Heuristic: If the messy string contains a known 'weighty' unit
-            # like 'lb' or 'N' or 'dollars', try to force the reduction to that.
+            # 1. Ask GNU Units for the absolute "Definition" (the primitive reduction)
+            # This handles things like (dog)*(kg/dog) -> kg
+            reduced_unit_str, scale_factor = self._query_units_for_reduction(unit_str)
+            # Update our value based on any constant scaling GNU units found
+            # (though for pure cancellation, scale_factor will be 1.0)
+            current_value = value * mpmath.mpf(scale_factor)
+            # 2. Heuristic: Check if the messy string contains 'high-value' units
+            # from the history (lb, kg, dollars).
             candidates = self._extract_candidate_units(unit_str)
             for candidate in candidates:
-                is_ok, factor = self.check_conformable(unit_str, candidate)
+                is_ok, factor = self.check_conformable(reduced_unit_str, candidate)
                 if is_ok:
-                    # Success! We can represent the whole mess as a multiple of this unit.
-                    return value * mpmath.mpf(factor), candidate
-            # 3. Fallback: If no candidate fits, return the GNU Units 'best guess'
-            return value, unit_str
+                    return current_value * mpmath.mpf(factor), candidate
+            # 3. Fallback: Return the cleanest version GNU Units could provide
+            return current_value, reduced_unit_str
+        def _query_units_for_reduction(self, unit_str: str) -> tuple[str, str]:
+            """
+            Uses the GNU Units 'Definition' logic to flatten a unit string.
+            Example: 'yard^2 inches / ft^3' -> '0.75' (dimensionless volume ratio)
+            """
+            # We use a one-off subprocess call with --compact to get the 'Definition'
+            # without the interactive noise.
+            cmd = [self.bin_path, "-q", "--compact", "-f", str(self.dynamic_path)]
+            if UnitArbiter.main_config:
+                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
+            # The command: units [options] "messy_unit"
+            result = subprocess.run(cmd + [self._translate_unicode(unit_str)],
+                                    capture_output=True, text=True)
+            # GNU Units returns 'Definition: [factor] [unit]' or just '[factor] [unit]'
+            # We want to split the number from the unit string.
+            output = result.stdout.strip()
+            # Regex to catch: "1.23 kg" or "0.75" or "1 kg/m"
+            match = re.match(r'^([\d.e+-]+)?\s*(.*)$', output)
+            if match:
+                factor = match.group(1) or "1.0"
+                remainder = match.group(2) or ""
+                return remainder.strip(), factor
+            return unit_str, "1.0"
+        def _extract_candidate_units(self, unit_str: str) -> list[str]:
+            """Helper to pull potential target units out of a messy string."""
+            # Split by any non-alphanumeric characters and filter common junk
+            raw_tokens = re.split(r'[^a-zA-Z]', unit_str)
+            return [t for t in raw_tokens if t and len(t) > 1 and not t.isdigit()]
+
 
 if 1:  # Utility functions
     def RegisterUnit(unit_name: str) -> None:

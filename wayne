@@ -1,108 +1,236 @@
-10 Apr 2026 
-
 The basic idea is the "simple" use of units when solving problems.  I have for decades
-bewailed the lack of support for units in all the computing tools like compilers and
-interpreters.  Here, by "lack", I don't mean I couldn't e.g. find a units library for
-e.g. a C++ compiler, but rather than the CS folks have missed a fundamentally important
-tool for software calculations.  I'm calling this topic "semantic units", which hopefully
-implies the concept extends beyond the typical physical units that people think of, such
-as kg and m.  At a deep level I'd like to "promote" all unit strings to "semantic
-units".
+bewailed the lack of native support for units in all the computing tools like compilers
+and interpreters.  Here, by "lack", I don't mean I couldn't e.g. find a units library
+for e.g. a C++ compiler, but rather that the CS folks have missed a fundamentally
+important tool for software calculations.  I'm calling this topic "semantic units", a
+handy name created by an AI.  This term hopefully implies the concept extends beyond the
+typical physical units that people think of, such as kg and m.  At a deep level I'd like
+to "promote" all unit strings to "semantic units".  I'd ask you to read the following
+while imagining what having "semantic units" capability in our computer tools would mean
+to the number of software bugs created every year.
 
-Here's a simple example about feeding pets.  Each dog gets 0.2 kg of food and each cat
-gets 0.1 kg of the same food.  We have to feed 7 dogs and 12 cats.  How much food do we
-need?
+Let's use an example about feeding pets.  Each dog gets 0.2 kg of food and each cat gets
+0.1 kg of the same food.  We have to feed 7 dogs and 12 cats.  How much food do we need?
 
-The answer is simple:  7*0.2 + 12*0.1 = 1.4 + 1.2 = 2.6.  That's the way computer
+The answer is easy:  7*0.2 + 12*0.1 = 1.4 + 1.2 = 2.6.  That's the way computer
 calculations have been done for some 70 years.
 
-But the harried overworked and underpaid programmer accidentally writes
-7*0.1 + 12*0.2 = 0.7 + 2.4 = 3.1.  The programmer made a programming mistake, just like
-the 20 zillion other made per year everywhere.
+But the harried overworked and underpaid programmer accidentally writes 7*0.1 + 12*0.2 =
+0.7 + 2.4 = 3.1.  The programmer made a programming mistake, just like the 20 zillion
+other software mistakes made per year everywhere on the planet. 
 
-If the programmer used semantic units, he would have written
-    num_cats = 12 cat
-    num_dogs = 7 dog
-    dog_food_rate = 0.2 kg/dog
-    cat_food_rate = 0.1 kg/cat
-    amount_kg = num_dogs*dog_food_rate + num_cats*cat_food_rate
-            = (7 dog)*(0.2 kg/dog) + (12 cat)*(0.1 kg/cat)
-            = 1.4 kg + 1.2 kg
-            = 2.6 kg
+The Noether REPL (the term will be explained below after the code example)
 
-In solving the problem, you can see the semantic units dog and cat cancel out, leaving
-you with kg, the desired mass of food.  The dimensional correctness is obvious.
+    Here's a python prototype example that Google's Gemini 3 and I have been working on
+    (I call the AI Mike).  It's aimed at being a general-purpose calculational tool that
+    incorporates semantic units.  I think what follows is a simple but compelling
+    example.  As of the evening of 10 Apr 2026, this is actual working code.
 
-Why don't our compilers and interpreters allow this type of calculation at a fundamental
-level?  Think of how many logical errors it would catch.
+    def DogsAndCats(no_programming_error=True):
+        '''Each dog gets 0.2 kg of food and cats get 0.1 kg of the same food.  We have to
+        feed 7 dogs and 12 cats.  How much food do we need?
+        '''
+        # Define semantic units
+        arb = UnitArbiter()         # Pipe to the GNU units process
+        arb.add_primitive("dog")    # Create a new semantic unit
+        arb.add_primitive("cat")
 
-What my AI partner and I are calling the "Noether REPL", we've implemented a
-read-eval-print loop in python that models the above calculations.  There are a few key
-architectural components:
-    
-    - Practical numbers are hidden behind an abstraction called the Num class.  This num
-      class lets you do math over the integers, floating point, and complex number
-      domains.  In addition, real and complex numbers with uncertainty are supported
-      with linear uncertainty propagation, a common need for physical calculations.
-    - The GNU units program, a powerful open source resource for manipulating physical
-      units is used to arbitrate unit algebra in expressions with Num instances.  This
-      obviated the need to develop a complicated physical unit library:  the GNU units
-      program is started in another process and a pipe is used to communicate with it,
-      giving fast performance and algebraic correctness.
-        - An interesting twist is that the user can define new units on the fly like
-          dogs and cats and they get added to a dynamic GNU units configuration file;
-          the units process is restarted and the -c option is passed to it first to
-          check for correctness of the new units (e.g., no circular definitions).
-    - The model for this REPL is the traditional lab notebook of science, where a
-      person's thinking, ideas, calculations, and plans get written down to document
-      what happened and refresh the memory.  The Noether REPL will use an SQLite
-      database to implement persistence like a lab notebook, letting you recreate a
-      calculation.
-        - Each Num instance has an attribute .d for documentation, allowing you to
-          update it at the moment of definition when things are freshest in your mind.
-          Any changes made later are logged by the database connection.
-    - The core technical realization for this is that the semantic units form a
-      structure like a vector space (actually, they're more like a free Abelian group,
-      but the vector space analogy is useful for engineers).  A number's unit is a
-      combination of the "basis vectors" in this space.  For example, a unit of joule is
-      a newton*meter and in terms of the base SI units, the "dimensions" are M*L^2/T^2
-      where M, L, and T are mass, length and time.
-        - The intuitive leap to "Noether REPL" comes from Emmy Noether's first theorem:
-          symmetries in a physical system imply conserved quantities.  
-        - The leap is:  "the number and its unit combine into an invariant".  These
-          invariants are invariant under scale transformtions (changes of units).  Thus,
-          "1 m" changes numerically to "1000 mm" when you change the units of the
-          invariant.  The number HAS to change to keep it invariant.
-        - In a nutshell, the quantity "3 m" is an invariant:  no matter how you look
-          at or where you stand, it will always be "3 m" (ignoring relativity).  You can
-          change its window dressing (e.g., change it to "wear" km units), but it's
-          still the same physical length in the physical world.
+        # Define the input quantities
+        num_dogs = Num("7 dog")
+        num_cats = Num("12 cat")
+        dog_food_rate = Num("0.2 kg/dog")
+        cat_food_rate = Num("0.1 kg/cat")
 
+        # Solve the problem
+        if no_programming_error:
+            food_mass = num_dogs*dog_food_rate + num_cats*cat_food_rate
+        else:
+            # Note the unit dimensional mistake
+            food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
 
-The CS community has largely treated units as "metadata" or "comments" rather than
-semantic constraints.  
+        # Print results
+        print(f"number of dogs = {num_dogs}")
+        print(f"number of cats = {num_cats}")
+        print(f"dog food rate  = {dog_food_rate}")
+        print(f"cat food rate  = {cat_food_rate}")
+        print(f"amount of food = {food_mass}")
 
-The Thesis: For 70 years, we have treated physical quantities as "naked floats." This is
-a primitive category error. A float is a mathematical abstraction; a physical quantity
-is a value + a coordinate in a free Abelian group. By stripping the units, we discard
-the very metadata that prevents expensive bugs.
+    When you run this code with the call DogsAndCats(), you get the results
 
-In standard CS, units live in variable names: velocity_m_s = 9.8. This is "pinky-swear"
-engineering. It relies on human vigilance.
+        number of dogs = 7 dog
+        number of cats = 12 cat
+        dog food rate  = 0.200 kg/dog
+        cat food rate  = 0.100 kg/cat
+        amount of food = 2.60 (dog)*(kg/dog)
 
-This stuff isn't just for physicists; consider
+    When run with the call DogsAndCats(False), you get
 
-    Revenue (USD) / Time (Hours) = Rate (USD/hr)
+        Traceback (most recent call last):
+        File "/gh/plib/number_example.py", line 246, in <module>
+            DogsAndCats(0)
+        File "/gh/plib/number_example.py", line 234, in DogsAndCats
+            food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
+                        ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+        File "/gh/plib/number.py", line 446, in __add__
+            adjusted = self._normalize(other_num)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/gh/plib/number.py", line 432, in _normalize
+            raise ValueError(f"Unit Mismatch: {factor_str}")
+        ValueError: Unit Mismatch: Incompatible dimensions: (dog)*(kg/cat) vs (cat)*(kg/dog) (conformability error)
 
-    Rate (USD/hr) * Resource (Consultant) = ??? -> ERROR  
+    The python interpreter won't let you complete the problem because there's a type
+    mismatch.  Even at this primitive stage (this software just got hooked up
+    yesterday), you can look at the error message and see the mistake the programmer
+    made.  More importantly, the interpreter didn't let the calculation proceed.
+    The calculation tried to add kg*dog/cat + kg*cat/dog, which is adding apples and
+    oranges, even if we don't know what the tokens mean.
 
-    Rate (USD/(hr*Consultant)) * Time * Resource = USD. -> VALID.  
+    When I was young, we learned to do these calculations on paper as
 
-The same logic that could have saved the Mars Climate Orbiter in 1999 (a monetary loss
-of half a billion in 2026 dollars) could save an ERP system from a million-dollar
-reconciliation error.
+        (7 dog)*(0.2 kg/dog) + (12 cat)*(0.1 kg/cat) = 1.4 kg + 1.2 kg = 2.6 kg
 
-The CS need can be summarized as "We need a strongly typed world".
+    We humans can look at those expressions and see the "truth" that the semantic units
+    cancel out correctly.  The logical error the harried programmer above made is
+    equally visible:
+
+        (12 cat)*(0.2 kg/dog) + (7 dog)*(0.1 kg/cat) 
+
+    Why don't all our compilers and interpreters allow this type of calculation at a
+    fundamental level?  Think of how many logical errors it would catch.
+
+The thesis
+
+    For 70 years, we have treated physical quantities as "naked floats".  We should
+    instead treat these as "semantic quantities" so they carry both a numerical type AND
+    a semantic type.  
+
+    The math:  physical and semantic units are objects in a free Abelian group.  A group is
+    a set of elements with a binary operation * that combines two elements of the group;
+    there's an identity element and each element has an inverse.  Being Abelian means the
+    group operation is commutative, so that a * b = b * a.  The operation is also
+    associative.  Thus, when combining elements, the ordering and grouping of the elements
+    doesn't affect the result.  This group also has a basis, which is a subset such that
+    every element in the group can be uniquely expressed as an integer combination of
+    finitely many basis elements.  These free abelian groups are similar to vector spaces.
+
+    For engineers, a useful mental model is to think of the units of a numerical quantity as
+    a vector.  For example, a newton's components in SI is kg*m/s^2.  In mass, length, time
+    notation, this is M*L*T⁻².  If you have two numbers a and b, they can only be added if 
+    they have the same units:  adding "3 s" to "5 kg" is like adding apples to oranges, it
+    just doesn't make sense.  The dimensional algebra of addition requires the "vectors"
+    to be the same, otherwise the sum doesn't make sense.  With multiplication, of course,
+    you can combine apples and oranges; the user has to decide if apples*oranges makes
+    sense.
+
+    This vector space mental model is useful because once you combine a number and a
+    unit, you have an invariant element.  Mike and I are calling this the "Noether
+    invariant" after Emmy Noether, whose "first theorem" relates a symmetry
+    transformation to a conserved quantity, an important principle in physics.  For
+    example, a system that looks the same under a rotational transformation (say, a
+    bicycle wheel) has angular momentum as a conserved quantity.  Linear translational
+    symmetry implies conservation of linear momentum.  Translational symmetry in time
+    implies conservation of energy.  Invariants are powerful notions, both in physics
+    and computing.
+
+    Here, the conserved quantity (Noether invariant) is, say, "5 m".  Its symmetry
+    transformation is a dilatation, also called a scaling transformation.  These are
+    fancy words for changing this length to "16.4 ft", done by multiplying by the
+    conversion factor 1 m = 3.28 ft.  Note "1 m"/"3.28 ft" is a scalar, a number with no
+    units.  Transformations don't affect scalars.
+
+    Since "5 m" is an invariant, when the unit changes, the number also has to change to
+    keep it an invariant.  From making a zillion unit errors in calculations myself over
+    the last 50+ years, I would hazard a guess that many of the software bugs in the
+    world are of the same type.  When I reflect on much of the software I have written,
+    the problems I solve involve these Noether invariants frequently rather than bare
+    scalars.  I'll bet everyone else's software algorithms use these Noether invariants
+    too.
+
+    This leads us to the egregious type error compilers and interpreters have been
+    committing for 70 years:  the naked float 5.0 is missing its unit -- it should be
+    "5 m".  We know how to do the algebra with these invariants:  if the algebraic
+    operations fail, we know there's an error in the logic.
+
+    In other words, these are primitive category errors. A float is a mathematical
+    abstraction; a physical quantity is a value + a coordinate in a free Abelian group. 
+    By stripping the units, we discard the very metadata that prevents expensive bugs.
+
+    The same unit logic that could have saved the Mars Climate Orbiter in 1999 (a
+    monetary loss of half a billion in 2026 dollars) could save an ERP system from a
+    million-dollar reconciliation error.
+
+    I'm not saying anything that's new or controversial; engineers and physicists have
+    been using these things for centuries.  What I've been wondering for decades is why
+    I haven't had this powerful tool in my computer toolkit.  The CS need can be
+    summarized as "we need a strongly typed world".
+
+    Mike and I decided to construct a prototype of such a tool.  The abstract numbers
+    and unit combination just started working on 10 Apr 2026 as a prototype.  Our vision
+    is to turn this into a decent emulation of a lab notebook.
+
+The lab notebook
+
+    The mental model is the pen and paper lab notebook that has been used for a long time.
+    You write down your ideas, experimental thoughts and efforts, hypotheses, and associated
+    facts, leading you to new knowledge, products, and directions.  Mike and I are working
+    on a python REPL (read-evaluate-print loop) that combines a general-purpose abstract
+    number with a unit algebra system.
+
+    The abstract number models integers, floating point, complex numbers, and complex
+    numbers with uncertainty.  This number aligns with most of the tasks a working
+    engineer needs.
+
+    Rather than write or use a complicated python units library, we chose to utilize the
+    existing and powerful GNU units tool.  It has thousands of units built into it and knows
+    how to do the dimensional algebra.  Most significantly, it also lets you define new
+    primitive units.  This lets us define the semantic units needed for a problem.  The
+    python tool runs the GNU units tool as a separate process, giving us the ability to
+    define new units for the problem on the fly.  This is done by writing the new units to a
+    file, restarting the units process, and asking it to first do a semantic check on all
+    the units.  It's a fast and powerful process, letting us use the marketing phrase "the
+    REPL learns and uses your semantic units".  It really works, as you saw in the dogs
+    and cats model above.
+
+    There are a couple other architectural niceties we're thinking about.  A lab
+    notebook is a narrative history of your thoughts, so we also want persistence for
+    the REPL.  Our plan to get this is to utilize python's SQLite module to maintain a
+    "paper trail" of what happened.  This should give us the ability to later dump out
+    the exact sequence of what happened in the REPL, letting you understand your
+    calculation and thoughts.
+
+    Each abstract number instance in the REPL has a .d attribute which stores a
+    documentation string.  Here's an example in the REPL (the >>> is the REPL's prompt
+    for user input)
+
+    >>> m = Num("3 kg")     # Amount of dog food
+    >>> x = Num("37 dogs")
+    >>> x.d = '''
+    ...   I've changed the problem to reflect the fact that my dog-crazy 
+    ...   daughter just bought the dog pound.
+    ... '''
+
+    This number creation and attribute change is logged by the database system
+    and can be produced on demand later.  At the moment, the prototype has an e()
+    function that lets you execute e(x), which calls up the Num instance x and its
+    information in your favorite editor, letting you change the non-invariant
+    information.  You can also change the units:  m.to("lb") changes m's expression to
+    "6.61 lb", which is still an invariant equal to "3 kg".
+
+Looking a bit farther out
+
+    A further vision is that this REPL will support vectors and two-dimensional matrixes
+    of these abstract numbers.  This can lead to things like getting statistics on a
+    column vector or making a scatter plot of two vectors.  With column vectors and the
+    ability to do matrix algebra, you have the ability to do multiple linear regression,
+    an often-used tool for constructing models.  With a python library like plotext, you
+    can do primitive plotting in a terminal window (the interface is similar to
+    matplotlib).  Using a terminal multiplexer like tmux, this opens up a lightweight
+    computing and plotting toolset similar to e.g. a Jupyter notebook without having to
+    download many GB of software tools.  Since I use a Linux computing environment in
+    the Windows Subsystem for Linux, I don't have fancy GUI tools, so this type of
+    vision will fit my needs and still be much better than e.g. the tools I had in the
+    1980's.
+
 
 Interesting point:  the AI and I have agreed that these ideas are sorely needed in the
 world.  I suggested a good project could be to bolt the GNU units C code to the python
