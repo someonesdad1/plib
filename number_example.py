@@ -143,23 +143,6 @@ Features of the "Noether REPL"
               system.  You can go back later and ask to see the details of the
               calculation; this helps you refresh your memory of what and why.
 
-Problem statement
-
-    Estimate the material cost to make 22 concrete cylindrical stepping stones for a
-    back yard project.  The cost will be the number of $3.2 bags of 90 pounds of
-    concrete mix needed to be purchased.  Ignore the mass of water used and calculate
-    the mass of needed concrete using the density of cured concrete and equate this to
-    the mass of the bagged concrete.
-
-Input information
-
-    - I will deliberately use the screwball customary US units to show that the GNU
-      units program used with the internal Num machinery isn't fazed by such units
-    - The mass density of the cured concrete is 137 lb/ft³
-    - The concrete mix comes in 90 lb bags that cost $3.2 each
-    - The diameter of a stepping stone is 1-1/3 yards
-    - The thickness of a stepping stone is 3-3/16 inches
-
 Here's how this problem might be solved in a python script (once the guts are working
 I'll put it in a REPL dialog)
 '''
@@ -172,7 +155,20 @@ if 1:   # Set up plumbing
     UnitArbiter.main_config = "/usr/local/share/units/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"  # Hacked to allow 'q' to quit
-def ConcreteExample():  # No pun :^)
+def ConcreteExample():
+    '''This example estimates the material cost to make 22 concrete cylindrical stepping
+    stones for a back yard project.  The cost will be the number of $3.2 bags of 90
+    pounds of concrete mix needed to be purchased.  Ignore the mass of water used and
+    calculate the mass of needed concrete using the density of cured concrete and equate
+    this to the mass of the bagged concrete.
+    
+    - I will deliberately use the screwball customary US units to show that the GNU
+      units program used with the internal Num machinery isn't fazed by such units
+    - The mass density of the cured concrete is 137 lb/ft³
+    - The concrete mix comes in 90 lb bags that cost $3.2 each
+    - The diameter of a stepping stone is 1-1/3 yards
+    - The thickness of a stepping stone is 3-3/16 inches
+    '''
     pi = Num(mpmath.pi)
     Num.to_global_namespace("ceil".split())
     if 1:   # Define our semantic units first
@@ -218,17 +214,32 @@ def ConcreteExample():  # No pun :^)
             number of bags = {number_of_bags}
             total cost = ${total_cost}
     '''))
+def DogsAndCats():
+    '''Each dog gets 0.2 kg of food and cats get 0.1 kg of the same food.  We have to
+    feed 7 dogs and 12 cats.  How much food do we need?
+    '''
+    if 1:   # Define our semantic units first
+        arb = UnitArbiter()
+        arb.add_primitive("dog")
+        arb.add_primitive("cat")
+    if 1:   # Define the input quantities
+        num_dogs = Num("7 dog")
+        num_cats = Num("12 cat")
+        dog_food_rate = Num("0.2 kg/dog")
+        cat_food_rate = Num("0.1 kg/cat")
+    if 1:   # Solve the problem
+        food_mass = num_dogs*dog_food_rate + num_cats*cat_food_rate
+    if 1:   # Print out results
+        print(wrap.dedent(f'''
+        number of dogs = {num_dogs}
+        number of cats = {num_cats}
+        dog food rate  = {dog_food_rate}
+        cat food rate  = {cat_food_rate}
+        amount of food = {food_mass}
+        '''))
 
-ConcreteExample()
-
-'''
-❓ Notes
-    - .add_unit("step steps") adds a new unit using the GNU units config file syntax.
-      Here, a 'step' is defined in terms of the primitive 'steps', defined in the first
-      line.
-    - The Num constructor should also handle proper fractions (it now only handles
-      improper fractions that contain '/')
-    - Is there a way to automagically make the needed type conversion of Num to mpf or
-      mpc happen so this works?  If not, then we'll e.g. need a attributes like .mpf or
-      .mpc, which force a type conversion so the syntax works.
-'''
+if __name__ == "__main__":  
+    if 0:
+        ConcreteExample()
+    else:
+        DogsAndCats()

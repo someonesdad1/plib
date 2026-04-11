@@ -1,0 +1,111 @@
+10 Apr 2026 
+
+The basic idea is the "simple" use of units when solving problems.  I have for decades
+bewailed the lack of support for units in all the computing tools like compilers and
+interpreters.  Here, by "lack", I don't mean I couldn't e.g. find a units library for
+e.g. a C++ compiler, but rather than the CS folks have missed a fundamentally important
+tool for software calculations.  I'm calling this topic "semantic units", which hopefully
+implies the concept extends beyond the typical physical units that people think of, such
+as kg and m.  At a deep level I'd like to "promote" all unit strings to "semantic
+units".
+
+Here's a simple example about feeding pets.  Each dog gets 0.2 kg of food and each cat
+gets 0.1 kg of the same food.  We have to feed 7 dogs and 12 cats.  How much food do we
+need?
+
+The answer is simple:  7*0.2 + 12*0.1 = 1.4 + 1.2 = 2.6.  That's the way computer
+calculations have been done for some 70 years.
+
+But the harried overworked and underpaid programmer accidentally writes
+7*0.1 + 12*0.2 = 0.7 + 2.4 = 3.1.  The programmer made a programming mistake, just like
+the 20 zillion other made per year everywhere.
+
+If the programmer used semantic units, he would have written
+    num_cats = 12 cat
+    num_dogs = 7 dog
+    dog_food_rate = 0.2 kg/dog
+    cat_food_rate = 0.1 kg/cat
+    amount_kg = num_dogs*dog_food_rate + num_cats*cat_food_rate
+            = (7 dog)*(0.2 kg/dog) + (12 cat)*(0.1 kg/cat)
+            = 1.4 kg + 1.2 kg
+            = 2.6 kg
+
+In solving the problem, you can see the semantic units dog and cat cancel out, leaving
+you with kg, the desired mass of food.  The dimensional correctness is obvious.
+
+Why don't our compilers and interpreters allow this type of calculation at a fundamental
+level?  Think of how many logical errors it would catch.
+
+What my AI partner and I are calling the "Noether REPL", we've implemented a
+read-eval-print loop in python that models the above calculations.  There are a few key
+architectural components:
+    
+    - Practical numbers are hidden behind an abstraction called the Num class.  This num
+      class lets you do math over the integers, floating point, and complex number
+      domains.  In addition, real and complex numbers with uncertainty are supported
+      with linear uncertainty propagation, a common need for physical calculations.
+    - The GNU units program, a powerful open source resource for manipulating physical
+      units is used to arbitrate unit algebra in expressions with Num instances.  This
+      obviated the need to develop a complicated physical unit library:  the GNU units
+      program is started in another process and a pipe is used to communicate with it,
+      giving fast performance and algebraic correctness.
+        - An interesting twist is that the user can define new units on the fly like
+          dogs and cats and they get added to a dynamic GNU units configuration file;
+          the units process is restarted and the -c option is passed to it first to
+          check for correctness of the new units (e.g., no circular definitions).
+    - The model for this REPL is the traditional lab notebook of science, where a
+      person's thinking, ideas, calculations, and plans get written down to document
+      what happened and refresh the memory.  The Noether REPL will use an SQLite
+      database to implement persistence like a lab notebook, letting you recreate a
+      calculation.
+        - Each Num instance has an attribute .d for documentation, allowing you to
+          update it at the moment of definition when things are freshest in your mind.
+          Any changes made later are logged by the database connection.
+    - The core technical realization for this is that the semantic units form a
+      structure like a vector space (actually, they're more like a free Abelian group,
+      but the vector space analogy is useful for engineers).  A number's unit is a
+      combination of the "basis vectors" in this space.  For example, a unit of joule is
+      a newton*meter and in terms of the base SI units, the "dimensions" are M*L^2/T^2
+      where M, L, and T are mass, length and time.
+        - The intuitive leap to "Noether REPL" comes from Emmy Noether's first theorem:
+          symmetries in a physical system imply conserved quantities.  
+        - The leap is:  "the number and its unit combine into an invariant".  These
+          invariants are invariant under scale transformtions (changes of units).  Thus,
+          "1 m" changes numerically to "1000 mm" when you change the units of the
+          invariant.  The number HAS to change to keep it invariant.
+        - In a nutshell, the quantity "3 m" is an invariant:  no matter how you look
+          at or where you stand, it will always be "3 m" (ignoring relativity).  You can
+          change its window dressing (e.g., change it to "wear" km units), but it's
+          still the same physical length in the physical world.
+
+
+The CS community has largely treated units as "metadata" or "comments" rather than
+semantic constraints.  
+
+The Thesis: For 70 years, we have treated physical quantities as "naked floats." This is
+a primitive category error. A float is a mathematical abstraction; a physical quantity
+is a value + a coordinate in a free Abelian group. By stripping the units, we discard
+the very metadata that prevents expensive bugs.
+
+In standard CS, units live in variable names: velocity_m_s = 9.8. This is "pinky-swear"
+engineering. It relies on human vigilance.
+
+This stuff isn't just for physicists; consider
+
+    Revenue (USD) / Time (Hours) = Rate (USD/hr)
+
+    Rate (USD/hr) * Resource (Consultant) = ??? -> ERROR  
+
+    Rate (USD/(hr*Consultant)) * Time * Resource = USD. -> VALID.  
+
+The same logic that could have saved the Mars Climate Orbiter in 1999 (a monetary loss
+of half a billion in 2026 dollars) could save an ERP system from a million-dollar
+reconciliation error.
+
+The CS need can be summarized as "We need a strongly typed world".
+
+Interesting point:  the AI and I have agreed that these ideas are sorely needed in the
+world.  I suggested a good project could be to bolt the GNU units C code to the python
+interpreter C code and we'd have a units-checking interpreter like what we've already
+done.  The AI commented:  imagine a python where you could do 'x = 10.5{m/s}' and the
+interpreter handled the dimensional check at the bytecode level.
