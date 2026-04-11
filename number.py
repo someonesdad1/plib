@@ -191,21 +191,15 @@ if 1:  # Header
 if 1:   # NumericMixin:  class to add dunder math methods
     class NumericMixin:
         '''Boilerplate to make Num behave like a native Python number.'''
-        @property
-        def u(self) -> "Num":
-            '''Returns the unit-component (the 'unit vector') of this Num.'''
-            basis = Num(1)
-            basis.unit = self.unit
-            return basis
         def __neg__(self) -> "Num":
             return self * -1
         def __pos__(self) -> "Num":
             return self * 1
         def __abs__(self) -> "Num":
             res = Num(self)
-            res.real = abs(res.real)
             res.numer = abs(res.numer)
             res.denom = abs(res.denom)
+            res.real = abs(res.real)
             res.imag = abs(res.imag)
             return res
         def __radd__(self, other):
@@ -325,7 +319,7 @@ if 1:   # Num
                     self.numer = value.numerator
                     self.denom = value.denominator
                     self.mytype = NumType.Rat
-                elif isinstance(value, mpmath.mpf):
+                elif hasattr(value, '_mpf_') or isinstance(value, mpmath.mpf):
                     self.real = value
                     self.mytype = NumType.Flt
                 elif isinstance(value, mpmath.mpc):
@@ -340,6 +334,18 @@ if 1:   # Num
                     self._parse_string(value)
                 else:
                     raise TypeError(f"Type of {value!r} is not supported")
+        def _parse_proper_fraction(s: str) -> float:
+            # Pattern for: 1-1/3 or 1 1/3 or -2-1/2
+            # Groups: 1:sign, 2:whole, 3:num, 4:den
+            regex = r'^([+-])?(\d+)?(?:[- ](\d+)/(\d+))?$'
+            match = re.match(regex, s.strip())
+            if not match:
+                raise ValueError(f"Invalid fraction format: {s}")
+            sign = -1 if match.group(1) == '-' else 1
+            whole = int(match.group(2)) if match.group(2) else 0
+            num = int(match.group(3)) if match.group(3) else 0
+            den = int(match.group(4)) if match.group(4) else 1
+            return sign * (whole + (num / den))
         def _parse_string(self, value: str) -> None:
             msg = f"{value!r} not recognized as a number"
             normalized = set(value.lower().replace("i", "j").strip())
@@ -402,20 +408,31 @@ if 1:   # Num
                 b_complex = mpmath.mpc(other.real, other.imag)
                 return Num(op_func(a_complex, b_complex))
             return Num(op_func(a_val, b_val))
-        def _normalize(self, other: "Num") -> "Num":
+        def _normalize(self, other: "Num", operation: str = "") -> "Num":
             """Adjusts 'other' to match 'self.unit' if they are conformable."""
             if self.unit == other.unit:
                 return Num(other)
-            # If one has a unit and the other doesn't, they are NOT conformable
+            # Multiplication and Division are "dimension-agnostic" at this stage; 
+            # we combine units in the parent method, so we just return the Num as-is.
+            if operation in ('mul', 'div'):
+                return Num(other)
+            # For addition/subtraction, units MUST match (or both be empty).
+            # This is the "Physical Reality" check.
+            if operation in ('add', 'sub'):
+                if bool(self.unit) != bool(other.unit):
+                    raise ValueError(f"Unit Mismatch: Cannot {operation} '{self.unit}' and '{other.unit}'")
+            # If we got here, we are doing a cross-unit comparison or addition (e.g., N + lbf).
+            # If one is empty and the other isn't, they are fundamentally non-conformable.
             if bool(self.unit) != bool(other.unit):
                 raise ValueError(f"Unit Mismatch: '{self.unit}' is not conformable with dimensionless '{other.unit}'")
+            # The Arbiter handles the "Bridge" between conformable units (e.g., N vs lbf)
             arbiter = UnitArbiter()
             is_ok, factor_str = arbiter.check_conformable(other.unit, self.unit)
             if not is_ok:
-                # Let the Arbiter's error message explain the physical incompatibility
                 raise ValueError(f"Unit Mismatch: {factor_str}")
             factor = mpmath.mpf(factor_str)
             adjusted = Num(other)
+            # Promotion and scaling logic
             if adjusted.mytype <= NumType.Rat:
                 adjusted.real = adjusted.as_mpf * factor
                 adjusted.mytype = NumType.Flt
@@ -594,6 +611,26 @@ if 1:   # Num
         def add_unit(self, definition: str) -> None:
             arb = UnitArbiter()
             arb.add_unit(definition)
+        if 1:   # Class methods
+            @classmethod
+            def to_global_namespace(cls, func_names: list[str]):
+                # Get the caller's global namespace
+                target_globals = sys._getframe(1).f_globals
+                for name in func_names:
+                    if not hasattr(mpmath, name):
+                        print(f"Warning: mpmath has no function '{name}'")
+                        continue
+                    f = getattr(mpmath, name)
+                    # Create the closure
+                    def make_wrapper(func):
+                        def wrapper(x, *args, **kwargs):
+                            # If it's a Num, operate on the value but keep the unit
+                            if isinstance(x, cls):
+                                val = func(x.real, *args, **kwargs)
+                                return cls(val, unit=x.unit)
+                            return func(x, *args, **kwargs)
+                        return wrapper
+                    target_globals[name] = make_wrapper(f)
         if 1:   # Properties
             if 1:   # f:  exchanges the repr() and str() strings.  This is handy in the
                     # debugger, as 'p x' shows the repr() string and often you want to see the
@@ -609,9 +646,25 @@ if 1:   # Num
                 def unit(self) -> str:
                     return self._unit.strip()
                 @unit.setter
-                def unit(self, value: str) -> None:
-                    Warn("Make sure changing .unit changes value to keep invariant", single=True)
-                    self._unit = value.strip() if value else ""
+                def unit(self, new_unit: str):
+                    if not hasattr(self, '_unit') or not self._unit:
+                        self._unit = new_unit
+                        return
+                    
+                    if self._unit == new_unit:
+                        return
+
+                    # Scaling the physical value to match the new 'ruler'
+                    arb = UnitArbiter()
+                    is_ok, factor_str = arb.check_conformable(self._unit, new_unit)
+                    if is_ok:
+                        factor = mpmath.mpf(factor_str)
+                        self.real *= factor
+                        if hasattr(self, 'imag') and self.imag:
+                            self.imag *= factor
+                        self._unit = new_unit
+                    else:
+                        raise ValueError(f"Incompatible Units: Cannot view {self._unit} as {new_unit}")
             if 1:   # as_mpf:  return current value as an mpf
                 @property
                 def as_mpf(self) -> mpmath.mpf:
@@ -648,6 +701,12 @@ if 1:   # Num
                 @property
                 def num(self) -> Num:
                     y = Num(self)
+                    y._unit = ""
+                    return y
+            if 1:   # pi:  convenience to get pi as a Num
+                @property
+                def pi(self) -> Num:
+                    y = Num(str(mpmath.pi))
                     y._unit = ""
                     return y
 if 1:  # Unit arbiter
@@ -782,6 +841,25 @@ if 1:  # Unit arbiter
             except Exception as e:
                 self._start_process()
                 return False, str(e)
+        def simplify(self, value: mpmath.mpf, unit_str: str) -> tuple[mpmath.mpf, str]:
+            """
+            Reduces 'yard^2 * inches / ft^3 * lb' into its most human-readable form.
+            """
+            if not unit_str or unit_str == "1":
+                return value, ""
+            # 1. Ask GNU Units for the 'primitive' reduction (e.g., kg, m, s)
+            # We use the -one-line flag to get the reduced form.
+            reduced_unit = self._query_units_for_reduction(unit_str)
+            # 2. Heuristic: If the messy string contains a known 'weighty' unit
+            # like 'lb' or 'N' or 'dollars', try to force the reduction to that.
+            candidates = self._extract_candidate_units(unit_str)
+            for candidate in candidates:
+                is_ok, factor = self.check_conformable(unit_str, candidate)
+                if is_ok:
+                    # Success! We can represent the whole mess as a multiple of this unit.
+                    return value * mpmath.mpf(factor), candidate
+            # 3. Fallback: If no candidate fits, return the GNU Units 'best guess'
+            return value, unit_str
 
 if 1:  # Utility functions
     def RegisterUnit(unit_name: str) -> None:
@@ -805,7 +883,7 @@ if 1:  # Utility functions
         # ... logic to read the file back and update n.d ...
         print(f"Updated {n.unit} metadata.")
 
-if 1:   # Set up config files
+if 1:   # Set up config files   ∞∞2 This needs to move out of the main code area
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
@@ -979,11 +1057,16 @@ if 1:   # Self-tests
                     result = x/y
                     expected = Num("1/4", "(in)/(in)")   # (3/8)/(12/8) = 1/4
                     Assert(result == expected)
-        def Test_Unit_Vector():
+        def Test_Noether_Invariant():
             '''The .num component is used to normalize to a "unit vector" in the
-            particular "unit" vector's direction.  This is the same thing you do
-            to normalize in linear vector spaces:  u_vector = v/|v|.  This needs
-            a test, as it's a central concept.
+            particular "unit" vector's direction.  This means that x/x.num returns a Num
+            with unit numerical magnitude and the same units of x.  This is analogous to
+            how you normalize in linear vector spaces:  a unit vector in the direction
+            of v is v/|v|.
+            
+            I think it would be fitting to call this x/x.num the "Noether invariant";
+            it's really the "unit vector" in the dimensional space described by the
+            units.
             '''
             x = Num("1.23 A")
             Assert(x.real == mpmath.mpf("1.23"))
@@ -1022,7 +1105,8 @@ if 1:   # Self-tests
                 breakpoint() # ∞∞ 
                 Assert(a*b == N("0.75+1.5i m*A"))
 if __name__ == "__main__":  
-    Test_Unit_Vector()
+    Test_Noether_Invariant()
+    print("passed")
     exit()
 '''
 Other tests needed:
