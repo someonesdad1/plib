@@ -1,11 +1,24 @@
 from __future__ import annotations
 '''
-Fri 10 Apr 2026 Tasks
+ToDo
 
-- Get some key unit tests for __add__, __radd__, and __iadd__ and friends
-- Verify infection model for REPL
-- Should handle lbm/in³:  translate Unicode exponents to regular digits
+- Tests
+    - Get some key unit tests for __add__, __radd__, and __iadd__ and friends
+    - Verify infection model
+    - Test formatting in detail
 - Start playing with it in the REPL; it's nearly a real calculator
+    - The dirt work in the back could be an excellent real-world example
+    - Need some way of letting user give preferred units
+        - x.preferred("ft lb"), then x.preferred() means reset to original
+        - x.to("unit") should return a Num in the new unit (non-working code
+          at the moment because arbiter.discover_best_unit(self.unit) isn't
+          working
+    - If you use an unknown unit, the server hangs
+    - Changed UnitArbiter's add_primitive() to add_base() (easier to type &
+      remember)
+    - Any way to have a non-blocking num.check(unit) function that returns
+      True if unit is known, False if not?  This would be a way to avoid the
+      hang.
 - Add nbs to string between number and unit in fmt.py
 
 '''
@@ -276,9 +289,18 @@ if 1:   # Num
         flip = False  # If True, flip str() and repr() behavior
         show_color = True   # If True, strip escape sequences from str()/repr() output
         # Note:  it's easiest to set the color property of an instance to set Num.show_color
+        #
+        # The following dictionary lets the user select which preferred set of
+        # unit he wants to use.
+        systems = {
+                "default": set()
+        }
+        active_system = "default"
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
             '''Constructor for the Num instance, an immutable number container'''
             self._doc = ""
+            self.arb = UnitArbiter()    # Convenience arbiter for new units
+            self.fmt = fmt.Fmt()        # Convenience formatter
             if isinstance(value, str):
                 val_str, found_unit = self._extract_unit(value)
                 if found_unit:
@@ -532,16 +554,16 @@ if 1:   # Num
             formatted version.
             '''
             if self.mytype == NumType.Int:
-                s = fmt.fmt(self.numer)
+                s = self.fmt(self.numer)
             elif self.mytype == NumType.Rat:
-                s = fmt.fmt(fractions.Fraction(self.numer, self.denom))
+                s = self.fmt(fractions.Fraction(self.numer, self.denom))
             elif self.mytype == NumType.Cpx:
-                s = fmt.fmt(mpmath.mpc(self.real, self.imag))
+                s = self.fmt(mpmath.mpc(self.real, self.imag))
             elif self.mytype == NumType.Unc:
                 s = f"{self.real} +/- {self.re_unc}"
                 Warn("str() not right for Unc type")
             else:
-                s = fmt.fmt(self.real)
+                s = self.fmt(self.real)
             unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
             color = Num.type_color.get(self.mytype, t.wht)
             result = f"{color}{s}{t.n}{unit_string}"
@@ -632,6 +654,35 @@ if 1:   # Num
         def add_unit(self, definition: str) -> None:
             arb = UnitArbiter()
             arb.add_unit(definition)
+        def check(self, unit_name: str, timeout: float = 0.5) -> bool:
+            """
+            Non-blocking check using the established GNU Units configuration.
+            Returns True if the unit is valid, False otherwise.
+            """
+            # Replicate the command logic from _start_process
+            cmd = [UnitArbiter.units_bin, "-q"]
+            if UnitArbiter.main_config:
+                main_p = str(Path(UnitArbiter.main_config).expanduser())
+                cmd.extend(["-f", main_p])
+            cmd.extend(["-f", str(UnitArbiter.dynamic_config)])
+            # We use the '-t' flag (terse/check mode) which makes Units
+            # exit immediately with the definition or an error.
+            cmd.append("-t")
+            cmd.append(unit_name)
+            try:
+                # run() is synchronous but we wrap it in a timeout
+                # to ensure it never hangs the REPL.
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout
+                )
+                # returncode 0 means GNU Units found the definition.
+                return result.returncode == 0
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                # If it times out or crashes, it's effectively an unknown unit.
+                return False
         if 1:   # Class methods
             @classmethod
             def to_global_namespace(cls, func_names: list[str]):
@@ -652,6 +703,21 @@ if 1:   # Num
                             return func(x, *args, **kwargs)
                         return wrapper
                     target_globals[name] = make_wrapper(f)
+            @classmethod
+            def define_system(cls, name: str, unit_list: list[str]):
+                '''Define a named set of preferred units: e.g., Num.define_system("yard", ["ft", "lb", "truck"])'''
+                cls.systems[name] = [u.strip() for u in unit_list]
+            @classmethod
+            def set_system(cls, name: str):
+                '''Switch the active preference set'''
+                if name in cls.systems:
+                    cls.active_system = name
+                else:
+                    print(f"Warning: System '{name}' not found. Staying at '{cls.active_system}'")
+            @property
+            def preferred(self):
+                '''Instance property to check or quickly set the system'''
+                return self.systems[Num.active_system]
         if 1:   # Properties
             if 1:   # f:  exchanges the repr() and str() strings.  This is handy in the
                     # debugger, as 'p x' shows the repr() string and often you want to see the
@@ -671,17 +737,22 @@ if 1:   # Num
                     if not hasattr(self, '_unit') or not self._unit:
                         self._unit = new_unit
                         return
-                    
                     if self._unit == new_unit:
                         return
-                    # Scaling the physical value to match the new 'ruler'
                     arb = UnitArbiter()
                     is_ok, factor_str = arb.check_conformable(self._unit, new_unit)
                     if is_ok:
                         factor = mpmath.mpf(factor_str)
-                        self.real *= factor
-                        if hasattr(self, 'imag') and self.imag:
+                        # Consistent Scaling across all internal types
+                        if self.mytype <= NumType.Rat:
+                            # Scale the rational/integer value and promote to Float
+                            self.real = self.as_mpf * factor
+                            self.mytype = NumType.Flt
+                        else:
+                            self.real *= factor
                             self.imag *= factor
+                            self.re_unc *= factor
+                            self.im_unc *= factor
                         self._unit = new_unit
                     else:
                         raise ValueError(f"Incompatible Units: Cannot view {self._unit} as {new_unit}")
@@ -796,7 +867,7 @@ if 1:  # Unit arbiter
                 if os.path.exists(tmp_path):
                     os.remove(tmp_path)
             return is_ok, error_msg
-        def add_primitive(self, unit_name: str) -> None:
+        def add_base(self, unit_name: str) -> None:
             '''Adds a new base dimension (primitive) to the dynamic units file.'''
             self._commit_unit(f"{unit_name.strip()} !")
         def add_unit(self, definition: str) -> None:
@@ -862,27 +933,23 @@ if 1:  # Unit arbiter
                 self._start_process()
                 return False, str(e)
         def simplify(self, value: mpmath.mpf, unit_str: str) -> tuple[mpmath.mpf, str]:
-            """
-            The 'Magic Wand': Reduces complex unit strings into their simplest form
-            based on the user's implicit history.
-            """
-            if not unit_str or unit_str == "1":
-                return value, ""
-            # 1. Ask GNU Units for the absolute "Definition" (the primitive reduction)
-            # This handles things like (dog)*(kg/dog) -> kg
-            reduced_unit_str, scale_factor = self._query_units_for_reduction(unit_str)
-            # Update our value based on any constant scaling GNU units found
-            # (though for pure cancellation, scale_factor will be 1.0)
-            current_value = value * mpmath.mpf(scale_factor)
-            # 2. Heuristic: Check if the messy string contains 'high-value' units
-            # from the history (lb, kg, dollars).
-            candidates = self._extract_candidate_units(unit_str)
-            for candidate in candidates:
-                is_ok, factor = self.check_conformable(reduced_unit_str, candidate)
-                if is_ok:
-                    return current_value * mpmath.mpf(factor), candidate
-            # 3. Fallback: Return the cleanest version GNU Units could provide
-            return current_value, reduced_unit_str
+                if not unit_str or unit_str == "1":
+                    return value, ""
+                reduced_unit_str, scale_factor = self._query_units_for_reduction(unit_str)
+                current_value = value * mpmath.mpf(scale_factor)
+                # Updated Step 2: Check against the Active Preferred System
+                # We grab the list from the Num class registry
+                preferred_units = Num.systems.get(Num.active_system, [])
+                for candidate in preferred_units:
+                    # Check if our messy result is conformable to a preferred unit (or power of it)
+                    # We check both the unit and its common powers (unit^2, unit^3) for areas/volumes
+                    for power in [1, 2, 3]:
+                        test_unit = candidate if power == 1 else f"{candidate}^{power}"
+                        is_ok, factor = self.check_conformable(reduced_unit_str, test_unit)
+                        if is_ok:
+                            return current_value * mpmath.mpf(factor), test_unit
+                # Fallback to whatever messy reduction GNU Units provided
+                return current_value, reduced_unit_str
         def _query_units_for_reduction(self, unit_str: str) -> tuple[str, str]:
             """
             Uses the GNU Units 'Definition' logic to flatten a unit string.
@@ -916,11 +983,11 @@ if 1:  # Utility functions
     def RegisterUnit(unit_name: str) -> None:
         '''
         Gatekeeper for the Num constructor. If a unit is unknown,
-        it is registered as a new primitive dimension.
+        it is registered as a new base (primitive) dimension.
         '''
         arb = UnitArbiter()
         if not arb.is_known_unit(unit_name):
-            arb.add_primitive(unit_name)
+            arb.add_base(unit_name)
     def e(n: "Num"):
         '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
         import tempfile, os, subprocess

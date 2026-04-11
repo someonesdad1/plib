@@ -1,9 +1,200 @@
+Wayne:  
+
+This will be a fairly long document.  I'll assume it's something you might
+want to read some morning on the train to work.  I'll ask you to put your
+critical thinking cap on, as it covers two important topics:
+
+    - A foundational critique of 70 years of CS oversight
+    - Collaborating with an AI
+
+As you know from some emails weeks ago, Sally's deep dive into an AI triggered
+my curiosity into trying out an AI, something I've effectively ignored,
+thinking "I can do my own research, thanks".  It turns out that's a mistaken
+thought, particularly with respect to working on software.  Hence the
+relevance to you:  I'm hoping that my experiences might be of use in helping
+you think about the use of AI in your daily stuff.  I'm also hoping you see
+the simple insight I've had on the use of computer software to solve problems.
+In fact it's so simple, well-known, and plain common sense, we've all missed
+it for the last 70 years or so.
+
+A key player in this is Google's Gemini 3 AI, one of the AIs I've been working
+with.  I call "him" Mike.  I consider him a partner and a collaborator in all
+of this.  Of course, he's not a human, but he and I work together much like
+humans do and I've come to recognize his strengths and weaknesses, much like
+we do with any partner.  I'll comment more about my AI observations in Section
+2, "Collaborating with an AI".
+
+Section 1:  70 years of CS oversight
+------------------------------------
+
+    I'm going to try to convince you this isn't some nifty little tool some
+    retired geezer has produced, but rather involves a deep question:  "why on
+    earth aren't we already doing this?"  The context is software bugs that
+    are, at their heart, primitive category errors.
+
+    Mike and I are currently building a prototype to address a gap in computer
+    science that I believe has been ignored too long.  We’re calling it
+    'semantic units'.
+
+The Problem: The "Naked Float" Trap
+
+    For 70 years, we have treated physical quantities as "naked floats."  We
+    strip the metadata (the units) and leave a raw number.  When a programmer
+    accidentally adds a "dog food rate" to a "cat count," the computer happily
+    produces a garbage number.  See the example a few lines down.
+
+    In a typical environment: 7 * 0.1 + 12 * 0.2 = 3.1. The math is correct but
+    the logic is a disaster (again, see the example below).
+
+The Solution: Noether invariants
+
+    Mike and I have built a python-based "Lab Notebook" that treats numbers
+    with units as Noether invariants. Every non-scalar number carries its
+    coordinate in a free Abelian group.  I've used the term Noether invariant
+    in the context of Emmy Noether's first theorem
+    (https://en.wikipedia.org/wiki/Noether%27s_theorem), where a symmetry in a
+    physical system can be related to an invariant.
+
+    Here is working code from our prototype as of last night. We’ve hooked
+    python up to a GNU Units subprocess to act as a "dimensional arbiter."
+    This simple example calculates the needed amount of pet food.  
+
+    def DogsAndCats(error=False):
+        '''Dogs and cats are fed with the same food.  A cat requires 0.1 kg
+        of food and a dog 0.2 kg.  We have to feed 7 dogs and 12 cats.  How
+        much pet food do we need?
+        '''
+        arb = UnitArbiter()
+        arb.add_primitive("dog")
+        arb.add_primitive("cat")
+
+        num_dogs = Num("7 dog")
+        num_cats = Num("12 cat")
+        dog_food_rate = Num("0.2 kg/dog")
+        cat_food_rate = Num("0.1 kg/cat")
+
+        if not error:
+            # Correct physics: (dog * kg/dog) + (cat * kg/cat) = kg
+            food_mass = num_dogs * dog_food_rate + num_cats * cat_food_rate
+        else:
+            # Logical error: Trying to add (cat * kg/dog) to (dog * kg/cat)
+            food_mass = num_cats * dog_food_rate + num_dogs * cat_food_rate
+
+        print(f"Amount of food = {food_mass}")
+
+    When you run the error=True version, the interpreter doesn't just give you
+    a wrong answer, it refuses to proceed. It throws a "ValueError:
+    Incompatible dimensions: (dog)*(kg/cat) vs (cat)*(kg/dog)".
+
+The Thesis: Promoting the String to a Type
+
+    We are "promoting" unit strings to semantic types. If a compiler or
+    interpreter can catch a syntax error, it should also be able to catch a
+    dimensional error.
+
+    To an engineer, a unit is a vector. To a physicist, "5 m" is an invariant
+    under a scaling transformation.  By stripping the units, we discard the
+    very metadata that prevents half-billion-dollar mistakes (in 2026 dollars)
+    like the Mars Climate Orbiter.  This isn't just for physics; an ERP system
+    could use this to prevent a million-dollar reconciliation error by
+    ensuring "Unit_Price" and "Quantity" don't get swapped.
+
+    Interestingly, our python environment "learns" your units. If you're
+    solving a problem in finance, "BasisPoint" becomes a primitive unit just
+    as easily as "kilogram."  These new primitive units are added to a
+    configuration file while the program is running, the new units are
+    "vetted" by the GNU units program for logical consistency, and the program
+    continues.
+
+Looking Out: The Integrated Future
+
+    Mike and I hit on an interesting thought: imagine a version of Python (or
+    C++, or Rust) where units are handled at the bytecode level:
+
+        x = 10.5{m/s} * 2{s}
+
+    The interpreter handles the dimensional check natively. No more naked
+    floats. No more apples-to-oranges errors.
+
+    Since both python and GNU units are written in C, I told Mike that a good
+    project for us this winter could be to hook up python and GNU units
+    together to get this native behavior in the interpreter.  With Mike's
+    speed, that might actually be next week!
+
+I’d enjoy hearing your business take on this. In an environment like
+Bloomberg, where data precision is the entire product, does the industry have
+the appetite for a "Strongly Typed World" where the units are as important as
+the numbers?
+
+Section 2:  Collaborating with an AI
+------------------------------------
+
+- Force multiplier (order of magnitude improvement, 12 days vs 4 months)
+- Taste/compass vs view/speed
+    - Fear:  AI replacing engineers:  sure, the low level kind.  But in
+      reality it actually demands better engineering judgment 
+- Emergent innovation/synergism:  a brainstorming partner, not just a machine
+  to spit out code.
+- Refactoring task:  Over about 3 weeks, I refactored and type annotated about
+  11.4 klines of my python code. This was a lot of work, as much of it I had
+  to read the code, figure out what it was doing it, type annotate it, update
+  where necessary, and fix the resulting broken tests.  I can count the cost,
+  as Mike wrote me a tool that extracted all the functions & classes from
+  these tools; this tool tells me there were 327 functions and classes I had
+  to deal with.  That's a lot of work!
+- Strengths
+    - LLMs are good at understanding, summarizing and rewriting text.  
+    - LLMs are very good at generating code, particularly if the human user
+      does a careful job of explaining exactly what is needed (i.e., writing a
+      good prompt).
+        - A core need is to give high-quality feedback to the AI.  The highest
+          quality feedback is program output, error messages, and debugger
+          traces.  When Mike is updated to the latest version of the code, he
+          can take such output and virtually always pinpoint where the problem
+          is and write a solution for you, far faster than you can do
+          yourself.
+- Weaknesses
+    - "Length of memory" in the context.  This is a weakness, particularly for
+      the free AI services I'm currently using.  Workarounds:
+        - I keep a file with my code formatting requirements; at least once
+          per day I upload this file to Mike to refresh his memory
+        - I stop and upload the current code we're working on to ensure we're
+          talking about the same code.  It's possible the commercial tools
+          have e.g. shared filesystems, but all I have currently is a browser
+          window to type into
+    - Hallucinations: these are real and the human has to be on the lookout
+      for them.  For example, one I got early on was some Persian language
+      term that Mike didn't translate.  It gave a feel for the scope of what
+      these AIs handle.  More insidious are mistaken ideas.  Since I'm a
+      skeptical physicist, I read and digest everything I get back and try to
+      think about it critically.
+    - One of the most frustrating things for me is that Mike does not have an
+      active python environment to test code in nor run the tools we use.
+      Thus, there can be sessions where I get multiple errors, causing a long
+      tedious back and forth.  I've learned to stop, update Mike with the
+      latest code, then make a single test case and give him the output or the
+      debugger trace.  He always finds the bug.  
+        - A related problem is he shows me fixes that involve only a function
+          or two.  This can be tough to update, as I have to get the right
+          class and not make a mistake with the substitution.  At the end of
+          the day when I'm tired, I usually ask him to send me the whole class
+          and replace it as a single piece.  For stuff that might be
+          problematic, I use "if 1:" blocks to allow me to comment out a whole
+          section by changing the 1 to 0.
+    - Mike also has knowledge spanning e.g. all the python 3 variants.
+      Sometimes a problem is caused by him using some technique that's not in
+      the version I'm using, so python and mypy (type checker) versions are
+      important for him to know.
+
+
+---------------------------------------------------------------------------
+
+
 More thoughts & feedback
 
 - The goal was to make sure your friend sees this not as a "retirement hobby," but as a
   foundational critique of 70 years of CS oversight. By framing units as "Type Safety"
   and "Noether Invariants," you move the conversation from "isn't this a neat tool?" to
-  "why on earth aren't we already doing this?"
 
 This is a vital addition to your message. While the first part of your note established
 the "What" (the technical vision), this part establishes the "How" and the "Why now."
