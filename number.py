@@ -674,7 +674,6 @@ if 1:   # Num
                     
                     if self._unit == new_unit:
                         return
-
                     # Scaling the physical value to match the new 'ruler'
                     arb = UnitArbiter()
                     is_ok, factor_str = arb.check_conformable(self._unit, new_unit)
@@ -912,7 +911,6 @@ if 1:  # Unit arbiter
             # Split by any non-alphanumeric characters and filter common junk
             raw_tokens = re.split(r'[^a-zA-Z]', unit_str)
             return [t for t in raw_tokens if t and len(t) > 1 and not t.isdigit()]
-
 
 if 1:  # Utility functions
     def RegisterUnit(unit_name: str) -> None:
