@@ -173,7 +173,7 @@ def ConcreteExample():
     Num.to_global_namespace("ceil".split())
     if 1:   # Define our semantic units first
         arb = UnitArbiter()
-        arb.add_primitive("step")
+        arb.add_base("step")
     if 1:   # Define the input quantities
         number_of_steps = Num("22 steps")   # Note GNU units accepts this plural
         density_concrete = Num("137 lb/ft³")
@@ -219,9 +219,9 @@ def DogsAndCats(no_programming_error=True):
     feed 7 dogs and 12 cats.  How much food do we need?
     '''
     # Define semantic units
-    arb = UnitArbiter()             # Pipe to the GNU units process
-    arb.add_primitive("dog")        # Create a new semantic unit
-    arb.add_primitive("cat")
+    arb = UnitArbiter()         # Pipe to the GNU units process
+    arb.add_base("dog")         # Create a new semantic unit
+    arb.add_base("cat")
     # Define the input quantities
     num_dogs = Num("7 dog")
     num_cats = Num("12 cat")
