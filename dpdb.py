@@ -292,16 +292,19 @@ if 1:  # Classes
                     c = u.none
                 # Print the color coding
                 show_all = False    # If True, color the whole line
-                if is_str: # Strings get shown by repr()
-                    if show_all:
-                        print(f"  {c}{name:{w}s} = {val!r}{u.n}")
+                try:
+                    if is_str: # Strings get shown by repr()
+                        if show_all:
+                            print(f"  {c}{name:{w}s} = {val!r}{u.n}")
+                        else:
+                            print(f"  {name:{w}s} = {c}{val!r}{u.n}")
                     else:
-                        print(f"  {name:{w}s} = {c}{val!r}{u.n}")
-                else:
-                    if show_all:
-                        print(f"  {c}{name:{w}s} = {val}{u.n}")
-                    else:
-                        print(f"  {name:{w}s} = {c}{val}{u.n}")
+                        if show_all:
+                            print(f"  {c}{name:{w}s} = {val}{u.n}")
+                        else:
+                            print(f"  {name:{w}s} = {c}{val}{u.n}")
+                except Exception as e:
+                    print(f"  {name} had exception: {e}")
             def get_frame_of_interest(self):
                 '''Return the stack frame that's current in the thing being
                 debugged.

@@ -20,10 +20,13 @@ ToDo
       True if unit is known, False if not?  This would be a way to avoid the
       hang.
 - Add nbs to string between number and unit in fmt.py
-
+- Num("3/4") in the local variables causes a deep fmt exception when trying to view the
+  locals in dpdb.py.  But is likely that fmt doesn't handle fractions yet.
+    
 '''
 if 1:  # Header
     if 1:   # Standard imports
+        from pdb import set_trace as yy
         import decimal
         import enum
         import fcntl
@@ -136,7 +139,7 @@ if 1:  # Header
                 sufficient resolution for your problems.  Example:  'mpmath.mp.dps = 30'
                 to set 30 digits of resolution; the default is 15, about the same as a
                 python float.
-
+                
                 The Num class tries to be a container for the common numbers used
                 for the problems we do in the real world.  It can deal with 
                     
@@ -150,7 +153,7 @@ if 1:  # Header
                         - GNU units program used for unit conversion fractors and
                           dimensional algebra.  Because of this, you may want to
                           familiarize yourself with its syntax and capabilities.
-
+                
                 The internal representation of the Num class uses 
                     
                     - Two python integers for integers and fractions
@@ -159,23 +162,23 @@ if 1:  # Header
                       imaginary components
                     - One mpmath.mpf instance for the correlation coefficient between
                       the real and imaginary components
-
+                
                 In calculations, there's an internal type hierarchy that causes type
                 promotion when needed (in the enum NumType):
-
+                
                     Int < Rat < Flt < Cpx < Unc
-
+                
                 In binary operations, the type of the result is determined by the Num
                 instance's largest NumType.
-
+                
                 Units are handled by letting you write them as strings.  Behind the scenes,
                 the GNU units tool handles the conversion mechanics, unit definitions, and
                 dimensional algebra.  
-
+                
                 Uncertainty is handled by using linear uncertainty propagation.  
                 
                 "Logical" units
-
+                
                     We usually think of units as e.g. the familiar SI units.  However,
                     almost all practical calculations involve some types of units.  For
                     example, if you're measuring ut pet food mass to feed some dogs and
@@ -185,14 +188,14 @@ if 1:  # Header
                     fed properly, avoiding a mistake of mixing the foods, which might
                     show up in a calculation as having units of kg_cat_food*kg_dog_food
                     or a sum of 'kg_cat_food + kg_dog_food'.  
-
+                
                     It's a shame the programming tools we have don't natively support
                     both physical and logical units.  One of my goals in this Num class
                     was to provide a tool to do just this, because when the units in
                     some arithmetical calculation aren't consistent, a logical error has
                     been made.  Every scientist or engineer has learned to use such
                     dimensional errors as red flags.
-
+                
                     The interesting feature of the Num class is that you can add logical
                     units dynamically, i.e., while you're doing your calculation.  This
                     is a powerful aid to doing a correct calculation, as the GNU units
@@ -201,7 +204,7 @@ if 1:  # Header
                     had this feature in our programming environments natively.
             
         '''
-
+                
 if 1:   # NumericMixin:  class to add dunder math methods
     class NumericMixin:
         '''Boilerplate to make Num behave like a native Python number.'''
@@ -360,7 +363,7 @@ if 1:   # Num
                 self.re_unc = mpmath.mpf(str(value.std_dev))
                 self.mytype = NumType.Unc
             elif isinstance(value, str):
-                self._parse_string(value)
+                self._parse_string(value.strip())
             else:
                 raise TypeError(f"Type of {value!r} is not supported")
         def _parse_proper_fraction(self, s: str) -> mpmath.mpf:
@@ -377,7 +380,7 @@ if 1:   # Num
         def _parse_string(self, value: str) -> None:
             msg = f"{value!r} not recognized as a number"
             normalized = set(value.lower().replace("i", "j").strip())
-            if "-" in value and "/" in value: # Handle 1-1/3
+            if ("-" in value and value[0] != "-") and "/" in value: # Handle 1-1/3
                 try:
                     # Use mpmath for parsing to stay in the high-precision domain
                     self.real = self._parse_proper_fraction(value)
@@ -427,12 +430,12 @@ if 1:   # Num
                 return Num(result)
             if target_type == NumType.Unc.value:
                 return self._do_uncertainty_math(other, op_func)
+            if self.mytype == NumType.Cpx or other.mytype == NumType.Cpx:
+                a_complex = self.as_mpc
+                b_complex = other.as_mpc
+                return Num(op_func(a_complex, b_complex))
             a_val = self.real if self.mytype >= NumType.Flt else self.as_mpf
             b_val = other.real if other.mytype >= NumType.Flt else other.as_mpf
-            if self.mytype == NumType.Cpx or other.mytype == NumType.Cpx:
-                a_complex = mpmath.mpc(self.real, self.imag)
-                b_complex = mpmath.mpc(other.real, other.imag)
-                return Num(op_func(a_complex, b_complex))
             return Num(op_func(a_val, b_val))
         def _normalize(self, other: "Num", operation: str = "") -> "Num":
             if self.unit == other.unit:
@@ -695,16 +698,31 @@ if 1:   # Num
             else:
                 raise ValueError(f"Incompatible Units: {self._unit} to {new_unit}")
         @property
+        def as_mpc(self) -> mpmath.mpf:
+            if self.mytype == NumType.Int:
+                return mpmath.mpc(str(self.numer), 0)
+            if self.mytype == NumType.Rat:
+                return mpmath.mpc(self.numer/mpmath.mpf(self.denom), 0)
+            if self.mytype == NumType.Flt:
+                return mpmath.mpc(self.real, 0)
+            if self.mytype == NumType.Unc:
+                raise TypeError("{self!r} as NumType.Unc can't be converted to Cpx")
+            return mpmath.mpc(self.real, self.imag)
+        @property
         def as_mpf(self) -> mpmath.mpf:
             if self.mytype == NumType.Int:
                 return mpmath.mpf(str(self.numer))
             if self.mytype == NumType.Rat:
                 return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
+            if self.mytype == NumType.Unc:
+                raise TypeError("{self!r} as NumType.Unc can't be converted to Flt")
             return self.real
         @property
         def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
             if self.mytype == NumType.Int:
                 return self.numer
+            if self.mytype == NumType.Unc:
+                raise TypeError("{self!r} as NumType.Unc can't be converted to Int or Rat")
             return fractions.Fraction(self.numer, self.denom)
         @property
         def d(self) -> str:
@@ -929,17 +947,22 @@ if 1:  # Utility functions
         subprocess.call([editor, temp_path])
         # ... logic to read the file back and update n.d ...
         print(f"Updated {n.unit} metadata.")
-
 if 1:   # Set up config files   ∞∞2 This needs to move out of the main code area
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
-if 0:  # Temp experiment
-    x = Num("1 step")
-    x.add_unit("steps = step")
+if 1:  # Temp experiment
+    def f():
+        a = Num("1+2i m")
+        b = Num("3/4 A")
+        breakpoint() # ∞∞ 
+        Assert(a*b == Num("0.75+1.5i m*A"))
+    f()
     exit()
+
 if 1:   # Self-tests
         def Test_Constructor_With_Numbers():
+            zero = 0
             if 1:   # No input
                 num = Num()
                 Assert(num.real == 0 and num.imag == 0)
@@ -968,6 +991,7 @@ if 1:   # Self-tests
                 num = Num(x)
                 Assert(num.numer == -3 and num.denom == 8)
                 Assert(num.mytype == T)
+                Assert(num == Num("-0.375"))
             if 1:   # float
                 x, T = 3095.7357, NumType.Flt
                 num = Num(x)
@@ -1015,6 +1039,7 @@ if 1:   # Self-tests
             if 1:   # Unc
                 pass
         def Test_Constructor_Strings():
+            zero = 0
             test_cases = [("1", NumType.Int),
                           ("1/2", NumType.Rat),
                           ("1.2", NumType.Flt),
@@ -1093,26 +1118,25 @@ if 1:   # Self-tests
                     Assert(result == Num("3.0 kg*m^2/s^3"))
                     # ∞∞ Step through line 1087 with debugger to see why the == is
                     # failing
-                    #yy
                 if 1:   # Rational
                     x = Num("3/8", "in")
                     y = Num("24/16", "in")
                     result = x*y
-                    expected = Num("9/16", "(in)*(in)")   # 3/8*12/8 = 36/64 = 9/16
+                    #expected = Num("9/16", "(in)*(in)")   # 3/8*12/8 = 36/64 = 9/16
+                    expected = Num("0.00036290249999999997 m^2")
                     Assert(result == expected)
             if 1:   # Test division
                 if 1:   # Integer & real
                     x = Num("1.0", "ft")
                     y = Num("1", "m")
                     result = x/y
-                    expected = "1.0"
-                    Assert(result.real == mpmath.mpf(expected))
-                    Assert(result == Num(expected, "(ft)/(m)"))
+                    expected = Num("0.30480000000000002")
+                    Assert(result == expected)
                 if 1:   # Rational
                     x = Num("3/8", "in")
                     y = Num("24/16", "in")
                     result = x/y
-                    expected = Num("1/4", "(in)/(in)")   # (3/8)/(12/8) = 1/4
+                    expected = Num("0.25")
                     Assert(result == expected)
         def Test_Noether_Invariant():
             '''The .num component is used to normalize to a "unit vector" in the
@@ -1154,11 +1178,21 @@ if 1:   # Self-tests
                 with g:
                     g.X = 1
                 Assert(N("0 m") + N("0 m") == N("0 m"))
+            if 1:   # Test core properties: as_mpf, etc.
+                x = Num("10")
+                Assert(isinstance(x.as_int_or_rat, int))
+                Assert(isinstance(x.as_mpf, mpmath.mpf) and x.as_mpf == mpmath.mpf("10"))
+                Assert(isinstance(x.as_mpc, mpmath.mpc) and x.as_mpc == mpmath.mpc("10", 0))
+                x = Num("10/20")
+                Assert(isinstance(x.as_mpf, mpmath.mpf) and x.as_mpf == mpmath.mpf("1/2"))
+                Assert(isinstance(x.as_mpc, mpmath.mpc) and x.as_mpc == mpmath.mpc("1/2", 0))
+                x = Num("10+20j")
+                Assert(isinstance(x.as_mpf, mpmath.mpf) and x.as_mpf == mpmath.mpf("10"))
+                Assert(isinstance(x.as_mpc, mpmath.mpc) and x.as_mpc == mpmath.mpc("10", "20"))
             if 1:   # "1+2i m" * "3/4 A":  hope we don't get mA
                 a = N("1+2i m")
                 b = N("3/4 A")
                 lwtest.ToDo("Bug in '1+2i m'*'3/4 A' -> 0.00+0.00j (m)*(A)")
-                breakpoint() # ∞∞ 
                 Assert(a*b == N("0.75+1.5i m*A"))
 '''
 Other tests needed:

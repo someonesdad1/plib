@@ -1,4 +1,3 @@
-'pytree dpstr.py >a' has escape codes in it.  It shouldn't if trm.always is False
 
 Reorganization core files
 - Look at moving /plib/pgm to /pgm
@@ -50,6 +49,11 @@ Reorganization core files
         - This would help with refactoring decisions and moving stuff to /plib/old
         - Example:  dpmath.py has bitvector(int).  Is it used anywhere in my stuff?  I'd
           want the search over /plib, /elec, /shop, /math, /science, etc.
+
+    - Projects to consider
+        - Rewrite g.py in SVG
+        - Generate a python interpreter with GNU units built into it, giving semantic
+          units at the bytecode level
 
     - dsort.py Utility to sort indented hyphenated lists
 

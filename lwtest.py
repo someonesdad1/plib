@@ -316,7 +316,7 @@ if 1:  # Utility
             return f"{duration_s/60:.2f} min"
         else:
             return f"{duration_s:.2f} s"
-    def ToDo(message, prefix="+ ", color="orn", file=sys.stderr):
+    def ToDo(message, prefix="+ ", color="ygr", file=sys.stderr):
         '''This function results in a message to stderr; its purpose is to allow you to
         see something that needs to be done, but won't cause the test to fail.  The
         message is decorated with a leading prefix string and the file and line number.
