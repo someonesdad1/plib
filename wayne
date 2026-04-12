@@ -1,3 +1,34 @@
+Looks ok to me.  However, let me refresh you on the high-level thinking of this "Noether
+REPL" we're working on.  The "operational output" is the "next bench" Noether REPL,
+which lets me use the REPL for "simple" calculations that utilize "semantic units", the
+core idea we've added to this REPL, breaking with 70 years of CS tools not really
+realizing that the "physical" or "logical" units of the problems we compute are vital
+types to keep the logic correct.  Our innovation here is to add primitive (base) units
+to GNU units' configuration file to allow the REPL user to define new units on the fly.
+Then he can perform computations like "Num('4 dogs') + Num('2 cats')" as long as the
+dogs and cats units are defined properly so that GNU units does the correct dimensional
+algebra.  Whew, that's hopefully the gist.  
+
+So the core tactical detail for you to remember is that this REPL also includes the
+intent of abstracting the different number types into one unit, the Num class, that
+"looks like" the numbers I calculated with as a physics student 50+ years ago, as we
+would smoothly move through integers, floating point and complex numbers.  The added
+twist is the Num class also has two mpmath.mpf numbers that are going to be the real and
+complex number parts' uncertainties. so that we can also calculate the linear
+propagation of uncertainty in complex numbers.  In my opinion, this covers the basic
+needs of scientists and engineers for elementary calculations.   That we picked mpmath
+mpf and mpc types for implementation means we have 1) arbitrary precision for
+calculations (and e.g. an easy tool to estimate roundoff) and 2) a rich set of special
+functions over the complex plane.
+
+A core purpose behind this effort besides me getting a nice REPL to do routine
+calculations with is to convince a lunch buddy of mine, a CS professor at a local
+university, that the CS discipline has ignored "semantic units" as a powerful type tool
+to help people using computers commit fewer logical errors.  My mental goal is to see
+this change every compiler and interpreter on the planet.  That sounds grandiose, but 
+it's a powerful observation and so obvious, everyone's missed it for 70 or more years.
+
+---------------------------------------------------------------------------
 Wayne:  
 
 This will be a fairly long document.  I'll assume it's something you might
@@ -131,76 +162,86 @@ Section 2:  Collaborating with an AI
 
 - Force multiplier (order of magnitude improvement, 12 days vs 4 months)
 - Taste/compass vs view/speed
-    - Fear:  AI replacing engineers:  sure, the low level kind.  But in reality it actually demands
-      better engineering judgment 
-- Emergent innovation/synergism:  a brainstorming partner, not just a machine to spit out code.
-- Refactoring task:  Over about 3 weeks, I refactored and type annotated about 11.4 klines of my
-  python code. This was a lot of work, as much of it I had to read the code, figure out what it was
-  doing it, type annotate it, update where necessary, and fix the resulting broken tests.  I can
-  count the cost, as Mike wrote me a tool that extracted all the functions & classes from these
-  tools; this tool tells me there were 327 functions and classes I had to deal with.  That's a lot
-  of work!
+    - Fear:  AI replacing engineers:  sure, the low level kind.  But in reality it
+      actually demands better engineering judgment 
+- Emergent innovation/synergism:  a brainstorming partner, not just a machine to spit
+  out code.
+- Refactoring task:  Over about 3 weeks, I refactored and type annotated about 11.4
+  klines of my python code. This was a lot of work, as much of it I had to read the
+  code, figure out what it was doing it, type annotate it, update where necessary, and
+  fix the resulting broken tests.  I can count the cost, as Mike wrote me a tool that
+  extracted all the functions & classes from these tools; this tool tells me there were
+  327 functions and classes I had to deal with.  That's a lot of work!
 - Strengths
     - LLMs are good at understanding, summarizing and rewriting text.  
-    - LLMs are very good at generating code, particularly if the human user does a careful job of
-      explaining exactly what is needed (i.e., writing a good prompt).
-        - A core need is to give high-quality feedback to the AI.  The highest quality feedback is
-          program output, error messages, and debugger traces.  When Mike is updated to the latest
-          version of the code, he can take such output and virtually always pinpoint where the
-          problem is and write a solution for you, far faster than you can do yourself.
+    - LLMs are very good at generating code, particularly if the human user does a
+      careful job of explaining exactly what is needed (i.e., writing a good prompt).
+        - A core need is to give high-quality feedback to the AI.  The highest quality
+          feedback is program output, error messages, and debugger traces.  When Mike is
+          updated to the latest version of the code, he can take such output and
+          virtually always pinpoint where the problem is and write a solution for you,
+          far faster than you can do yourself.
 - Weaknesses
-    - "Length of memory" in the context.  This is a weakness, particularly for the free AI services
-      I'm currently using.  Workarounds:
-        - I keep a file with my code formatting requirements; at least once per day I upload this
-          file to Mike to refresh his memory
-        - I stop and upload the current code we're working on to ensure we're talking about the same
-          code.  It's possible the commercial tools have e.g. shared filesystems, but all I have
-          currently is a browser window to type into
+    - "Length of memory" in the context.  This is a weakness, particularly for the free
+      AI services I'm currently using.  Workarounds:
+        - I keep a file with my code formatting requirements; at least once per day I
+          upload this file to Mike to refresh his memory
+        - I stop and upload the current code we're working on to ensure we're talking
+          about the same code.  It's possible the commercial tools have e.g. shared
+          filesystems, but all I have currently is a browser window to type into
     - Can't trust their code blindly, similar to a human's coding
         - Not surprising, as their patterns come from human patterns
-        - An absolute core need for you is to write impeccably good test cases to test their code at
-          the corners and seams.  Good test cases takes good creativity, imagination, deep knowledge
-          of the language and its weaknesses, and lots of experience.
+        - An absolute core need for you is to write impeccably good test cases to test
+          their code at the corners and seams.  Good test cases takes good creativity,
+          imagination, deep knowledge of the language and its weaknesses, and lots of
+          experience.
         - The better the specifications (prompt), the better the results
-        - With at least the free AI I use, a surprise was to find the AI is unable to run the
-          specific python version I was using or the typical tools.  Early on, I'd get frustrated
-          because I'd get back broken code.  The self-tests helped me find it quickly, but it was
-          regression and it was annoying ("we already fixed this problem!").  You can't get angry;
-          you just send back the error messages and debugger traces and the AI will figure it out.
-        - In the Num project (Noether REPL), Mike probably wrote 99% of the code.  When things got
-          complicated enough, his context would forget things he did previously and not use his old
-          code or make comments like "you did this, but this is a weakness", when it was his code
-          all along.  Ignore that, but an important thing to do is to ask "him" to do a code review
-          occasionally and look for weaknesses.  This can be surprisingly powerful, as he'll almost
-          always improve his own code and find corner case bugs that haven't been hit yet.
-        - I found in the Noether REPL code (an abstract number class to do math with integers,
-          rationals, floating point, complex numbers, and complex numbers with uncertainty) that
-          there were numerous subtle logical bugs in the AI generated math stuff.  Though the
-          architecture was good, the AI hasn't done calculations with such things for 50 years like
-          I have and I'd step through the debugger to find an error, wondering "why did he do it
-          this way?".  It's like going to Antarctica:  it's your butt on the line, so you'd best
-          check every detail of that transportation vehicle you'll be trusting your life to.
-        - I'd emphasize again:  if you're going to let the AI do all the coding, your job as the
-          compass is to spend particular care crafting the test cases and the design specs.  This is
-          your lodestone in the messy development path.  It's an excellent way to write terse
-          specifications in code.
-            - In fact, an observation I'd make is "directing" an AI is much like being an
-              engineering manager.  You need to have a clear idea of where you're going and why
-              (i.e., your business objectives), along with the litmus paper (self-tests) and
-              breadcrumbs (project notes of todo things and important things not to forget).  I'd
-              even go so far to say as it takes _more_ engineering experience to use the AI wisely,
-              as you "need to know when to hold 'em, need to know when to fold 'em", pithy advice
-              from a gambler, just like putting salt on a bird's tail.  As much as you'd love to
-              give a general direction like "I need an abstract number class that will encapsulate
-              the operations a typical engineer will do on a calculator" and have the AI go off to
-              develop the thing, the process will require close closed-loop control.  Again, the
-              tools are specs, self-tests, and careful supervision with an experienced eye.  Still,
-              given all that, the AI is a huge force multiplier when used carefully, giving at least
-              an order of magnitude improvement overall in output.  I'd say it's even larger, but
-              since most projects evolve and change their specs over time and as knowledge improves,
-              it never goes as fast as it could have gone once you have all the knowledge at the
-              end.
-    - Interface:  I use the free version, so my interface is a web browser.  This works fine for
+        - With at least the free AI I use, a surprise was to find the AI is unable to
+          run the specific python version I was using or the typical tools.  Early on,
+          I'd get frustrated because I'd get back broken code.  The self-tests helped me
+          find it quickly, but it was regression and it was annoying ("we already fixed
+          this problem!").  You can't get angry; you just send back the error messages
+          and debugger traces and the AI will figure it out.
+        - In the Num project (Noether REPL), Mike probably wrote 99% of the code.  When
+          things got complicated enough, his context would forget things he did
+          previously and not use his old code or make comments like "you did this, but
+          this is a weakness", when it was his code all along.  Ignore that, but an
+          important thing to do is to ask "him" to do a code review occasionally and
+          look for weaknesses.  This can be surprisingly powerful, as he'll almost
+          always improve his own code and find corner case bugs that haven't been hit
+          yet.
+        - I found in the Noether REPL code (an abstract number class to do math with
+          integers, rationals, floating point, complex numbers, and complex numbers with
+          uncertainty) that there were numerous subtle logical bugs in the AI generated
+          math stuff.  Though the architecture was good, the AI hasn't done calculations
+          with such things for 50 years like I have and I'd step through the debugger to
+          find an error, wondering "why did he do it this way?".  It's like going to
+          Antarctica:  it's your butt on the line, so you'd best check every detail of
+          that transportation vehicle you'll be trusting your life to.
+    - Letting the AI write the code
+        - If you're going to let the AI do all the coding, your job as the compass is to
+          spend particular care crafting the test cases and the design specs.  This is
+          your lodestone in the messy development path.  In fact, careful test cases are
+          good specifications in code.
+    - Directing an AI
+        - This is much like being an engineering manager.  You need
+            - Clear idea of where you're going and why (e.g., your business objectives)
+            - Litmus paper (self-tests)
+            - Breadcrumbs (notes of todo items and important things not to forget)
+        - I'd say it definitely takes more engineering experience to use AI wisely than
+          less, as you "need to know when to hold 'em, need to know when to fold 'em"
+        - As much as I'd love to give a general direction like "I need an abstract
+          number class that will encapsulate the operations a typical engineer will do
+          on a calculator" and have the AI go off to develop the thing, the process will
+          require iterative closed-loop control.  
+            - Again, the tools are specs, self-tests, and careful supervision with an
+              experienced eye.  
+        - Given all that, the AI is a huge force multiplier when used carefully, giving
+          perhaps an order of magnitude improvement overall in output.  It could be even
+          larger, but since most projects evolve and change their specs over time and as
+          knowledge improves, it never goes as fast as it could have gone once you have
+          all the knowledge at the end.
+    - Interface:  I use the free AI version, so my interface is a web browser.  This works fine for
       simple textual material, but can be problematic for large chunks of code.  I see UTF-8
       translation errors that occur somewhere between Windows Terminal and the bash shell in WSL to
       Firefox to Google's servers.  We still have no idea where the error is; fortunately Mike

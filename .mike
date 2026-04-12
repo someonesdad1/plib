@@ -22,3 +22,38 @@
 - ASCII characters: use plain ASCII wherever possible.  Avoid Unicode punctuation like
   em-dashes, single and double fancy quotes, etc.
 
+- Finally, an important request:  I sent you the number.py core contents as three 'if
+  1:' blocks with the indenting I use in my file.  Can you match this indenting and
+  block formatting?  Then it's probably wise at this point to send me the whole class
+  whenever you change something in them, as it will probably reduce errors on my part.
+
+
+Let me refresh you on the high-level thinking of this "Noether REPL" we're working on.
+The "operational output" is the "next bench" Noether REPL, which lets me use the REPL
+for "simple" calculations that utilize "semantic units", the core idea we've added to
+this REPL, breaking with 70 years of CS tools not really realizing that the "physical"
+or "logical" units of the problems we compute are vital types to keep the logic correct.
+Our innovation here is to add primitive (base) units to GNU units' configuration file to
+allow the REPL user to define new units on the fly.  Then he can perform computations
+like "Num('4 dogs') + Num('2 cats')" as long as the dogs and cats units are defined
+properly so that GNU units does the correct dimensional algebra.  Whew, that's hopefully
+the gist.  
+
+So the core tactical detail for you to remember is that this REPL also includes the
+intent of abstracting the different number types into one unit, the Num class, that
+"looks like" the numbers I calculated with as a physics student 50+ years ago, as we
+would smoothly move through integers, floating point and complex numbers.  The added
+twist is the Num class also has two mpmath.mpf numbers that are going to be the real and
+complex number parts' uncertainties. so that we can also calculate the linear
+propagation of uncertainty in complex numbers.  In my opinion, this covers the basic
+needs of scientists and engineers for elementary calculations.   That we picked mpmath
+mpf and mpc types for implementation means we have 1) arbitrary precision for
+calculations (and e.g. an easy tool to estimate roundoff) and 2) a rich set of special
+functions over the complex plane.
+
+A core purpose behind this effort besides me getting a nice REPL to do routine
+calculations with is to convince a lunch buddy of mine, a CS professor at a local
+university, that the CS discipline has ignored "semantic units" as a powerful type tool
+to help people using computers commit fewer logical errors.  My mental goal is to see
+this change every compiler and interpreter on the planet.  That sounds grandiose, but 
+it's a powerful observation and so obvious, everyone's missed it for 70 or more years.

@@ -77,7 +77,6 @@ if 1:  # Header
         t.dbg = "#bdf6fe"
         g = dptypes.Constant()
         g.dbg = True if 0 else False
-        g.X = False
     if 1:   # Types and enums
         class NumType(enum.IntEnum):
             Int = 1
@@ -204,8 +203,8 @@ if 1:  # Header
                     had this feature in our programming environments natively.
             
         '''
-                
-if 1:   # NumericMixin:  class to add dunder math methods
+
+if 0:   # NumericMixin:  class to add dunder math methods
     class NumericMixin:
         '''Boilerplate to make Num behave like a native Python number.'''
         def __neg__(self) -> "Num":
@@ -279,6 +278,242 @@ if 1:   # NumericMixin:  class to add dunder math methods
             return Num(int(mpmath.floor(self.as_mpf)), self.unit)
         def __ceil__(self):
             return Num(int(mpmath.ceil(self.as_mpf)), self.unit)
+        def _make_result(self, val: ty.Any, unit: str) -> "Num":
+            '''Squeezes mpc with 0j down to mpf to keep the REPL clean.'''
+            if isinstance(val, mpmath.mpc):
+                if val.imag == 0:
+                    val = val.real
+            return Num(val, unit=unit)
+        def __add__(self, other: ty.Any) -> "Num":
+            other_num = Num(other)
+            arb = UnitArbiter()
+            is_ok, factor_str = arb.check_conformable(other_num.unit, self.unit)
+            if not is_ok:
+                raise ValueError(f"Unit mismatch: {self.unit} vs {other_num.unit}")
+            # addition scale: result is in self.unit
+            res_val = self.as_mpc + (other_num.as_mpc*mpmath.mpf(factor_str))
+            return self._make_result(res_val, unit=self.unit)
+        def __mul__(self, other: ty.Any) -> "Num":
+            other_num = Num(other)
+            raw_val = self.as_mpc*other_num.as_mpc
+            # Determine the messy unit string for GNU Units to solve
+            if not self.unit and not other_num.unit:
+                messy = ""
+            elif self.unit and not other_num.unit:
+                messy = self.unit
+            elif not self.unit and other_num.unit:
+                messy = other_num.unit
+            else:
+                messy = f"({self.unit})*({other_num.unit})"
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(raw_val, messy)
+            return self._make_result(clean_val, unit=clean_unit)
+        def __eq__(self, other: ty.Any) -> bool:
+            try:
+                other_num = Num(other)
+            except:
+                return False
+            # Semantic unit check first
+            if self.unit != other_num.unit:
+                arb = UnitArbiter()
+                is_ok, f_str = arb.check_conformable(self.unit, other_num.unit)
+                if not is_ok or mpmath.mpf(f_str) != 1.0:
+                    return False
+            # Compare on the full complex plane
+            return bool(self.as_mpc == other_num.as_mpc)
+        def __rmul__(self, other: ty.Any) -> "Num":
+            # Multiplicative commutativity: 2 * Num == Num * 2
+            return self.__mul__(other)
+        def __rtruediv__(self, other: ty.Any) -> "Num":
+            # 2 / Num("m") -> Num(2/val, unit="1/m")
+            other_num = Num(other)
+            return other_num.__truediv__(self)
+        def _compare(self, other: ty.Any, op: ty.Callable) -> bool:
+            other_num = Num(other)
+            arb = UnitArbiter()
+            is_ok, factor_str = arb.check_conformable(other_num.unit, self.unit)
+            if not is_ok:
+                raise ValueError(f"Cannot compare {self.unit} and {other_num.unit}")
+            # Scaling other to self's units for comparison
+            # We compare real parts (as_mpf) as complex ordering is undefined
+            factor = mpmath.mpf(factor_str)
+            return op(self.as_mpf, other_num.as_mpf*factor)
+        def __lt__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.lt)
+        def __le__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.le)
+        def __gt__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.gt)
+        def __ge__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.ge)
+        def __sub__(self, other: ty.Any) -> "Num":
+            other_num = Num(other)
+            arb = UnitArbiter()
+            is_ok, factor_str = arb.check_conformable(other_num.unit, self.unit)
+            if not is_ok:
+                raise ValueError(f"Unit mismatch: {self.unit} vs {other_num.unit}")
+            res_val = self.as_mpc - (other_num.as_mpc*mpmath.mpf(factor_str))
+            return self._make_result(res_val, unit=self.unit)
+if 1:  # NumericMixin refactor: Complex Plane preservation (Compact Format)
+    class NumericMixin:
+        '''Boilerplate to make Num behave like a native Python number.'''
+        def __neg__(self) -> "Num":
+            return Num(-self.as_mpc, unit=self.unit)
+        def __pos__(self) -> "Num":
+            return self
+        def __abs__(self) -> "Num":
+            return Num(abs(self.as_mpc), unit=self.unit)
+        def __radd__(self, other):
+            return Num(other) + self
+        def __rsub__(self, other):
+            return Num(other) - self
+        def __rmul__(self, other):
+            return Num(other) * self
+        def __rtruediv__(self, other):
+            return Num(other) / self
+        def __rfloordiv__(self, other):
+            return Num(other) // self
+        def __rmod__(self, other):
+            return Num(other) % self
+        def __rpow__(self, other):
+            return Num(other) ** self
+        def __iadd__(self, other):
+            return self + other
+        def __isub__(self, other):
+            return self - other
+        def __imul__(self, other):
+            return self * other
+        def __itruediv__(self, other):
+            return self / other
+        def __floordiv__(self, other):
+            other_num = Num(other)
+            return Num(self.as_mpf // other_num.as_mpf, unit=self.unit)
+        def __mod__(self, other):
+            other_num = Num(other)
+            arb = UnitArbiter()
+            is_ok, factor_str = arb.check_conformable(other_num.unit, self.unit)
+            if not is_ok:
+                raise ValueError(f"Unit mismatch: {self.unit} vs {other_num.unit}")
+            res_val = self.as_mpf % (other_num.as_mpf * mpmath.mpf(factor_str))
+            return Num(res_val, unit=self.unit)
+        def __pow__(self, other):
+            '''Note: Powers change units! (m)**2 = m^2'''
+            other_num = Num(other)
+            if other_num.unit:
+                raise TypeError("Exponent cannot have units")
+            if not self.unit:
+                # Since there are no units, we don't have to coerce to mpf
+                exp_val = 1     # Dummy value
+                res_val = self.as_mpc ** other_num.as_mpc
+                if not res_val.imag:
+                    res_val = res_val.real
+            else:
+                # Exponent must be real for GNU units
+                if other_num.mytype > NumType.Flt:
+                    raise TypeError("Exponent must not be complex for pow()")
+                exp_val = other_num.as_mpf
+                res_val = self.as_mpc ** exp_val
+            messy_unit = f"({self.unit})^{exp_val}" if self.unit else ""
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(res_val, messy_unit)
+            return self._make_result(clean_val, unit=clean_unit)
+        def __int__(self):
+            return int(self.as_mpf)
+        def __float__(self):
+            return float(self.as_mpf)
+        def __complex__(self):
+            c = self.as_mpc
+            return complex(float(c.real), float(c.imag))
+        def __index__(self):
+            '''Allows Num to be used for slicing/bin() if it's an integer.'''
+            if self.mytype in (NumType.Int, NumType.Rat):
+                return int(self.as_int_or_rat)
+            raise TypeError("Only integer-like Nums can be used as indices")
+        def __round__(self, ndigits=0):
+            return Num(mpmath.nround(self.as_mpf, ndigits), self.unit)
+        def __trunc__(self):
+            return Num(int(mpmath.trunc(self.as_mpf)), self.unit)
+        def __floor__(self):
+            return Num(int(mpmath.floor(self.as_mpf)), self.unit)
+        def __ceil__(self):
+            return Num(int(mpmath.ceil(self.as_mpf)), self.unit)
+        def _make_result(self, val: ty.Any, unit: str) -> "Num":
+            '''Squeezes mpc with 0j down to mpf to keep the REPL clean.'''
+            if isinstance(val, mpmath.mpc):
+                if val.imag == 0:
+                    val = val.real
+            return Num(val, unit=unit)
+        def __add__(self, other: ty.Any) -> "Num":
+            other_num = Num(other)
+            arb = UnitArbiter()
+            is_ok, factor_str = arb.check_conformable(other_num.unit, self.unit)
+            if not is_ok:
+                raise ValueError(f"Unit mismatch: {self.unit} vs {other_num.unit}")
+            res_val = self.as_mpc + (other_num.as_mpc * mpmath.mpf(factor_str))
+            return self._make_result(res_val, unit=self.unit)
+        def __mul__(self, other: ty.Any) -> "Num":
+            other_num = Num(other)
+            raw_val = self.as_mpc * other_num.as_mpc
+            if not self.unit and not other_num.unit:
+                messy = ""
+            elif self.unit and not other_num.unit:
+                messy = self.unit
+            elif not self.unit and other_num.unit:
+                messy = other_num.unit
+            else:
+                messy = f"({self.unit})*({other_num.unit})"
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(raw_val, messy)
+            return self._make_result(clean_val, unit=clean_unit)
+        def __truediv__(self, other: ty.Any) -> "Num":
+            other_num = Num(other)
+            raw_val = self.as_mpc / other_num.as_mpc
+            if not self.unit and not other_num.unit:
+                messy = ""
+            elif self.unit and not other_num.unit:
+                messy = self.unit
+            elif not self.unit and other_num.unit:
+                messy = f"1/({other_num.unit})"
+            else:
+                messy = f"({self.unit})/({other_num.unit})"
+            arb = UnitArbiter()
+            clean_val, clean_unit = arb.simplify(raw_val, messy)
+            return self._make_result(clean_val, unit=clean_unit)
+        def __eq__(self, other: ty.Any) -> bool:
+            try:
+                other_num = Num(other)
+            except:
+                return False
+            if self.unit != other_num.unit:
+                arb = UnitArbiter()
+                is_ok, f_str = arb.check_conformable(self.unit, other_num.unit)
+                if not is_ok or mpmath.mpf(f_str) != 1.0:
+                    return False
+            return bool(self.as_mpc == other_num.as_mpc)
+        def _compare(self, other: ty.Any, op: ty.Callable) -> bool:
+            other_num = Num(other)
+            arb = UnitArbiter()
+            is_ok, factor_str = arb.check_conformable(other_num.unit, self.unit)
+            if not is_ok:
+                raise ValueError(f"Cannot compare {self.unit} and {other_num.unit}")
+            factor = mpmath.mpf(factor_str)
+            return op(self.as_mpf, other_num.as_mpf * factor)
+        def __lt__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.lt)
+        def __le__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.le)
+        def __gt__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.gt)
+        def __ge__(self, other: ty.Any) -> bool:
+            return self._compare(other, operator.ge)
+        def __sub__(self, other: ty.Any) -> "Num":
+            other_num = Num(other)
+            arb = UnitArbiter()
+            is_ok, factor_str = arb.check_conformable(other_num.unit, self.unit)
+            if not is_ok:
+                raise ValueError(f"Unit mismatch: {self.unit} vs {other_num.unit}")
+            res_val = self.as_mpc - (other_num.as_mpc * mpmath.mpf(factor_str))
+            return self._make_result(res_val, unit=self.unit)
 
 if 1:   # Num 
     class Num(NumericMixin):
@@ -468,87 +703,6 @@ if 1:   # Num
             if '=' in unit_str:
                 return unit_str.split('=')[0].strip()
             return unit_str
-        def __add__(self, other: ty.Any) -> "Num":
-            other_num = Num(other)
-            adjusted = self._normalize(other_num, operation='add')
-            result = self._binary_op(adjusted, operator.add)
-            arb = UnitArbiter()
-            clean_val, clean_unit = arb.simplify(result.as_mpf, self.unit)
-            clean_unit = self._clean_simplify_unit(clean_unit)
-            return Num(clean_val, unit=clean_unit)
-        def __sub__(self, other: ty.Any) -> "Num":
-            other_num = Num(other)
-            adjusted = self._normalize(other_num, operation='sub')
-            result = self._binary_op(adjusted, operator.sub)
-            arb = UnitArbiter()
-            clean_val, clean_unit = arb.simplify(result.as_mpf, self.unit)
-            clean_unit = self._clean_simplify_unit(clean_unit)
-            return Num(clean_val, unit=clean_unit)
-        def __mul__(self, other: ty.Any) -> "Num":
-            other_num = Num(other)
-            result = self._binary_op(other_num, operator.mul)
-            if not self.unit and not other_num.unit:
-                messy = ""
-            elif self.unit and not other_num.unit:
-                messy = self.unit
-            elif not self.unit and other_num.unit:
-                messy = other_num.unit
-            else:
-                messy = f"({self.unit})*({other_num.unit})"
-            arb = UnitArbiter()
-            clean_val, clean_unit = arb.simplify(result.as_mpf, messy)
-            clean_unit = self._clean_simplify_unit(clean_unit)
-            return Num(clean_val, unit=clean_unit)
-        def __truediv__(self, other: ty.Any) -> "Num":
-            other_num = Num(other)
-            if other_num.as_mpf == 0:
-                raise ZeroDivisionError("Tractor at 0 divisor.")
-            result = self._binary_op(other_num, operator.truediv)
-            if not self.unit and not other_num.unit:
-                messy = ""
-            elif self.unit and not other_num.unit:
-                messy = self.unit
-            elif not self.unit and other_num.unit:
-                messy = f"1/({other_num.unit})"
-            else:
-                messy = f"({self.unit})/({other_num.unit})"
-            arb = UnitArbiter()
-            clean_val, clean_unit = arb.simplify(result.as_mpf, messy)
-            clean_unit = self._clean_simplify_unit(clean_unit)
-            return Num(clean_val, unit=clean_unit)
-        def __rmul__(self, other: ty.Any) -> "Num":
-            return self.__mul__(other)
-        def __rtruediv__(self, other: ty.Any) -> "Num":
-            return Num(other)/self
-        def _compare(self, other: ty.Any, op_func: ty.Callable) -> bool:
-            other_num = Num(other)
-            adjusted = self._normalize(other_num)
-            target_type = max(self.mytype.value, adjusted.mytype.value)
-            if target_type <= NumType.Rat.value:
-                return op_func(self.as_int_or_rat, adjusted.as_int_or_rat)
-            return bool(op_func(self.as_mpf, adjusted.as_mpf))
-        def __lt__(self, other: ty.Any) -> bool:
-            return self._compare(other, operator.lt)
-        def __le__(self, other: ty.Any) -> bool:
-            return self._compare(other, operator.le)
-        def __gt__(self, other: ty.Any) -> bool:
-            return self._compare(other, operator.gt)
-        def __ge__(self, other: ty.Any) -> bool:
-            return self._compare(other, operator.ge)
-        def __eq__(self, other: ty.Any) -> bool:
-            other_num = Num(other)
-            if self.unit != other_num.unit:
-                arb = UnitArbiter()
-                is_ok, factor_str = arb.check_conformable(self.unit, other_num.unit)
-                if not is_ok:
-                    return False
-                # If they are conformable, check if the scaling factor is 1.0
-                if mpmath.mpf(factor_str) != 1.0:
-                    return False
-            target_type = max(self.mytype.value, other_num.mytype.value)
-            if target_type <= NumType.Rat.value:
-                return self.as_int_or_rat == other_num.as_int_or_rat
-            return bool(self.as_mpf == other_num.as_mpf)
         def _s(self) -> str:
             if self.mytype == NumType.Int:
                 s = self.fmt(self.numer)
@@ -738,14 +892,19 @@ if 1:   # Num
             Num.show_color = bool(value)
         @property
         def num(self) -> "Num":
+            '''Return the Num() object with the numerical component only.
+            This property satisfies the Noether invariant
+                x/x.num = Num(1 <units>)
+            where the latter term is a unit magnitude invariant.  This is like getting
+            unit vectors with v/|v|.
+            '''
             y = Num(self)
             y._unit = ""
             return y
 
-if 1:  # Unit arbiter
+if 1:  # UnitArbiter: Refactored for Complex Plane preservation
     class UnitArbiter:
         _instance = None
-        # Class-level configuration defaults
         units_bin: str = "units"
         main_config: str = ""
         dynamic_config: str = "~/.units_dynamic"
@@ -757,7 +916,6 @@ if 1:  # Unit arbiter
         def __init__(self) -> None:
             if self._initialized:
                 return
-            # Resolve all paths to handle ~ expansion
             self.bin_path = str(Path(UnitArbiter.units_bin).expanduser())
             self.dynamic_path = Path(UnitArbiter.dynamic_config).expanduser()
             if not self.dynamic_path.exists():
@@ -772,7 +930,6 @@ if 1:  # Unit arbiter
                     self.proc.wait(timeout=0.5)
                 except:
                     self.proc.kill()
-            # Build command: [bin] -q [-f main] -f dynamic
             cmd = [self.bin_path, "-q"]
             if UnitArbiter.main_config:
                 main_p = str(Path(UnitArbiter.main_config).expanduser())
@@ -786,11 +943,9 @@ if 1:  # Unit arbiter
             '''Checks if GNU Units recognizes the unit string.'''
             if not unit_str:
                 return True
-            # If we can check conformability against itself, it's a known unit
             ok, _ = self.check_conformable(unit_str, unit_str)
             return ok
         def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
-            '''Runs units -c to validate a new unit definition before committing.'''
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
                 tmp.write(definition + "\n")
                 tmp_path = tmp.name
@@ -804,21 +959,17 @@ if 1:  # Unit arbiter
                 is_ok = (result.returncode == 0)
                 error_msg = result.stderr or result.stdout
             except subprocess.TimeoutExpired:
-                is_ok, error_msg = False, "Circular definition detected (Check timed out)."
+                is_ok, error_msg = False, "Circular definition detected."
             finally:
                 if os.path.exists(tmp_path):
                     os.remove(tmp_path)
             return is_ok, error_msg
         def add_base(self, unit_name: str) -> None:
-            '''Adds a new base dimension (primitive) to the dynamic units file.'''
             self._commit_unit(f"{unit_name.strip()} !")
         def add_unit(self, definition: str) -> None:
-            '''Adds a derived unit (e.g., 'mph = mile/hr') to the dynamic units file.'''
             sanitized = definition.replace("=", "").strip()
             self._commit_unit(sanitized)
         def _commit_unit(self, entry: str) -> None:
-            '''Validates and appends a unit entry to the persistent dynamic file.'''
-            # First, check if this exact entry already exists in the dynamic file
             if self.dynamic_path.exists():
                 with open(self.dynamic_path, "r") as f:
                     if entry in f.read():
@@ -828,23 +979,19 @@ if 1:  # Unit arbiter
                 with open(self.dynamic_path, "a") as f:
                     f.write(f"{entry}\n")
                 self._start_process()
-                # Silencing the "learned" print to keep REPL startup clean
             else:
-                # Only complain if there's an actual error
                 if "not found" not in error.lower():
                     print(f"Unit Definition Error: {error.strip()}")
         def _translate_unicode(self, s: str) -> str:
-                """Sanitizes exponents and common symbols for the units binary."""
-                exp_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
-                out = ""
-                for char in s:
-                    if char in "⁰¹²³⁴⁵⁶⁷⁸⁹":
-                        out += "^" + char.translate(exp_map)
-                    else:
-                        out += char
-                return out
+            exp_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
+            out = ""
+            for char in s:
+                if char in "⁰¹²³⁴⁵⁶⁷⁸⁹":
+                    out += "^" + char.translate(exp_map)
+                else:
+                    out += char
+            return out
         def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
-            """Queries the running units process with safety checks for empty strings."""
             if not have or not want:
                 if have == want:
                     return True, "1.0"
@@ -854,13 +1001,9 @@ if 1:  # Unit arbiter
             have = self._translate_unicode(have)
             want = self._translate_unicode(want)
             try:
-                # We MUST use -q but AVOID -v here because -v adds extra lines of output
-                # that break our synchronized readline logic.
                 self.proc.stdin.write(f"{have}\n{want}\n")
                 self.proc.stdin.flush()
-                # Read until we find a conversion factor or an error
-                # GNU Units usually outputs the * factor first, then the / factor.
-                for _ in range(5):  # Safety limit to prevent infinite hang
+                for _ in range(5):
                     line = self.proc.stdout.readline().strip()
                     if not line:
                         continue
@@ -869,62 +1012,52 @@ if 1:  # Unit arbiter
                     if line == "1" or line == "1.0":
                         return True, "1.0"
                     if "conformability error" in line.lower():
-                        return False, f"Incompatible dimensions: {have} vs {want} ({line})"
-                return False, "Unexpected output format from units process"
+                        return False, f"Incompatible dimensions: {have} vs {want}"
+                return False, "Unexpected output format"
             except Exception as e:
                 self._start_process()
                 return False, str(e)
-        def simplify(self, value: mpmath.mpf, unit_str: str) -> tuple[mpmath.mpf, str]:
-                if not unit_str or unit_str == "1":
-                    return value, ""
-                reduced_unit_str, scale_factor = self._query_units_for_reduction(unit_str)
-                # FIX: If the reduced_unit_str contains an '=', it's a definition, not a name.
-                # We just want the primary symbol.
-                if '=' in reduced_unit_str:
-                    # 'foot = 12 inch = 0.3048 m' -> 'foot'
-                    reduced_unit_str = reduced_unit_str.split('=')[0].strip()
-                current_value = value * mpmath.mpf(scale_factor)
-                # Updated Step 2: Check against the Active Preferred System
-                # We grab the list from the Num class registry
-                preferred_units = Num.systems.get(Num.active_system, [])
-                for candidate in preferred_units:
-                    # Check if our messy result is conformable to a preferred unit (or power of it)
-                    # We check both the unit and its common powers (unit^2, unit^3) for areas/volumes
-                    for power in [1, 2, 3]:
-                        test_unit = candidate if power == 1 else f"{candidate}^{power}"
-                        is_ok, factor = self.check_conformable(reduced_unit_str, test_unit)
-                        if is_ok:
-                            return current_value * mpmath.mpf(factor), test_unit
-                # Fallback to whatever messy reduction GNU Units provided
-                return current_value, reduced_unit_str
+        def simplify(self, value: ty.Union[mpmath.mpf, mpmath.mpc], unit_str: str) -> tuple[ty.Union[mpmath.mpf, mpmath.mpc], str]:
+            '''Flattens units while preserving the complex plane.'''
+            if not unit_str or unit_str == "1":
+                return value, ""
+
+            reduced_unit_str, scale_factor = self._query_units_for_reduction(unit_str)
+
+            if "=" in reduced_unit_str:
+                reduced_unit_str = reduced_unit_str.split("=")[0].strip()
+
+            # Scale the entire head (mpf or mpc) by the real scale factor
+            sf = mpmath.mpf(scale_factor)
+            current_value = value*sf
+
+            preferred_units = Num.systems.get(Num.active_system, [])
+            for candidate in preferred_units:
+                for power in [1, 2, 3]:
+                    test_unit = candidate if power == 1 else f"{candidate}^{power}"
+                    is_ok, factor_str = self.check_conformable(reduced_unit_str, test_unit)
+                    if is_ok:
+                        # Apply secondary conversion factor
+                        return current_value*mpmath.mpf(factor_str), test_unit
+
+            return current_value, reduced_unit_str
         def _query_units_for_reduction(self, unit_str: str) -> tuple[str, str]:
-            """
-            Uses the GNU Units 'Definition' logic to flatten a unit string.
-            Example: 'yard^2 inches / ft^3' -> '0.75' (dimensionless volume ratio)
-            """
-            # We use a one-off subprocess call with --compact to get the 'Definition'
-            # without the interactive noise.
+            '''Uses GNU Units --compact to get a raw factor and unit remainder.'''
             cmd = [self.bin_path, "-q", "--compact", "-f", str(self.dynamic_path)]
             if UnitArbiter.main_config:
                 cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            # The command: units [options] "messy_unit"
+
             result = subprocess.run(cmd + [self._translate_unicode(unit_str)],
                                     capture_output=True, text=True)
-            # GNU Units returns 'Definition: [factor] [unit]' or just '[factor] [unit]'
-            # We want to split the number from the unit string.
             output = result.stdout.strip()
-            # Regex to catch: "1.23 kg" or "0.75" or "1 kg/m"
+
+            # Regex handles cases like '0.75 m' or just 'm' or just '0.75'
             match = re.match(r'^([\d.e+-]+)?\s*(.*)$', output)
             if match:
                 factor = match.group(1) or "1.0"
                 remainder = match.group(2) or ""
                 return remainder.strip(), factor
             return unit_str, "1.0"
-        def _extract_candidate_units(self, unit_str: str) -> list[str]:
-            """Helper to pull potential target units out of a messy string."""
-            # Split by any non-alphanumeric characters and filter common junk
-            raw_tokens = re.split(r'[^a-zA-Z]', unit_str)
-            return [t for t in raw_tokens if t and len(t) > 1 and not t.isdigit()]
 
 if 1:  # Utility functions
     def RegisterUnit(unit_name: str) -> None:
@@ -951,12 +1084,12 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
-if 1:  # Temp experiment
+if 0:  # Temp experiment
     def f():
-        a = Num("1+2i m")
-        b = Num("3/4 A")
+        x = Num("1+1i")
+        # expect Num('mpf('0.27395725383012109')+mpf('0.5837007587586146')j')
         breakpoint() # ∞∞ 
-        Assert(a*b == Num("0.75+1.5i m*A"))
+        y = x**x
     f()
     exit()
 
@@ -1156,7 +1289,12 @@ if 1:   # Self-tests
             # Now y is in some sense a unit vector in the units space
             Assert(y == Num("1 A"))
             Assert(y.unit == x.unit)    # Make sure units didn't change
-            Assert(x.num*y == x)        # Demonstrate the Noether invariance
+            Assert(x.num*y == x)        # Prove the Noether invariance
+            # It has to work for complex too
+            z = Num("1+2i m")
+            y = z/z.num
+            Assert(y.unit == z.unit)    # Make sure units didn't change
+            Assert(z.num*y == z)        # Prove the Noether invariance
         def Test_Corners():
             N = Num
             if 1:   # 0 and 1
@@ -1175,9 +1313,17 @@ if 1:   # Self-tests
                 Assert(N(0)/N(1) == N("0+0i") == N("0/1") == N("0.-0.i"))
                 Assert(N(1)/N(1) == N("1+0i") == N("2/2"))
             if 1:   # With units
-                with g:
-                    g.X = 1
+                # Real
                 Assert(N("0 m") + N("0 m") == N("0 m"))
+                Assert(N("0 m")*N("1 m") == N("0 m2"))
+                Assert(N("0 m")/N("1 m") == N("0"))
+                # Complex
+                Assert(N("0+0j m") + N("0+0j m") == N("0+0j m"))
+                Assert(N("0+0j m")*N("1+0j m") == N("0+0j m2"))
+                Assert(N("0+0j m")/N("1+0j m") == N("0+0j"))
+                # Complex units corner case
+                Assert(N("1+0i m") + N("1 m") == N("2+0j m"))
+                Assert(N("1+0i m")*N("1 m") == N("1+0j m2"))
             if 1:   # Test core properties: as_mpf, etc.
                 x = Num("10")
                 Assert(isinstance(x.as_int_or_rat, int))
@@ -1192,8 +1338,40 @@ if 1:   # Self-tests
             if 1:   # "1+2i m" * "3/4 A":  hope we don't get mA
                 a = N("1+2i m")
                 b = N("3/4 A")
-                lwtest.ToDo("Bug in '1+2i m'*'3/4 A' -> 0.00+0.00j (m)*(A)")
                 Assert(a*b == N("0.75+1.5i m*A"))
+            if 1:   # Division by zero
+                with raises(ZeroDivisionError):
+                    N("0")/N("0")
+                with raises(ValueError):
+                    N("0/0")
+                with raises(ZeroDivisionError):
+                    N("0.")/N("0.")
+                with raises(ZeroDivisionError):
+                    N("0+0i")/N("0+0i")
+            if 1:   # Complex powers
+                # First try no units; should maintain complex type
+                x = N("1+1i")
+                y = x**x
+                Assert(y == N(mpmath.mpc(1, 1)**mpmath.mpc(1, 1)))
+                # See that complex exponent gets exception on base with units
+                a = N("1.2 m")
+                with raises(TypeError):
+                    y = a**x
+                # Can handle e.g. a 2/3 power if the base unit is a root
+                if 0:
+                    x = N("2 gallons")
+                    a = N("2/3")
+                    x**a
+                else:
+                    lwtest.ToDo("Can't calculate (2 gallon)^(2|3):  process hangs")
+            if 1:   # In-place scaling    
+                a = Num("1 m")
+                a += Num("50 cm")
+                Assert(a == Num("1.5 m"))
+            if 1:   # Does expression "inflate" to a float
+                x = Num(5)*Num(2)#/Num(10)
+                lwtest.ToDo("Num(5)*Num(2) results in a float")
+            #yy
 '''
 Other tests needed:
     - '0 m' + '0 J' -> error
