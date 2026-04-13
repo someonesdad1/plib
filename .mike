@@ -30,6 +30,20 @@
     - ASCII Only: Use plain ASCII. Avoid Unicode punctuation (em-dashes, fancy quotes).
     - Match existing indentation and block formatting exactly.
 
+- Core attributes of the Num class:  this affects all decisions about code changes and
+  is both an architectural reminder and an invariant
+
+    # Default internal state
+    self.numer: int = 0
+    self.denom: int = 1
+    self.real: mpmath.mpf = mpmath.mpf("0")
+    self.imag: mpmath.mpf = mpmath.mpf("0")
+    self.re_unc: mpmath.mpf = mpmath.mpf("0")
+    self.im_unc: mpmath.mpf = mpmath.mpf("0")
+    self.correl: mpmath.mpf = mpmath.mpf("0")
+    self._unit = ""
+    self.mytype: NumType = NumType.Int
+
 ---------------------------------------------------------------------------
 This is a summary of the number.py file we've been working on since around the
 beginning of April 2026:
