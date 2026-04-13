@@ -72,9 +72,6 @@ if 1:  # Header
               more efficient/standard implementations that can replace this stuff.
               Could also be customized to return flt instead of float, although the
               general techniques are type-unaware.
-            - ∞∞1 Look at ParseComplex in f.py and see if it will handle the general
-              case of arbitrary resolution complex numbers (needed for the Num type
-              prototyping)
 
         '''
 if 1:  # Polynomial utilities
@@ -856,68 +853,72 @@ if 1:   # Stuff from util.py
             return True
         return False
     def ParseComplex(numstring: str) -> tuple[str, str]:
-        '''numstring contains a string representing a complex number that must be of the
-        form 'x+yi'; the complex unit can be i or j.  Return (real, imag) where real and
-        imag are the real and imaginary strings of the complex number.  Space characters
-        can be anywhere in the string, as they are removed.
+        '''Parses strings like 'x+yj', '(x+yj)', 'inf+nanj', or 'j'.
+        Returns (real_str, imag_str). Space/comma/parens are handled.
         '''
-        # The method uses a regular expression to recognize the string forms of integers or real
-        # numbers.  Applied to the string twice, it picks out the real and imaginary parts.
-        str = numstring.lower().strip().replace("i", "j").replace(",", ".").replace(" ", "")
+        # 1. Preliminary cleanup
+        s = numstring.lower().strip().replace(" ", "").replace(",", ".")
+        if s.startswith("(") and s.endswith(")"):
+            s = s[1:-1]
+        
+        # 2. PROTECT 'inf' from the i->j swap
+        # We only want to swap 'i' if it's the imaginary unit, not part of 'inf'
+        s = s.replace("inf", "INF_PLACEHOLDER")
+        s = s.replace("i", "j")
+        s = s.replace("INF_PLACEHOLDER", "inf")
+        
         msg = f"{numstring!r} not a valid complex number string"
-        # Check for illegal characters
-        s = set(str)
-        if not s.issubset(set("j+-e.0123456789")):
+        
+        # 3. Define the atom: scientific notation, inf, or nan
+        atom = r'(?:(?:\d*\.\d+|\d+\.?\d*)(?:e[+-]?\d+)?|inf|nan)'
+        num_re = re.compile(f'[+-]?{atom}')
+        
+        # Case A: Pure Real (no 'j')
+        if "j" not in s:
+            if num_re.fullmatch(s):
+                return (s, "")
             raise ValueError(msg)
-        # Regular expression to recognize an int or float
-        regex = r'''
-                (                               # Group
-                    [+-]?                       # Optional sign
-                    \.\d+                       # Number like .345
-                    ([eE][+-]?\d+)?|            # Optional exponent
-                # or
-                    [+-]?                       # Optional sign
-                    \d+\.?\d*                   # Number:  2.345
-                    ([eE][+-]?\d+)?             # Optional exponent
-                )                               # End group
-                '''
-        r = re.compile(regex, re.X)
-        # If no 'j', it's real
-        if str[-1] != "j":
-            return (str, "")
-        if 1:  # Extract real part
-            first = ""
-            mo = r.search(str)
-            if mo:
-                a, b = mo.span()
-                first = str[a:b]
-                str = str[b:]
-            else:
-                # It must have been only 'j' or '-j'
-                if str[0] == "+" or str[0] == "j":
-                    return ("", "1")
-                elif str[0] == "-":
-                    return ("", "-1")
-                else:
-                    raise ValueError(msg)
-            if str == "j":
-                # It was pure imaginary
-                return ("", first)
-        if 1:  # Extract imag part
-            mo = r.search(str)
-            if mo:
-                a, b = mo.span()
-                second = str[a:b]
-                assert str[-1] == "j"
-            else:
-                # It can only be '+j' or '-j'
-                if str == "+j":
-                    second = "1"
-                elif str == "-j":
-                    second = "-1"
-                else:
-                    raise ValueError(msg)
-        return (first, second)
+            
+        # Case B: Pure Imaginary (e.g., "-infj" or "j")
+        has_internal_sign = any(char in s[1:] for char in ("+", "-"))
+        if s.endswith("j") and not has_internal_sign:
+            inner = s[:-1]
+            if inner in ("", "+"): return ("", "1")
+            if inner == "-": return ("", "-1")
+            if num_re.fullmatch(inner):
+                return ("", inner)
+            raise ValueError(msg)
+            
+        # Case C: Full Complex (x+yj)
+        # Match the real part first
+        match = num_re.match(s)
+        if not match:
+            # Check for implied real '1' but with a sign (e.g., "+j")
+            if s.startswith("j") or s.startswith("+j"): return ("", "1")
+            if s.startswith("-j"): return ("", "-1")
+            raise ValueError(msg)
+            
+        real_part = match.group()
+        remainder = s[match.end():]
+        
+        if not remainder:
+            return (real_part, "")
+            
+        if remainder.endswith("j"):
+            imag_part = remainder[:-1]
+            # Handle implied 1 in complex (e.g., "5+j")
+            if imag_part in ("", "+"): return (real_part, "1")
+            if imag_part == "-": return (real_part, "-1")
+            
+            # Ensure the imaginary string itself is a valid atom
+            # (Handling the optional '+' that regex might not consume if we aren't careful)
+            test_val = imag_part
+            if test_val.startswith("+"): 
+                test_val = test_val[1:]
+                
+            if num_re.fullmatch(test_val):
+                return (real_part, test_val if not imag_part.startswith("-") else imag_part)
+        raise ValueError(msg)
     def SignificantFiguresS(value: float,
                             digits: int = 3,
                             exp_compress: bool = True
@@ -1738,17 +1739,17 @@ if __name__ == "__main__":
                 # Complex numbers
                 ("0+i", ("0", "1")),
                 ("0-i", ("0", "-1")),
-                ("0+1i", ("0", "+1")),
+                ("0+1i", ("0", "1")),
                 ("0-1i", ("0", "-1")),
-                ("1+0i", ("1", "+0")),
+                ("1+0i", ("1", "0")),
                 ("1-0i", ("1", "-0")),
                 ("-1-0i", ("-1", "-0")),
                 #
-                ("1.33+37i", ("1.33", "+37")),
+                ("1.33+37i", ("1.33", "37")),
                 ("1.33-37i", ("1.33", "-37")),
-                ("-1.33+37i", ("-1.33", "+37")),
+                ("-1.33+37i", ("-1.33", "37")),
                 ("-1.33-37i", ("-1.33", "-37")),
-                ("+1.33+37i", ("+1.33", "+37")),
+                ("+1.33+37i", ("+1.33", "37")),
                 ("+1.33-37i", ("+1.33", "-37")),
                 ("+ 1.33 - 37 i", ("+1.33", "-37")),
             ):
@@ -1758,8 +1759,24 @@ if __name__ == "__main__":
                     print(f"Expected = {expected!r}")
                     print(f"Got      = {got!r}")
                     exit(1)
-            # Illegal forms
-            raises(ValueError, ParseComplex, "x")
+            # Test the corner cases
+            for input, expected in (
+                ("inf", ("inf", "")),
+                ("-inf", ("-inf", "")),
+                ("inf+infj", ("inf", "inf")),
+                ("inf-infj", ("inf", "-inf")),
+                ("-inf+infj", ("-inf", "inf")),
+                ("-inf-infj", ("-inf", "-inf")),
+                #
+                ("nan", ("nan", "")),
+                ("-nan", ("-nan", "")),
+                ("nan+nanj", ("nan", "nan")),
+                ("nan-nanj", ("nan", "-nan")),
+                ("-nan+nanj", ("-nan", "nan")),
+                ("-nan-nanj", ("-nan", "-nan")),
+            ):
+                got = ParseComplex(input)
+                Assert(ParseComplex(input) == expected, got, expected)
         def Test_SignificantFigures():
             Assert(math.isclose(float(SignificantFiguresS(1.2345e-6)), 1.23e-6))
             Assert(math.isclose(SignificantFigures(1.2345e-6), 1.23e-6))

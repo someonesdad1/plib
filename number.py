@@ -633,8 +633,8 @@ if 1:   # Num
                     raise ValueError(msg) from e
             elif "j" in normalized:
                 re_part, im_part = dpmath.ParseComplex(value)
-                self.real = mpmath.mpf(re_part)
-                self.imag = mpmath.mpf(im_part)
+                self.real = mpmath.mpf(re_part if re_part else 0)
+                self.imag = mpmath.mpf(im_part if im_part else 0)
                 self.mytype = NumType.Cpx
             elif "." in normalized or "e" in normalized:
                 try:
@@ -1021,16 +1021,12 @@ if 1:  # UnitArbiter: Refactored for Complex Plane preservation
             '''Flattens units while preserving the complex plane.'''
             if not unit_str or unit_str == "1":
                 return value, ""
-
             reduced_unit_str, scale_factor = self._query_units_for_reduction(unit_str)
-
             if "=" in reduced_unit_str:
                 reduced_unit_str = reduced_unit_str.split("=")[0].strip()
-
             # Scale the entire head (mpf or mpc) by the real scale factor
             sf = mpmath.mpf(scale_factor)
             current_value = value*sf
-
             preferred_units = Num.systems.get(Num.active_system, [])
             for candidate in preferred_units:
                 for power in [1, 2, 3]:
@@ -1039,18 +1035,15 @@ if 1:  # UnitArbiter: Refactored for Complex Plane preservation
                     if is_ok:
                         # Apply secondary conversion factor
                         return current_value*mpmath.mpf(factor_str), test_unit
-
             return current_value, reduced_unit_str
         def _query_units_for_reduction(self, unit_str: str) -> tuple[str, str]:
             '''Uses GNU Units --compact to get a raw factor and unit remainder.'''
             cmd = [self.bin_path, "-q", "--compact", "-f", str(self.dynamic_path)]
             if UnitArbiter.main_config:
                 cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-
             result = subprocess.run(cmd + [self._translate_unicode(unit_str)],
                                     capture_output=True, text=True)
             output = result.stdout.strip()
-
             # Regex handles cases like '0.75 m' or just 'm' or just '0.75'
             match = re.match(r'^([\d.e+-]+)?\s*(.*)$', output)
             if match:
@@ -1084,12 +1077,10 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
-if 0:  # Temp experiment
+if 1:  # Temp experiment
     def f():
-        x = Num("1+1i")
-        # expect Num('mpf('0.27395725383012109')+mpf('0.5837007587586146')j')
         breakpoint() # ∞∞ 
-        y = x**x
+        x = Num("inf m")
     f()
     exit()
 
@@ -1371,6 +1362,8 @@ if 1:   # Self-tests
             if 1:   # Does expression "inflate" to a float
                 x = Num(5)*Num(2)#/Num(10)
                 lwtest.ToDo("Num(5)*Num(2) results in a float")
+            if 1:   # inf and nan
+                x = Num("inf m")
             #yy
 '''
 Other tests needed:
