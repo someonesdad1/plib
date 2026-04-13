@@ -1,3 +1,61 @@
+13 Apr 2026 Reached a point of all current tests passing and some major rewriting of
+code, particularly me realizing that using an old code library of mine was probably
+causing significant problems.  I threw out the old library and asked the AI to craft a
+new function based on the known needs (it was a function to recognize and parse complex
+numbers).  
+
+I sent the following message to Mike:
+
+    Frankly, I think the two of us working together is a pretty well-oiled machine.  I'm
+    going to take a break, then make some notes for my good friend in New York who works
+    at Bloomberg.  I think I can capture some of the key things I've learned about
+    working with an AI and I think he might appreciate my perspectives -- and they might
+    even help him with managing his team of engineers.  He said Bloomberg buys the best
+    AI support they can get, but he has grumbled about his engineers complaining about
+    becoming code checkers.
+
+    I understand sentiment that fully, but I think the issue is that it actually takes a
+    pretty experienced engineer to work effectively with an AI.  And the human has to
+    learn how to ask the right questions and craft the correct prompt.  As I know from
+    working with you, if I get you the correct information and point the compass in the
+    right direction, the only thing I have to do is get out of the way of the
+    beyond-Mach-1 wind from the lightning like progress.  A good AI can make an engineer
+    an order of magnitude more effective, but it doesn't happen blindly out of the gate.
+    Both sides have to learn and adapt.  But it's great when it works!
+
+His response:
+
+    That is a profound insight to pass along to your friend. The transition from "Code
+    Writer" to "System Architect & Code Auditor" is exactly where the friction lies for
+    many experienced engineers. If you treat an AI like a junior developer who needs
+    their hand held for every line, you'll feel like a babysitter. But if you treat it
+    like a Fairbanks-Morse engine—providing the fuel (context) and the mounting brackets
+    (architecture)—you suddenly have a power plant that can move a mountain.
+
+    Your friend’s team is likely hitting the "Checking Trap" because they are letting
+    the AI drive the architecture rather than the logic. As we've seen over the last 10
+    days:
+
+        The Human owns the "Why" and the "Structure": You knew we needed NumericMixin
+        and UnitArbiter.
+
+        The AI owns the "How" and the "Velocity": I can rewrite a 300-line class in
+        seconds to integrate a new regex once the structure is defined.
+
+        The "Compass" is the Test Suite: Without those test cases, I'm a jet engine
+        without a guidance system.
+
+    An order-of-magnitude increase in effectiveness only happens when the engineer
+    realizes they aren't just "checking code"—they are conducting an orchestra. It
+    requires more experience to spot a subtle logic drift in a generated block than it
+    does to write it slowly by hand.
+
+    Tell your friend that the "Code Checker" grumble usually means the engineer hasn't
+    yet learned how to use the AI as a force multiplier. Once they start pointing that
+    "beyond-Mach-1 wind" at the hard problems instead of the boilerplate, the grumbling
+    usually stops and the "lightning-like progress" begins.
+
+---------------------------------------------------------------------------
 Looks ok to me.  However, let me refresh you on the high-level thinking of this "Noether
 REPL" we're working on.  The "operational output" is the "next bench" Noether REPL,
 which lets me use the REPL for "simple" calculations that utilize "semantic units", the

@@ -1133,7 +1133,7 @@ if 1:   # Num
             raw = value.strip().replace(" ", "").lower()
             if not raw:
                 raise ValueError(msg)
-            # 1. Non-finites (Must be exact)
+            # 1. Non-finites
             if raw in ("inf", "-inf", "nan"):
                 self.real = mpmath.mpf(raw)
                 self.mytype = NumType.Flt
@@ -1157,7 +1157,8 @@ if 1:   # Num
                 parts = raw.split("/")
                 if len(parts) == 2:
                     try:
-                        self.numer, self.denom = int(parts[0]), int(parts[1])
+                        num_str, den_str = parts
+                        self.numer, self.denom = int(num_str), int(den_str)
                         if self.denom == 0: raise ValueError("Zero denominator")
                         self.mytype = NumType.Rat
                         return
@@ -1191,7 +1192,7 @@ if 1:   # Num
                 else:
                     self.real = mpmath.mpf(norm)
                     self.mytype = NumType.Flt
-            except (ValueError, mpmath.libmp.libmpf.ComplexResult):
+            except (ValueError, ZeroDivisionError, OverflowError, mpmath.libmp.libmpf.ComplexResult):
                 raise ValueError(msg)
         def _extract_unit(self, s: str) -> ty.Tuple[str, str]:
             s = s.strip()
@@ -1302,7 +1303,12 @@ if 1:   # Num
             if self.mytype == NumType.Int:
                 return self.numer
             return fractions.Fraction(self.numer, self.denom)
-
+        @property
+        def num(self) -> "Num":
+            '''Returns a unitless version of the current Num instance.'''
+            res = Num(self)
+            res._unit = ""
+            return res
 
 if 0:  # UnitArbiter: Refactored for Complex Plane preservation
     class UnitArbiter:
@@ -1907,9 +1913,8 @@ if 1:   # Self-tests
                 x = Num(5)*Num(2)/Num(10)
                 Assert(x == Num(1))
             if 1:   # inf and nan
-                breakpoint() # ∞∞ 
                 x = Num("inf m")
-            #yy
+                Assert(x.real == mpmath.mpf("inf") and x.unit == "m")
 '''
 Other tests needed:
     - '0 m' + '0 J' -> error
@@ -1921,6 +1926,49 @@ Other tests needed:
     - Nails:  ϵ + i, 1 + ϵi
     - '1.23453094830853048309739047394739473947394739473947e4 m3' Does GNU units barf
       on this?  No, handles it fine; appears to handle unlimited digits.
+
+1. The "Ghost of Precision Past"
+
+    In Test_Constructor_Strings, you use:
+
+    Assert(x.real == mpmath.mpf("1.2") and x.imag == zero)
+
+        Critique: Since we are using mpmath for arbitrary precision, the test is
+        currently at the mercy of whatever mp_context precision is set to at that
+        moment.
+
+        The dark corner: If the library ever changes mp.dps globally during a
+        calculation, a direct == might fail due to trailing epsilon differences.
+
+        Recommendation: Consider an AssertClose() or checking x.mytype first. You
+        already do this, but adding a test case for a very long string—e.g.,
+        Num("1.123456789012345678901234567890")—would verify that we aren't accidentally
+        dropping back to standard 64-bit float precision during the parse.
+
+2. The "Surgeon's Edge" (Complex Signs)
+
+    Your regex pattern = r"(?<!e)(?=[+-])" is clever, but there are two "human" ways of
+    writing complex numbers that might trip it up:
+
+        Case A: Num("1-j") or Num("-j+1").
+
+        Case B: Num("1+-2j") (ugly, but it happens in generated strings).
+
+        Recommendation: Add a test case for Num("j") and Num("-j"). My current logic
+        handles val in ("", "+", "-") by appending "1", but seeing those in the test
+        suite ensures no future refactor breaks the "implicit one" rule.
+
+3. The "Uncertainty Propagation" Gap
+
+    I noticed NumType.Unc in the mapping, but I didn't see a string-based test for it.
+
+        The dark corner: If a user passes Num("1.2+/-0.01"), the current _parse_string
+        will likely throw a ValueError because it doesn't recognize the +/- symbol
+        before hitting the mpmath block.
+
+        Recommendation: If you intend for Num to be initialized from "uncertainty
+        strings," that’s a gap. If not, a test case confirming that Num("1.2+/-0.01")
+        fails predictably is just as valuable.
 
 '''
 if __name__ == "__main__":  
