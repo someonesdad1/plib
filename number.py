@@ -804,9 +804,18 @@ if 1:   # Num
                 self.real = self._parse_proper_fraction(value)
                 self.mytype = NumType.Flt
             elif "/" in norm:
-                f = fractions.Fraction(value)
-                self.numer, self.denom = f.numerator, f.denominator
-                self.mytype = NumType.Rat
+                parts = value.split("/")
+                if len(parts) == 2:
+                    try:
+                        n_str, d_str = parts
+                        self.numer, self.denom = int(n_str), int(d_str)
+                        if self.denom == 0:
+                            raise ValueError("Division by zero in rational string")
+                        self.mytype = NumType.Rat
+                    except ValueError:
+                        raise ValueError(msg)
+                else:
+                    raise ValueError(msg)
             elif "j" in norm or "inf" in norm or "nan" in norm:
                 # dpmath.ParseComplex updated to handle inf/nan string inputs
                 re_part, im_part = dpmath.ParseComplex(norm)
