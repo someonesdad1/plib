@@ -1,59 +1,67 @@
+- Critical
+    - Treat the provided code as a closed set. Consider it mature code that cannot be 
+      broken. Enhancement or "fix" requests must not omit any old code; if a method 
+      isn't explicitly changed, include it exactly as-is. I need the full class for 
+      a copy-paste replacement. No placeholders like "# ... existing code".
+    - Block Integrity: I use "if 1: # Comment" blocks as core "unitary" blocks of 
+      information. Update blocks in their entirety so that all methods (including 
+      boilerplate/magic methods) are preserved.
+    - Type Closure: Operations must return a Num instance that preserves precision 
+      and semantic units. Do not let results "decay" to primitive types.
+
 - Code formatting
     - PEP-8 except for:
         - No spaces around *, /, //, or **
         - One space on each side of +, -, %
         - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
         - No blank lines or whitespace-only lines except in docstrings
-    - Important:  please make sure to put a newline after a ':' in a conditional, class
-      or function definition, as lacking it makes it easy to miss the logic when reading
-    - Triple quotes: use ''' for all docstrings and multi-line strings.
-    - Quotes:  use " for all string definitions, such as 'a = "a string"'.
-    - Naming:  CamelCase naming for classes and functions, snake case for attributes and
-      local variables
-    - Use 'import x' if possible.  Then us x.y notation in code.  'import x as y' is
-      fine too.
-    - Folding blocks:  use 'if 1:  # Comment' to group code for folding editors.  This
-      also allows for easy runtime toggling.
-    - Type annotations:  use type annotations wherever possible
-- Remind me to check the repository commit state before making significant changes
-- Much to most of the time, supply all the code we're working on, as it's too difficult
-  to piece things into an existing file (particularly when I'm tired).  Thus, try to
-  give me the whole class or whole function we're working on.
-- ASCII characters: use plain ASCII wherever possible.  Avoid Unicode punctuation like
-  em-dashes, single and double fancy quotes, etc.
+    - Important: Please put a newline after a ':' in a conditional, class, or 
+      function definition.
+    - Triple quotes: Use ''' for all docstrings and multi-line strings.
+    - Quotes: Use " for all string definitions (e.g., 'a = "string"').
+    - Naming: CamelCase for classes/functions, snake_case for attributes/variables.
+    - Imports: Use 'import x' or 'import x as y'. Use x.y notation in code.
+    - Folding blocks: Use 'if 1: # Comment' for folding and toggling.
+    - Type annotations: Use type annotations wherever possible.
 
-- Finally, an important request:  I sent you the number.py core contents as three 'if
-  1:' blocks with the indenting I use in my file.  Can you match this indenting and
-  block formatting?  Then it's probably wise at this point to send me the whole class
-  whenever you change something in them, as it will probably reduce errors on my part.
+- Reminders & Workflow
+    - Remind me to check the repository commit state before significant changes.
+    - Supply the whole class or whole function; do not make me piece snippets together.
+    - ASCII Only: Use plain ASCII. Avoid Unicode punctuation (em-dashes, fancy quotes).
+    - Match existing indentation and block formatting exactly.
 
+---------------------------------------------------------------------------
+This is a summary of the number.py file we've been working on since around the
+beginning of April 2026:
 
 Let me refresh you on the high-level thinking of this "Noether REPL" we're working on.
 The "operational output" is the "next bench" Noether REPL, which lets me use the REPL
 for "simple" calculations that utilize "semantic units", the core idea we've added to
 this REPL, breaking with 70 years of CS tools not really realizing that the "physical"
-or "logical" units of the problems we compute are vital types to keep the logic correct.
-Our innovation here is to add primitive (base) units to GNU units' configuration file to
-allow the REPL user to define new units on the fly.  Then he can perform computations
-like "Num('4 dogs') + Num('2 cats')" as long as the dogs and cats units are defined
-properly so that GNU units does the correct dimensional algebra.  Whew, that's hopefully
-the gist.  
+or "logical" units of the problems we compute with are vital types to keep the logic
+correct.  We're using the powerful GNU units program in a separate process to perform
+our unit algebra and conversions, accessed via a pipe.  An innovation is to let the user
+dynamically add new base units to GNU units' configuration file while calculating.  Then
+he can perform computations like "Num('4 dogs') + Num('2 cats')" as long as the dogs and
+cats units are defined properly so that GNU units does the correct dimensional algebra.
+From the user's perspective, it looks simple, natural, and easy to use -- but it gives
+surprising power to help a calculation use the correct logic.
 
-So the core tactical detail for you to remember is that this REPL also includes the
-intent of abstracting the different number types into one unit, the Num class, that
-"looks like" the numbers I calculated with as a physics student 50+ years ago, as we
-would smoothly move through integers, floating point and complex numbers.  The added
-twist is the Num class also has two mpmath.mpf numbers that are going to be the real and
-complex number parts' uncertainties. so that we can also calculate the linear
-propagation of uncertainty in complex numbers.  In my opinion, this covers the basic
-needs of scientists and engineers for elementary calculations.   That we picked mpmath
-mpf and mpc types for implementation means we have 1) arbitrary precision for
-calculations (and e.g. an easy tool to estimate roundoff) and 2) a rich set of special
-functions over the complex plane.
+A core tactical detail for you to remember is that this REPL also includes the intent of
+abstracting the different number types into one unit, the Num class, that "looks like"
+the numbers I calculated with as a physics student 50+ years ago, as we would smoothly
+move through integers, floating point and complex numbers.  An added twist is the Num
+class also has two mpmath.mpf numbers that are going to be the real and complex number
+parts' uncertainties. so that we can also calculate the linear propagation of
+uncertainty in complex numbers.  In my opinion, this covers the basic needs of
+scientists and engineers for elementary calculations.   That we picked mpmath mpf and
+mpc types for implementation means we have 1) arbitrary precision for calculations (and
+e.g. an easy tool to estimate roundoff) and 2) a rich set of special functions over the
+complex plane.
 
-A core purpose behind this effort besides me getting a nice REPL to do routine
-calculations with is to convince a lunch buddy of mine, a CS professor at a local
-university, that the CS discipline has ignored "semantic units" as a powerful type tool
-to help people using computers commit fewer logical errors.  My mental goal is to see
-this change every compiler and interpreter on the planet.  That sounds grandiose, but 
-it's a powerful observation and so obvious, everyone's missed it for 70 or more years.
+A purpose behind this effort besides me getting a nice REPL to do routine calculations
+with is to convince a lunch buddy of mine, a CS professor at a local university, that
+the CS discipline has ignored "semantic units" as a powerful type tool to help people
+using computers commit fewer logical errors.  My mental goal is to see this change every
+compiler and interpreter on the planet.  That sounds grandiose, but it's a powerful
+observation and so obvious, everyone's missed it for 70 or more years.
