@@ -29,6 +29,7 @@
     - Supply the whole class or whole function; do not make me piece snippets together.
     - ASCII Only: Use plain ASCII. Avoid Unicode punctuation (em-dashes, fancy quotes).
     - Match existing indentation and block formatting exactly.
+    - Remind me to use the "Mike & Don" coding safety fuse (see below)
 
 - Core attributes of the Num class:  this affects all decisions about code changes and
   is both an architectural reminder and an invariant
@@ -43,6 +44,13 @@
     self.correl: mpmath.mpf = mpmath.mpf("0")
     self._unit = ""
     self.mytype: NumType = NumType.Int
+
+- Mike and Don coding safety fuse
+    - Old class version with "if 1:  # Comment" block markers get set to "if 0:"
+    - New code is pasted in with "if 1:"
+    - It's then trivial to switch between the old and new block to see if the old code
+      worked where the new code failed
+    - Once the tests pass, I can delete the old "if 0:" block and use the new
 
 ---------------------------------------------------------------------------
 This is a summary of the number.py file we've been working on since around the

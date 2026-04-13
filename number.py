@@ -208,92 +208,8 @@ if 0:  # NumericMixin
     class NumericMixin:
         '''Boilerplate to make Num behave like a native Python number.'''
         def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
-            if isinstance(value, int) and not unit:
-                return Num(value)
-            return Num(value, unit=unit)
-        # --- Unary Ops ---
-        def __neg__(self) -> "Num": return self._make_result(self._binary_op(Num(0), lambda a, b: b - a), self.unit)
-        def __pos__(self) -> "Num": return Num(self)
-        def __abs__(self) -> "Num":
-            if self.mytype == NumType.Cpx:
-                return self._make_result(mpmath.absmin(self.as_mpc), self.unit)
-            return self._make_result(abs(self.as_int_or_rat if self.mytype <= NumType.Rat else self.real), self.unit)
-        # --- Standard Binary Ops ---
-        def __add__(self, other: ty.Any) -> "Num":
-            other = other if isinstance(other, Num) else Num(other)
-            adj_other = self._normalize(other, "add")
-            return self._binary_op(adj_other, lambda a, b: a + b)
-        def __sub__(self, other: ty.Any) -> "Num":
-            other = other if isinstance(other, Num) else Num(other)
-            adj_other = self._normalize(other, "sub")
-            return self._binary_op(adj_other, lambda a, b: a - b)
-        def __mul__(self, other: ty.Any) -> "Num":
-            other = other if isinstance(other, Num) else Num(other)
-            new_unit = f"({self.unit})*({other.unit})" if self.unit and other.unit else (self.unit or other.unit)
-            # 1. Dispatch math via binary_op (returns a Num)
-            res = self._binary_op(other, lambda a, b: a * b)
-            # 2. Extract magnitude via the new raw_value property
-            # 3. Simplify unit & scale magnitude via the Arbiter
-            val, final_unit = self.arb.simplify(res.raw_value, new_unit)
-            return self._make_result(val, final_unit)
-        def __truediv__(self, other: ty.Any) -> "Num":
-            other = other if isinstance(other, Num) else Num(other)
-            new_unit = f"({self.unit})/({other.unit})" if other.unit else self.unit
-            res = self._binary_op(other, lambda a, b: a / b)
-            val, final_unit = self.arb.simplify(res.as_mpc if res.mytype >= NumType.Flt else res.numer, new_unit)
-            return self._make_result(val, final_unit)
-        def __pow__(self, other: ty.Any) -> "Num":
-            exp_val = other.as_mpf if isinstance(other, Num) else float(other)
-            res_val = self.as_mpc ** exp_val
-            new_unit = f"({self.unit})^{exp_val}" if self.unit else ""
-            val, final_unit = self.arb.simplify(res_val, new_unit)
-            return self._make_result(val, final_unit)
-        # --- Reflected Ops (Allows 5 + Num) ---
-        def __radd__(self, other): return Num(other) + self
-        def __rsub__(self, other): return Num(other) - self
-        def __rmul__(self, other): return Num(other) * self
-        def __rtruediv__(self, other): return Num(other) / self
-        def __rpow__(self, other): return Num(other) ** self
-        # --- In-place Ops ---
-        def __iadd__(self, other): return self + other
-        def __isub__(self, other): return self - other
-        def __imul__(self, other): return self * other
-        def __itruediv__(self, other): return self / other
-        # --- Comparisons ---
-        def _compare(self, other: ty.Any, op: ty.Callable) -> bool:
-            other = other if isinstance(other, Num) else Num(other)
-            adj_other = self._normalize(other, "cmp")
-            if self.mytype == NumType.Cpx or adj_other.mytype == NumType.Cpx:
-                return op(mpmath.norm(self.as_mpc), mpmath.norm(adj_other.as_mpc))
-            return op(self.as_mpf, adj_other.as_mpf)
-        def __eq__(self, other: ty.Any) -> bool:
-            if not isinstance(other, (Num, int, float, complex, fractions.Fraction)): return False
-            other = other if isinstance(other, Num) else Num(other)
-            if self.unit != other.unit:
-                try: self._normalize(other, "cmp")
-                except ValueError: return False
-            return self._compare(other, lambda a, b: a == b)
-        def __lt__(self, other: ty.Any): return self._compare(other, lambda a, b: a < b)
-        def __le__(self, other: ty.Any): return self._compare(other, lambda a, b: a <= b)
-        def __gt__(self, other: ty.Any): return self._compare(other, lambda a, b: a > b)
-        def __ge__(self, other: ty.Any): return self._compare(other, lambda a, b: a >= b)
-        # --- Casting & Floor Math ---
-        def __int__(self): return int(self.as_mpf)
-        def __float__(self): return float(self.as_mpf)
-        def __complex__(self): return complex(self.as_mpc)
-        def __index__(self): return int(self.as_int_or_rat)
-        def __round__(self, ndigits=0): return self._make_result(round(self.as_mpf, ndigits), self.unit)
-        def __trunc__(self): return self._make_result(math.trunc(self.as_mpf), self.unit)
-        def __floor__(self): return self._make_result(math.floor(self.as_mpf), self.unit)
-        def __ceil__(self): return self._make_result(math.ceil(self.as_mpf), self.unit)
-if 1:  # NumericMixin
-    class NumericMixin:
-        '''Boilerplate to make Num behave like a native Python number.'''
-        def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
-            return Num(value, unit=unit)
-        # --- Unary ---
+            return Num(value, unit = unit)
         def __neg__(self) -> "Num":
-            # Uses 0 - self to leverage the existing binary logic
             return self._binary_op(Num(0), lambda a, b: b - a)
         def __pos__(self) -> "Num":
             return Num(self)
@@ -301,12 +217,10 @@ if 1:  # NumericMixin
             if self.mytype == NumType.Cpx:
                 return self._make_result(mpmath.absmin(self.as_mpc), self.unit)
             return self._make_result(abs(self.raw_value), self.unit)
-        # --- Standard Binary (Unit Sensitive) ---
         def __add__(self, other: ty.Any) -> "Num":
             other = other if isinstance(other, Num) else Num(other)
             adj_other = self._normalize(other, "add")
             res = self._binary_op(adj_other, lambda a, b: a + b)
-            # Use raw_value to let arbiter simplify the final result magnitude
             val, final_unit = self.arb.simplify(res.raw_value, self.unit)
             return self._make_result(val, final_unit)
         def __sub__(self, other: ty.Any) -> "Num":
@@ -328,59 +242,176 @@ if 1:  # NumericMixin
             val, final_unit = self.arb.simplify(res.raw_value, new_unit)
             return self._make_result(val, final_unit)
         def __pow__(self, other: ty.Any) -> "Num":
-            # Exponents are generally dimensionless in physics
             exp_val = other.raw_value if isinstance(other, Num) else other
             res_val = self.as_mpc ** exp_val
             new_unit = f"({self.unit})^{exp_val}" if self.unit else ""
             val, final_unit = self.arb.simplify(res_val, new_unit)
             return self._make_result(val, final_unit)
-        # --- Reflected ---
-        def __radd__(self, other): return Num(other) + self
-        def __rsub__(self, other): return Num(other) - self
-        def __rmul__(self, other): return Num(other) * self
-        def __rtruediv__(self, other): return Num(other) / self
-        def __rpow__(self, other): return Num(other) ** self
-        # --- In-place ---
-        def __iadd__(self, other): return self + other
-        def __isub__(self, other): return self - other
-        def __imul__(self, other): return self * other
-        def __itruediv__(self, other): return self / other
-        # --- Comparisons ---
+        def __radd__(self, other):
+            return Num(other) + self
+        def __rsub__(self, other):
+            return Num(other) - self
+        def __rmul__(self, other):
+            return Num(other) * self
+        def __rtruediv__(self, other):
+            return Num(other) / self
+        def __rpow__(self, other):
+            return Num(other) ** self
+        def __iadd__(self, other):
+            return self + other
+        def __isub__(self, other):
+            return self - other
+        def __imul__(self, other):
+            return self * other
+        def __itruediv__(self, other):
+            return self / other
         def _compare(self, other: ty.Any, op: ty.Callable) -> bool:
             other = other if isinstance(other, Num) else Num(other)
             adj_other = self._normalize(other, "cmp")
             if self.mytype == NumType.Cpx or adj_other.mytype == NumType.Cpx:
-                # Compare magnitudes for complex numbers
                 return op(mpmath.norm(self.as_mpc), mpmath.norm(adj_other.as_mpc))
             return op(self.as_mpf, adj_other.as_mpf)
         def __eq__(self, other: ty.Any) -> bool:
-            # Check against your core int/float/complex types only
-            if not isinstance(other, (Num, int, float, complex)): 
+            if not isinstance(other, (Num, int, float, complex)):
                 return False
             other = other if isinstance(other, Num) else Num(other)
-            # Unit identity check
             if self.unit != other.unit:
-                try: 
+                try:
                     self._normalize(other, "cmp")
-                except ValueError: 
+                except ValueError:
                     return False
-            # Type-safe comparison using as_mpf/as_mpc to avoid Fraction(0,0) traps
             return self._compare(other, lambda a, b: a == b)
-        def __lt__(self, other: ty.Any): return self._compare(other, lambda a, b: a < b)
-        def __le__(self, other: ty.Any): return self._compare(other, lambda a, b: a <= b)
-        def __gt__(self, other: ty.Any): return self._compare(other, lambda a, b: a > b)
-        def __ge__(self, other: ty.Any): return self._compare(other, lambda a, b: a >= b)
-        # --- Casting & Math Library Support ---
-        def __int__(self): return int(self.as_mpf)
-        def __float__(self): return float(self.as_mpf)
-        def __complex__(self): return complex(self.as_mpc)
+        def __lt__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a < b)
+        def __le__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a <= b)
+        def __gt__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a > b)
+        def __ge__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a >= b)
+        def __int__(self):
+            return int(self.as_mpf)
+        def __float__(self):
+            return float(self.as_mpf)
+        def __complex__(self):
+            return complex(self.as_mpc)
         def __index__(self):
             return int(self.numer) if self.mytype == NumType.Int else int(self.as_mpf)
-        def __round__(self, ndigits=0):
+        def __round__(self, ndigits = 0):
             return self._make_result(round(self.as_mpf, ndigits), self.unit)
-        def __trunc__(self): return self._make_result(math.trunc(self.as_mpf), self.unit)
-        def __floor__(self): return self._make_result(math.floor(self.as_mpf), self.unit)
-        def __ceil__(self): return self._make_result(math.ceil(self.as_mpf), self.unit)
+        def __trunc__(self):
+            return self._make_result(math.trunc(self.as_mpf), self.unit)
+        def __floor__(self):
+            return self._make_result(math.floor(self.as_mpf), self.unit)
+        def __ceil__(self):
+            return self._make_result(math.ceil(self.as_mpf), self.unit)
+if 1:  # NumericMixin
+    class NumericMixin:
+        '''Boilerplate to make Num behave like a native Python number.'''
+        def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
+            return Num(value, unit = unit)
+        def __neg__(self) -> "Num":
+            return self._binary_op(Num(0), lambda a, b: b - a)
+        def __pos__(self) -> "Num":
+            return Num(self)
+        def __abs__(self) -> "Num":
+            if self.mytype == NumType.Cpx:
+                return self._make_result(mpmath.absmin(self.as_mpc), self.unit)
+            return self._make_result(abs(self.raw_value), self.unit)
+        def __add__(self, other: ty.Any) -> "Num":
+            other = other if isinstance(other, Num) else Num(other)
+            adj_other = self._normalize(other, "add")
+            res = self._binary_op(adj_other, lambda a, b: a + b)
+            val, final_unit = self.arb.simplify(res.raw_value, self.unit)
+            return self._make_result(val, final_unit)
+        def __sub__(self, other: ty.Any) -> "Num":
+            other = other if isinstance(other, Num) else Num(other)
+            adj_other = self._normalize(other, "sub")
+            res = self._binary_op(adj_other, lambda a, b: a - b)
+            val, final_unit = self.arb.simplify(res.raw_value, self.unit)
+            return self._make_result(val, final_unit)
+        def __mul__(self, other: ty.Any) -> "Num":
+            other = other if isinstance(other, Num) else Num(other)
+            new_unit = f"({self.unit})*({other.unit})" if self.unit and other.unit else (self.unit or other.unit)
+            res = self._binary_op(other, lambda a, b: a * b)
+            val, final_unit = self.arb.simplify(res.raw_value, new_unit)
+            return self._make_result(val, final_unit)
+        def __truediv__(self, other: ty.Any) -> "Num":
+            other = other if isinstance(other, Num) else Num(other)
+            new_unit = f"({self.unit})/({other.unit})" if other.unit else self.unit
+            res = self._binary_op(other, lambda a, b: a / b)
+            val, final_unit = self.arb.simplify(res.raw_value, new_unit)
+            return self._make_result(val, final_unit)
+        def __pow__(self, other: ty.Any) -> "Num":
+            '''Exponentiation with dimensional safety check.'''
+            other = other if isinstance(other, Num) else Num(other)
+            # Physical Law: A base with units cannot be raised to a complex power
+            if self.unit and other.mytype == NumType.Cpx:
+                raise TypeError(f"Dimensional Error: Cannot raise unit '{self.unit}' to a complex power.")
+            exp_val = other.raw_value
+            res_val = self.as_mpc ** exp_val
+            # Construct unit string; arbiter handles if (unit)^(exp) is valid
+            new_unit = f"({self.unit})^{exp_val}" if self.unit else ""
+            val, final_unit = self.arb.simplify(res_val, new_unit)
+            return self._make_result(val, final_unit)
+        def __radd__(self, other):
+            return Num(other) + self
+        def __rsub__(self, other):
+            return Num(other) - self
+        def __rmul__(self, other):
+            return Num(other) * self
+        def __rtruediv__(self, other):
+            return Num(other) / self
+        def __rpow__(self, other):
+            return Num(other) ** self
+        def __iadd__(self, other):
+            return self + other
+        def __isub__(self, other):
+            return self - other
+        def __imul__(self, other):
+            return self * other
+        def __itruediv__(self, other):
+            return self / other
+        def _compare(self, other: ty.Any, op: ty.Callable) -> bool:
+            other = other if isinstance(other, Num) else Num(other)
+            adj_other = self._normalize(other, "cmp")
+            if self.mytype == NumType.Cpx or adj_other.mytype == NumType.Cpx:
+                return op(mpmath.norm(self.as_mpc), mpmath.norm(adj_other.as_mpc))
+            return op(self.as_mpf, adj_other.as_mpf)
+        def __eq__(self, other: ty.Any) -> bool:
+            if not isinstance(other, (Num, int, float, complex)):
+                return False
+            other = other if isinstance(other, Num) else Num(other)
+            if self.unit != other.unit:
+                try:
+                    self._normalize(other, "cmp")
+                except ValueError:
+                    return False
+            return self._compare(other, lambda a, b: a == b)
+        def __lt__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a < b)
+        def __le__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a <= b)
+        def __gt__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a > b)
+        def __ge__(self, other: ty.Any):
+            return self._compare(other, lambda a, b: a >= b)
+        def __int__(self):
+            return int(self.as_mpf)
+        def __float__(self):
+            return float(self.as_mpf)
+        def __complex__(self):
+            return complex(self.as_mpc)
+        def __index__(self):
+            return int(self.numer) if self.mytype == NumType.Int else int(self.as_mpf)
+        def __round__(self, ndigits = 0):
+            return self._make_result(round(self.as_mpf, ndigits), self.unit)
+        def __trunc__(self):
+            return self._make_result(math.trunc(self.as_mpf), self.unit)
+        def __floor__(self):
+            return self._make_result(math.floor(self.as_mpf), self.unit)
+        def __ceil__(self):
+            return self._make_result(math.ceil(self.as_mpf), self.unit)
 
 if 0:   # Num 
     class Num(NumericMixin):
@@ -1508,6 +1539,7 @@ if 1:   # Self-tests
                 y = x**x
                 Assert(y == N(mpmath.mpc(1, 1)**mpmath.mpc(1, 1)))
                 # See that complex exponent gets exception on base with units
+                breakpoint() # ∞∞ 
                 a = N("1.2 m")
                 with raises(TypeError):
                     y = a**x
