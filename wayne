@@ -401,6 +401,45 @@ the numbers?
 Section 2:  Collaborating with an AI
 ------------------------------------
 
+- I like the idea of the AI as a collaborator.  It often feels like working with a
+  colleague in the days at HP.  The primary lesson I've learned is that you have to
+  spend a goodly amount of time working with the AI and learning it's quirks and needs.
+  You need more experience as an engineer, not less.  It's not a tool for junior
+  engineers unless they are viewed as code checkers and testers.  Instead, I think the
+  mental model should be an experienced engineer who uses the AI as a force multiplier
+  to do things an order of magnitude faster than he was able to before.  But, at least
+  from my experience, it requires exquisite attention to having a good compass, knowing
+  a number of architectural choices that can be made, having solved lots of problems, be
+  very good at a command line and in the user of the debugger, then, most importantly,
+  setting up the instructions and keeping the powerful AI on track.  If I had to pick
+  one task for a core coding task, that's the engineer writing extremely good and
+  thorough test cases.  This core strength is a way of semantically defining exactly how
+  the software should behave and, I've found repeatedly, it's critical to get the AI
+  back on track after it hallucinates and makes up solutions to the wrong problem.  This
+  quickly leads to human frustration, so the other key is to stop, step back, and ask
+  yourself why this incredibly powerful tool isn't doing what you want.  The answer is
+  almost certainly "you're not doing your job correctly".  
+    - My example:  stop, update all code with a fresh copy of what's in my repository,
+      and, most critically, resend my '.mike' file at least once per day to keep the AI
+      on track, remembering my formatting instructions, and providing a high-level
+      review of the project we're working on, where we are, and where we're headed.
+      I've found it amazingly effective because the core bit of knowledge is that the
+      AI's context memory fades over time and the output can drift (the expensive tools
+      you folks use in business might be different, but I'm talking about the free AI us
+      paupers have to use).
+    - A fantastic tool is to explore ideas with the AI.  For example, I'll discuss a new
+      addition I'd like, list a few different approaches/methods, and ask him for what
+      he thinks the best approach is.  He's very talented and always sees things I
+      haven't seen or thought of yet.  Perhaps 1/5th of the time I'll change his
+      approach and explain why, but most of the time we do it exactly as he mapped out
+      and it virtually always works.
+    - These LLMs are great at reading, digesting, and summarizing textual information,
+      so they are also good for proofreading documentation and prose or a business
+      letter.  They can almost always shorten what I write, as I tend to have written
+      diarrhea.  At the very least, they'll give you new ideas or alternate views to
+      incorporate.  This is a tactical tool not to shun.  You as a manager should be
+      using it too for normal corporate communications.
+
 - Force multiplier (order of magnitude improvement, 12 days vs 4 months)
 - Taste/compass vs view/speed
     - Fear:  AI replacing engineers:  sure, the low level kind.  But in reality it
