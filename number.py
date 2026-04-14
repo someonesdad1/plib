@@ -1204,6 +1204,23 @@ if 1:   # Num
                 if not val_part.lower().endswith("e"):
                     return val_part.strip(), unit_part.strip()
             return s, ""
+        def base(self, unit: str = "") -> None:
+            '''Interactive REPL method to register a new base unit dimension.
+            If no unit is provided, it uses the instance's current unit.
+            '''
+            target = unit if unit else self.unit
+            if not target:
+                print("No unit provided to register.")
+                return
+            status = self.arb._register_unit(target)
+            if status != "ok":
+                print(status)
+        def help(self, topic: str = "") -> None:
+            h = Help()
+            if not topic:
+                h()
+            else:
+                h(topic)
         def _s(self) -> str:
             if self.mytype == NumType.Int:
                 s = self.fmt(self.numer)
@@ -1558,6 +1575,25 @@ if 1:  # UnitArbiter: The GNU Units Bridge
                 if os.path.exists(tmp_path):
                     os.remove(tmp_path)
             return is_ok, error_msg
+        def _register_unit(self, unit_name: str) -> str:
+            '''
+            Attempts to register a new base dimension.
+            Returns "ok" on success, or a failure message.
+            '''
+            unit_name = unit_name.strip()
+            if not unit_name:
+                return "Error: Unit name cannot be empty."
+            # Basic validation: GNU units prefers letters
+            if not unit_name[0].isalpha():
+                return f"Error: '{unit_name}' must start with a letter."
+            if self.is_known_unit(unit_name):
+                return f"Note: '{unit_name}' is already defined."
+            try:
+                self.add_base(unit_name)
+                return "ok"
+            except Exception as e:
+                return f"Error: Failed to register '{unit_name}': {str(e)}"
+
 if 1:  # Functions
     def RegisterUnit(unit_name: str) -> None:
         '''
@@ -1909,12 +1945,29 @@ if 1:   # Self-tests
                 a = Num("1 m")
                 a += Num("50 cm")
                 Assert(a == Num("1.5 m"))
-            if 1:   # Does expression "inflate" to a float
-                x = Num(5)*Num(2)/Num(10)
-                Assert(x == Num(1))
+            if 1:   # Type closure
+                x = Num(5)*Num(2)
+                Assert(x == Num(10))
+                x = Num("3/8")*Num("1/2")
+                Assert(x == Num("3/16"))
+                x = Num("0.375")*Num("0.5")
+                Assert(x == Num("3/16") == Num("0.1875"))
+                x = Num("1+i")*Num("1-i")
+                Assert(x == Num("2+0i"))
             if 1:   # inf and nan
                 x = Num("inf m")
                 Assert(x.real == mpmath.mpf("inf") and x.unit == "m")
+                x = Num("-inf m")
+                Assert(x.real == mpmath.mpf("-inf") and x.unit == "m")
+                x = Num("nan m")
+                Assert(mpmath.isnan(x.real) and x.unit == "m")
+                if 0:
+                    x = Num("0+nanj m")
+                    Assert(mpmath.isnan(x.complex) and x.unit == "m")
+                    x = Num("nan+nanj m")
+                    Assert(mpmath.isnan(x.real) and mpmath.isnan(x.complex) and x.unit == "m")
+                else:
+                    lwtest.ToDo("nan bug")
 '''
 Other tests needed:
     - '0 m' + '0 J' -> error

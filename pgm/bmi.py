@@ -1,7 +1,6 @@
 '''
 Calculate body mass index for a given mass and height
 '''
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -23,7 +22,7 @@ if 1:  # Header
         from columnize import Columnize
         from wrap import dedent
         from f import flt
-        from frange import frange
+        from dpseq import frange
         import trm
         t = trm.TrmDP()
     if 1:  # Global variables
@@ -32,29 +31,24 @@ if 1:  # Header
         # Glenda measured my height at 69.5 inches with socks on
         personal_height_inches = 69.4
         # Colors
-        t.low = t.denl
-        t.normal = t.grn
-        t.high = t.ornl
-        t.obese = t.redl
+        t.low = t.den
+        t.norm = t.grn
+        t.high = t.orn
+        t.obese = t.red
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage():
         name = sys.argv[0]
-        print(
-            dedent(f"""
+        print(dedent(f"""
         Usage:  {name} [options] mass_lbs height_inches
           Calculates and returns the body mass index for the given mass and height.  BMI is (mass
           in kg)/(height in m)^2.  General categories are:
-
-        """)
-        )
+          
+        """))
         Key()
-        print(
-            dedent(f"""
+        print(dedent(f"""
         
         Options:
           -k      Show metric mass and height table
@@ -65,7 +59,6 @@ if 1:  # Utility
         """)
         )
         exit()
-
     def ParseCommandLine(d):
         d["-k"] = False  # Show mass and height table
         d["-m"] = False  # Mass in kg and height in m
@@ -89,17 +82,13 @@ if 1:  # Utility
         if len(args) not in (1, 2):
             Usage()
         return args
-
     def Key(indent=" " * 6):
         i = " " * 4
         t.print(f"{i}{GetColor(18)}< 18.5     Underweight")
         t.print(f"{i}{GetColor(20)}18.5-25    Normal")
         t.print(f"{i}{GetColor(27)}25-30      Overweight")
         t.print(f"{i}{GetColor(31)}>30        Obese")
-
-
 if 1:  # Core functionality
-
     def ShowMetricTable():
         print("Weight table:  lb to kg")
         m = []
@@ -115,7 +104,6 @@ if 1:  # Core functionality
         for i in Columnize(m, col_width=15):
             print(i)
         exit()
-
     def GetColor(bmi):
         "Return escape code for color"
         if not bmi:
@@ -123,12 +111,11 @@ if 1:  # Core functionality
         elif bmi < 18.5:
             return t.low
         elif 18.5 <= bmi <= 25:
-            return t.normal
+            return t.norm
         elif 25 < bmi <= 30:
             return t.high
         else:
             return t.obese
-
     def US_Data():
         """Table data from https://en.wikipedia.org/wiki/Body_mass_index#United_States.  Data are
         for years 2011-2014 and are for people 20 years and older.  Body mass index (BMI) in
@@ -157,16 +144,16 @@ if 1:  # Core functionality
         """.strip()
         # Colors for columns
         c = {
-            0: t.whtl,
-            1: t.purl,
-            2: t.denl,
+            0: t.wht,
+            1: t.pur,
+            2: t.den,
             3: t.cyn,
-            4: t.trql,
-            5: t.grnl,
-            6: t.trql,
+            4: t.trq,
+            5: t.grn,
+            6: t.trq,
             7: t.cyn,
-            8: t.ornl,
-            9: t.redl,
+            8: t.orn,
+            9: t.red,
         }
         print("US adult BMI data from 2011-2014 for adults 20 years and older")
         w, indent = 7, 4
@@ -184,7 +171,6 @@ if 1:  # Core functionality
                 t.print()
             print()
         exit(0)
-
     def Table(args):
         "Print out a BMI table"
         if args:
@@ -208,8 +194,6 @@ if 1:  # Core functionality
         print("Color key:")
         Key(indent=" " * 2)
         exit(0)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
