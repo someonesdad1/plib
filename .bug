@@ -1,0 +1,41 @@
+13 Apr 2026 Great progress; existing tests pass
+
+Next tasks
+    - SQLite persistence
+        - Add when it's time, keep the interface simple
+        - At some point a breadcrumb command would be useful (i.e., show me the history
+          of this calculation or dump it to a file.
+    - Uncertainty math
+        - This will be a goodly amount of work
+        - Use uncertainties as a standard for testing
+    - Function wrapping for REPL convenience
+        - Bring in e.g. most of math/cmath
+        - Show user how it's done; let him bring in what he wants
+        - All functions should be defined over the complex plane
+        - Question:  should there be a flag to limit everything to real values?  The
+          HP-42s did it and I thought it was a good design move.
+        - I think default functions should have a dimensional guard that cause an error
+          message in the REPL if you ask for sin(Num("5 m")).  The primary reason is the
+          numerical answer depends on the scale, so arguments have to be scalars.  The
+          user can always use sin(Num("5 m").num) if he insists.
+    - Help documentation
+
+- Is this a bug?  It's type closure and is the same answer as the HP-42s, but should it
+  be downcast to a float if it can?
+    - x = Num("1+i")*Num("1-i")
+    - Assert(x == Num("2+0i"))
+
+    Both Mike and I feel it should be downcast, just like you upcast some real operation
+    that spills over into the complex domain.  However, let's NOT downcast floats to
+    rationals as that way lies madness and getting hunted down by the users and killed.
+    However, it does remind me that the binary operators need to check for an integer
+    when ints and fractions interoperate and things also need to be reduced to lowest
+    terms.  A perfect tool for this is a fractions.Fraction instance, but we just don't
+    keep the instantiation around or let the user see it.
+
+- x = Num("0+nanj m") and x = Num("nan+nanj m")
+    - ValueError: '0+nanj' not recognized as a number
+    - ValueError: 'nan+nanj' not recognized as a number
+
+    Should be simple to fix.
+
