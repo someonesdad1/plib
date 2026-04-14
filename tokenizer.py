@@ -52,14 +52,14 @@ if 1:  # Header
         import dptypes
         import get
         import lwtest
-        import timer
+        import dptime
         import trm
         import wrap 
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
-        t = trm.Trm()
+        t = trm.TrmDP()
         pp = pprint.pprint
         g = dptypes.Constant()
         g.dbg = False
@@ -469,7 +469,7 @@ if __name__ == "__main__":
         def MeasureTiming(file):
             'Print execution time and tokens/s tokenizing rate'
             s = open(file).read()
-            with timer.Timer() as tm:
+            with dptime.Timer() as tm:
                 o = Tokenizer(s)
             time = tm.et
             tokens = len(o)
