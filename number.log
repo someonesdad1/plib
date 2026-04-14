@@ -1,0 +1,15 @@
+13 Apr 2026 09:57:25 pm Mon
+    - Started this log belatedly after about 10 days of development (I wish I had
+      started it earlier to see the progress; however, much of it was learning the
+      details of effectively interacting with the AI on a design and implementation)
+    - Nearly operational REPL
+    - Existing self-tests all pass
+    - Numerical type closure achieved
+    - Semantic units can be added dynamically
+    - Semantically incorrect code results in exception
+    - Simple help messages integrated
+    - Remaining major tasks
+        - Uncertainty math
+        - SQLite persistence
+        - Function wrapping for REPL convenience
+        - Full help documentation

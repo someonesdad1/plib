@@ -39,3 +39,5 @@ Next tasks
 
     Should be simple to fix.
 
+- number.py:Test_New_Unit() hangs
+    - Needs to work, as this is the ability to add a new semantic unit

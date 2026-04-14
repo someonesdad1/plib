@@ -13,35 +13,36 @@
 .~lock*#
 *.pickle
 
-# Note a comment like this can comment a rule out and save it for later
+# A comment like this can comment a rule out and save it for later
 
-z
-.z
 .vi
+.z
 0lint_list
+8bit_color
 Dev
-all_uni.py
+_argparse.py
 a
-b
-c
-aa
-bb
-cc
 a.py
-tags
-tmp
+a.units_man
+aa
+au
+all_uni.py
+b
+bb
+c
+cc
+colorhexa.py
+data/color_register.htm
+data/wp_list_of_colors.txt
 lib/licenses/
 pgm/comb_perm.py
 pgm/eevblog.txt
 pgm/hdr
+pgm/math.symbols.3.11.8
 pgm/profit.data
 pgm/termtables_demo.py
 pgm/weather.data
 pgm/yr.py
-8bit_color
-colorhexa.py
-data/color_register.htm
-data/wp_list_of_colors.txt
-pgm/math.symbols.3.11.8
-_argparse.py
-a.units_man
+tags
+tmp
+z

@@ -2,14 +2,111 @@
 didn't hear from him until today.
 
 Two topics
-    - Something fundamental missing from computer science
-    - Collaborating with an AI
+    - 1. Something fundamental missing from computer science
+    - 2. Collaborating with an AI
 
 As you know from some emails weeks ago, Sally's deep dive into an AI a few months ago
 triggered my curiosity into trying out an AI, something I've ignored, thinking "I can do
-my own research, thanks".  It turns out that's a mistaken
+my own research, thanks".  It turns out that's a mistaken attitude and I've spent around
+a month using Google's Gemini 3 for some serious refactoring of my clunky collection of
+python stuff I've written over nearly 30 years.
 
+For my first topic, I'd like to mention something that I think has been missing from
+computer science.  We talked about this a bit around 2005 when I was a contract engineer
+at HP and led to me writing a C++ units helper file using templates.  It's still out
+there on SourceForge:  https://sourceforge.net/projects/unitscpp/.
 
+First, let me explain how I learned to do physics problems (as you no doubt did too).
+When I was in college, we did calculations with pencil, paper, tables and slide rules.
+This laborious process was usually accompanied by careful inclusion of the physical
+units of the problem, so we'd write down something like
+
+    distance = a*t²/2
+        so:
+    car_distance = 0.5*(9.8 m/s^2)*(4.8 s)^2
+                 = (9.8/2)*4.8 [(m/s^2)*s^2]
+                 = 9.8*2.4 [m]
+                 = 23.5 m
+
+In other words, we knew how important it was to not only do the arithmetic carefully,
+but the units had to come out to the correct dimensions or we knew something was wrong.
+
+For the last few decades, I've wondered why the compilers and interpreters I've used
+don't support units natively.  This is the great lack of computer science for the last
+70 years.  It's luggage without wheels.
+
+What the dabbling around with the AI (I'll call him Mike, as that's the name I use in
+our conversations) led to was a refactoring of a core fmt.py file that I write decades
+ago to do string interpolation for numbers.  I implemented it with python's
+decimal.Decimal class, which lets you use an arbitrary number of digits for
+calculations and it handled arbitrary integers, rational numbers, floats, and complex
+numbers.  Mike reduced the code size by about a factor of 4 and gave it a better
+architecture. 
+
+Once that formatting was finished, I asked if he could help me with another core file
+of mine that derived two new classes from python's built-in float and complex classes.
+Their main feature was that normal string interpolation gave only 3 digits by default,
+not the usual 15.  This was easier on the user's interpretation.
+
+I asked Mike if he could work on that, as I used these types in python's REPL
+(read-eval-print loop) to do routine calculations in the terminal.  He said yes, but
+before starting on the refactor of that existing file, I wondered if I should start
+over with a fresh architecture.  I did, and called it number.py.
+
+Here comes the important part.  I also use GNU units a lot for calculating things with
+various physical units because it's a mature and powerful tool.  Mike was aware of its
+capabilities and I wanted to use its abilities rather than write some brand new units
+library which would be complicated and I'd debug forever, so we just started a process
+with a pipe, a few lines of code.
+
+Let's use the following pet food mass calculation problem, meant to be simple:
+
+    I have 7 dogs and 12 cats to feed.  They eat the same food per unit time:  dogs get
+    0.2 kg and cats get 0.1 kg.  How much food will I use in that time period.  The
+    calculation is simple:
+
+        (7 dogs)*(0.2 kg/dog) + (12 cats)*(0.1 kg/cat)
+    
+    The units cancel out to give us (7*0.2 + 12*0.1) kg = 1.4 + 1.2 kg or 2.6 kg.
+    However, the harried and overworked programmer accidentally writes:
+
+        num_cats*amt_per_dog + num_dogs*amt_per_cat
+
+    In the usual programming language, those variables are bare integers or floats and
+    you have a logic error, just like are made zillions of times in other code.
+
+Using GNU units and its ability to define new primitive units in the configuration file,
+this new REPL tool we wrote lets us write the following python code 
+
+    def DogsAndCats(no_programming_error=True):
+        # Define semantic units
+        x = Num("1 m")
+        breakpoint() # ∞∞ 
+        x.base("dog")         # Create a new semantic unit
+        x.base("cat")
+        # Define the input quantities
+        num_dogs = Num("7 dog")
+        num_cats = Num("12 cat")
+        dog_food_rate = Num("0.2 kg/dog")
+        cat_food_rate = Num("0.1 kg/cat")
+        # Solve the problem
+        if no_programming_error:
+            food_mass = num_dogs*dog_food_rate + num_cats*cat_food_rate
+        else:
+            food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
+        # Print results
+        print(f"number of dogs = {num_dogs}")
+        print(f"number of cats = {num_cats}")
+        print(f"dog food rate  = {dog_food_rate}")
+        print(f"cat food rate  = {cat_food_rate}")
+        print(f"amount of food = {food_mass}")
+
+    if __name__ == "__main__":  
+        import sys
+        if len(sys.argv) > 1:
+            DogsAndCats(False)
+        else:
+            DogsAndCats(True)
 
 ---------------------------------------------------------------------------
 
