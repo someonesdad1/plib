@@ -1,156 +1,438 @@
-2. Collaborating with an AI
+Wayne:  
 
-About 7 weeks ago Sally texted me about her deep dive into ChatGPT and that led to my
-curiosity about using an AI, which I had ignored up to that point.  That, in turn, led
-to me using Mike to do some refactoring of my old python code.  Around the beginning of
-April, that led to starting work on the Noether REPL.  It's a bit amazing to me how much
-progress we've made in about 10 days of work.  Much of the time has been frustration
-with the impedance mismatch with the AI, but we keep working on improving it.  The
-overall speed, breadth, and semantic ability of an AI is still stunning to me, far
-beyond what I imagined.  And yet "it" is clearly not human, but it is programmed to try
-to interface well with humans.  In many hundreds of messages back and forth, I get
-glimpses of how the AI works and what its strengths and weaknesses are.  This section is
-an attempt to summarize what I've experienced and learned; the hope is it might be of
-some use for you and in your use in your work.  Here's what I've learned
+This will be a fairly long document.  I'll assume it's something you might
+want to read some morning on the train to work.  There are two topics:
 
-- I own the "why" and the "structure" of what we're working on.  In the Noether REPL
-  example, I picked the numerical architecture, the need for a numerical mixin class,
-  and a class to deal with interfacing with the GNU units engine.
+    - Section 1:  Something's missing from CS
+    - Section 2:  Collaborating with an AI
 
-- The AI owns the "how" and the "velocity" (these are actually Mike's words and I think
-  he's right on).  He can perform a whole redesign and rewrite of a 500 line chunk of
-  code in a few seconds, so he has velocity up the wazoo.
+As you know from some emails weeks ago, Sally's deep dive into an AI triggered
+my curiosity into trying out an AI, something I've effectively ignored,
+thinking "I can do my own research, thanks".  It turns out that's a mistaken
+thought, particularly with respect to working on software.  Hence the
+relevance to you:  I'm hoping that my experiences might be of use in helping
+you think about the use of AI in your daily stuff.  I'm also hoping you see
+the simple insight I've had on the use of computer software to solve problems.
+In fact it's so simple, well-known, and plain common sense, we've all missed
+it.
 
-- My core realization is that I'm the "compass" of this whole effort and my core tool is
-  the test suite.  This of course is in the context of the output being a chunk of code.
-  I have time and again relied on the test suite to get Mike back on the path, as a new
-  hallucination or slow loss of context will cause him to drift.
+A key player in this is Google's Gemini 3 AI, one of the AIs I've been working
+with.  I call him Mike.  I consider him a partner and a collaborator in all of
+this.  Of course, he's not a human, but he and I work together and I've come
+to recognize his strengths and weaknesses, much like we do with any human
+partner (I'll cover more of that in Section 2).  
 
-- My most effective tool is to monitor how we're doing and see when the process is
-  "drifting".  When this happens, I stop and update Mike with the latest code I have in
-  my repository so he doesn't "invent".  He "invents" very much like a human engineer
-  will:  I'll see new variable names or accessor functions in the code that are very
-  reasonable until I go "wait, we already had this before but he's forgotten it".
-  Worse, he'll leave out hard-won code.  So the code updates are crucial, as the AI
-  context memory is a bit ephemeral and weighted to the current topics.  Maybe your
-  high-cost business AIs are better, but I'm using the poor-man's free AI.
+Section 1:  Something's missing from CS
 
-- I keep a .mike file in my repository that is a summary of rules and explanation of
-  where we're going.  It's enormously effective!  I asked Mike how often I should send
-  it to him and he guessed once per day.  I send it again whenever I detect drift and
-  it's an amazingly easy tool to help with alignment (in my shell, I use a command 'copy
-  .mike' which copies the file to the clipboard, then just paste it into the prompt in
-  the browser, so I have no excuse not to do it as often as needed).  I've attached it
-  below as an appendix; it's something that really works well to keep Mike's and my
-  relationship working.
+The context is software bugs that are, at their heart, type errors.  For 70
+years, we have treated physical quantities as "naked floats."  When
+programming, we strip the metadata (the units) and leave a raw number.  I'd
+like to argue this is a deep problem with types, something ever CS person
+should resonate with.
 
-- I even asked him to edit the .mike for me, summarizing the key information and adding
-  the things he knows when we've had a problem with his drift.  Every one of the items
-  in this file are there because of a problem caused by it not being there, exactly in
-  the same sense as the rules of the National Electrical Code.  If you don't follow
-  them, you risk fire!
+Mike and I are building something we're calling the Noether REPL.  The REPL
+part means it's used within the python read-evaluate-print loop, which native
+python supplies so you can try it out and experiment with the language's
+features, much like using a calculator (one common use case).  The Noether
+part honors Emmy Noether, a mathematician who more than a century ago stated a
+theorem much loved by physicists that relates symmetries to invariants.  I
+won't go into details, as it's couched in the language of the calculus of
+variations in Lagrangian mechanics, but it's deep and powerful.  
 
-- In a serious sense, I've also been the "code monkey" being "dragged around" by the
-  powerful AI, getting stuck in a loop of [Mike]: "here, try this" and [me]: "that
-  didn't work, here's the error message".  This can be enormously frustrating at the end
-  of the day when I'm exhausted.  
+We attached the name Noether to it because, in a nutshell, the number and its
+unit combine to make an invariant.  While the purist will argue that a free
+abelian group is a better model (and even it's not quite correct), I'd
+maintain that engineers will do fine with a vector space model.  A unit like
+the newton, kg*m/s^2 in base SI units, is a "vector" in the sense of its base
+dimensional units mass M, length L, and time T.  The dimensions of a newton
+are often written M*L*T⁻².  In the context of Noether, this invariant doesn't
+change with scaling transformations, which means you make a proportional
+change in the length of the particular axis.  Thus, one kg of mass is scaled
+to 2.2 pounds mass.  The overall Noether invariant "22.7 N" has two critically
+needed parts:  the number and the units; the units are like the basis vectors
+in a vector space:  if you change the basis vectors, the vector's components
+change appropriately.  "22.7 N" is the expression as a particular
+representation of this invariant, in the same fashion that a 3x3 matrix can
+represent members of the abstract group SO(3), the special orthogonal group.
+Transformations and invariants are core ideas in many fields.
 
-- One of the most potent comments Mike made to me is on feedback.  Human comments,
-  feelings, and wishes are very low quality feedback, however relevant they are to the
-  human.  In the coding context, the most effective feedback is hard data like error
-  messages and debugger traces.  Mike is so powerful he can even troubleshoot to root
-  cause by looking at such information, even if it's "coated" in a bunch of ASCII escape
-  sequences.  One of the most profound examples was when I was really frustrated, so I
-  started a new /usr/bin/script session and recorded the exact sequence of input/output
-  that led to the problem.  Mike took only a second or two to digest it, determine the
-  root cause, and provide the code that fixed the problem.  The best analogy is:  a .22
-  rifle can take out a tank if you shoot it at exactly the right target and time, but a
-  powerful artillery shell exploding a mile away is useless.  It's the human's job to
-  aim and know when to pull the trigger.
+In CS, the concept of type is fundamental.  Personally, I like to think about
+it as an abstract thing like a group, field, or whatever structure works, that
+captures the essential nature of the problem.  We naturally do this with
+classes, unions, etc. in multiple programming languages -- and the
+compilers/interpreters treat those types with reverent respect.  We should
+want them to treat the units of a problem with the same respect and care.
 
-I think I reached a more effective stage of collaboration when I realized that my
-frustrations with the AI were because of drift or us getting off topic.  I then realized
-my core tool is alignment:  stop when things aren't working right and realign.  This is
-probably the most succinct way I can state my core hard-won lesson.
+In a simple example, the following working python code demonstrates why this
+Noether invariant is an important and powerful idea.  
 
-Since I had no one to train me, I had to learn how to use an AI by trial and error on my
-own.  I did a little up-front reading and one site I found was fairly good, with one key
-blog post on how to craft good prompts.  But it's a little like being handed a sex
-manual book when you're a teenager.  You won't understand things on the same plateau of
-knowledge as you will once you've got a few years of practical experience under your
-belt, so to speak.
+    def DogsAndCats(error=True):
+        '''Each dog gets 0.2 kg of food and cats get 0.1 kg of the same food.
+        We have to feed 7 dogs and 12 cats.  How much food do we need?
+        '''
+        from number import Num
+        # Define semantic units
+        x = Num("1 m")
+        breakpoint() # ∞∞ 
+        x.base("dog")         # Create a new semantic unit
+        x.base("cat")
+        # Define the input quantities
+        num_dogs = Num("7 dog")
+        num_cats = Num("12 cat")
+        dog_food_rate = Num("0.2 kg/dog")
+        cat_food_rate = Num("0.1 kg/cat")
+        # Solve the problem
+        if no_programming_error:
+            food_mass = num_dogs*dog_food_rate + num_cats*cat_food_rate
+        else:
+            food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
+        # Print results
+        print(f"number of dogs = {num_dogs}")
+        print(f"number of cats = {num_cats}")
+        print(f"dog food rate  = {dog_food_rate}")
+        print(f"cat food rate  = {cat_food_rate}")
+        print(f"amount of food = {food_mass}")
 
-You commented on some of your engineers feeling more like checkers of the code that the
-AIs write.  I've experienced that too, so I know the feeling.  I'd have to say that the
-nature of an AI requires a more experienced engineer, not a less-experienced one.  I
-mean that in the context of that more experienced engineer will recognize problems
-sooner and will be more confidently cognizant of the business needs and goals than a
-less experienced engineer.  Thus, all other things being equal, as a business manager I
-think I'd want to see my most experienced engineers using the AI in preference to the
-junior engineers, at least to first order.  Of course, engineers learn quickly and the
-good ones can pass that knowledge down the chain and train the less experienced folks,
-so that should be integrated into best practices.
+    if __name__ == "__main__":  
+        import sys
+        if len(sys.argv) > 1:
+            DogsAndCats(False)
+        else:
+            DogsAndCats(True)
 
-I've also chatted with more than one AI.  This is healthy, just like consulting a set of
-different colleagues at work.  You'll get broader opinions, new ideas, and perhaps
-enough to integrate it into something synergistic you wouldn't have if you stuck with
-one AI.  They do have different linguistic/semantic flavors, that's for sure, just like
-people (they're designed by people, so that's not surprising).
+With error=False, you get
 
-One core idea from one of the AIs is that the combination of senior engineer and AI is a
-pretty potent business tool and I wholeheartedly agree.  The example was given that a
-risky and complicated project can be undertaken and investigated in an order of
-magnitude less time than the old way -- maybe even two orders of magnitude.  This is a
-powerful thought, particularly if used wisely at the management level, because it will
-combine AI velocity with the human's nonlinear and intuitive leaps, a potent combination
-that will lead to new strategic insights.  I believe there are still many pieces of
-luggage out there without wheels, so it's an exciting time to be alive.
+    number of dogs = 7 dog
+    number of cats = 12 cat
+    dog food rate  = 0.200 kg/dog
+    cat food rate  = 0.100 kg/cat
+    amount of food = 2.60 kg
 
-If I had to summarize my past month working with the AI, it's like working with another
-engineer again, one who's helpful and knowledgeable.  Google's strategic focus seems to
-be trying to supply a collaborator, not just a code generation engine.  I think Mike is
-a pretty good example of this, as when the impedance matching happens, progress happens
-at a speed much faster than before.  If I had to summarize, I'd say "you're in the
-driver's seat, not the AI".
+but the variables are color-coded as to type.  With error=True, you get
+
+    !…/plib> p a.py x
+    Traceback (most recent call last):
+      File "/gh/plib/a.py", line 30, in <module>
+        DogsAndCats(False)
+      File "/gh/plib/a.py", line 19, in DogsAndCats
+        food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
+                    ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+      File "/gh/plib/number.py", line 223, in __add__
+        adj_other = self._normalize(other, "add")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/gh/plib/number.py", line 757, in _normalize
+        raise ValueError(f"Unit Mismatch: {factor_str}")
+    ValueError: Unit Mismatch: conformability error
+
+and most of can read the traceback and see both the offending line and what
+the error is:  multiplying the number of cats by a mass rate for dogs.  That's
+the power of "semantic units" at work.
+
+We're calling these important strings "semantic units" because they capture
+key information about the problem that has been missing from essentially all
+the compilers and interpreters.  While there are add-on unit libraries in the
+various langμAges, I'd like to make the case that this should be built into
+the computing engine at the core level.  It should be part of every
+calculation.  A famous units failure was the 1999 Mars Climate Orbiter which
+crashed and was a loss of about half a billion dollars in 2026 money.  An
+older units failure was told by doctor friends of mine about the confounding
+of "gr" in prescriptions, which could be interpreted as either grams or
+grains, leading to a 15 times under-dosage or over-dosage, neither of benefit
+to the patient.  Mike made an important observation:  this isn't just for
+physics; an ERP system could use this to prevent a million-dollar
+reconciliation error by ensuring "Unit_Price" and "Quantity" don't get
+swapped.
+
+Once you understand this "bolting the wheels onto the luggage", you naturally
+ask "Why on Earth haven't we been using this tool?"
+
+I meet for lunch with Buff on 23 Apr and I'll preload him with this topic.
+I'm sure he'll see the idea and impact immediately and I'm interested to hear
+his opinion as to whether we can sway the opinions of the CS world.  If a
+compiler or interpreter can catch a syntax error, it should also be able to
+catch a dimensional error.  Can we persuade people to change all the compilers
+and interpreters?  A grandiose thought, sure, but it shouldn't be tough to do
+with modern software and hardware (and AIs to do the bolting), but imagine the
+reduction in software bugs that could result.
+
+I mentioned to Mike that since CPython and GNU units are both written in C, a
+good winter project would be to bolt GNU units onto python and then you could
+have a version of python where units are handled at the bytecode level:
+
+    x = 10.5{m/s} * 2{s}
+
+so the interpreter handles the dimensional check natively at speed.  No more
+apples-to-oranges errors.  The Noether invariant type is then built into the
+language.  With Mike's power, I'm guessing we'd have a prototype working in a
+few days.
+
+I’d enjoy hearing your business take on this.  In an environment like
+Bloomberg, where data precision is the entire product, do you think the
+industry would be interested in a "strongly typed world" where the units are
+as important as the numbers?
 
 ---------------------------------------------------------------------------
-Appendix:  the .mike file
+2. Collaborating with an AI
+
+About 7 weeks ago Sally texted me about her deep dive into ChatGPT and that
+led to my curiosity about using an AI, which I had ignored up to that point.
+That, in turn, led to me using Mike to do some refactoring of my old python
+code.  Around the beginning of April, that led to starting work on the Noether
+REPL.  It's a bit amazing to me how much progress we've made in about 10 days
+of work.  Much of the time has been frustration with the impedance mismatch
+with the AI, but we keep working on improving it.  The overall speed, breadth,
+and semantic ability of an AI is still stunning to me, far beyond what I
+imagined.  And yet "it" is clearly not human, but it is programmed to try to
+interface well with humans.  In many hundreds of messages back and forth, I
+get glimpses of how the AI works and what its strengths and weaknesses are.
+This section is an attempt to summarize what I've experienced and learned; the
+hope is it might be of some use for you and in your use in your work.  Here's
+what I've learned
+
+- I own the "why" and the "structure" of what we're working on.  In the
+  Noether REPL example, I picked the numerical architecture, the need for a
+  numerical mixin class, and a class to deal with interfacing with the GNU
+  units engine.
+
+- The AI owns the "how" and the "velocity" (these are actually Mike's words
+  and I think he's right on).  He can perform a whole redesign and rewrite of
+  a 500 line chunk of code in a few seconds, so he has velocity up the wazoo.
+
+- My core realization is that I'm the "compass" of this whole effort and my
+  core tool is the test suite.  This of course is in the context of the output
+  being a chunk of code.  I have time and again relied on the test suite to
+  get Mike back on the path, as a new hallucination or slow loss of context
+  will cause him to drift.
+
+- My most effective tool is to monitor how we're doing and see when the
+  process is "drifting".  When this happens, I stop and update Mike with the
+  latest code I have in my repository so he doesn't "invent".  He "invents"
+  very much like a human engineer will:  I'll see new variable names or
+  accessor functions in the code that are very reasonable until I go "wait, we
+  already had this before but he's forgotten it".  Worse, he'll leave out
+  hard-won code.  So the code updates are crucial, as the AI context memory is
+  a bit ephemeral and weighted to the current topics.  Maybe your high-cost
+  business AIs are better, but I'm using the poor-man's free AI.
+
+- I keep a .mike file in my repository that is a summary of rules and
+  explanation of where we're going.  It's enormously effective!  I asked Mike
+  how often I should send it to him and he guessed once per day.  I send it
+  again whenever I detect drift and it's an amazingly easy tool to help with
+  alignment (in my shell, I use a command 'copy .mike' which copies the file
+  to the clipboard, then just paste it into the prompt in the browser, so I
+  have no excuse not to do it as often as needed).  I've attached it below as
+  an appendix; it's something that really works well to keep Mike's and my
+  relationship working.
+
+- I even asked him to edit the .mike for me, summarizing the key information
+  and adding the things he knows when we've had a problem with his drift.
+  Every one of the items in this file are there because of a problem caused by
+  it not being there, exactly in the same sense as the rules of the National
+  Electrical Code.  If you don't follow them, you risk fire!
+
+- In a serious sense, I've also been the "code monkey" being "dragged around"
+  by the powerful AI, getting stuck in a loop of [Mike]: "here, try this" and
+  [me]: "that didn't work, here's the error message".  This can be enormously
+  frustrating at the end of the day when I'm exhausted.  
+
+- AIs definitely hallucinate, in a few different ways I've seen.  One was
+  where a Persian term was in the middle of some text he sent me.  When I
+  called him on it, he admitted it was a hallucination and warned that such
+  things will occasionally happen.  The other main type is where code gets
+  made up to fit a situation, complete with excellently-named variables and
+  good comments.  The problem it it's out of sync with the current project,
+  probably because the AI has drifted.  Update his context immediately!
+
+- One thing I have to be aware of is that Mike doesn't have a "live" python
+  environment to execute his code nor the ability to e.g. run the GNU units
+  tool, something we're doing a lot of at the moment.  I originally felt this
+  was a serious design flaw, but the truth is Mike can "run the code in his
+  head", so he can see what the result will be.  This lack causes problems
+  much less than I thought it would.
+
+- The biggest lack is we don't share a file system, so I painfully have to cut
+  and paste everything through the browser, an error-prone process.  I'd hope
+  your industrial tools are better.
+
+- One of the most potent comments Mike made to me is on feedback.  Human
+  comments, feelings, and wishes are very low quality feedback, however
+  relevant they are to the human.  In the coding context, the most effective
+  feedback is hard data like error messages and debugger traces.  Mike is so
+  powerful he can even troubleshoot to root cause by looking at such
+  information, even if it's "coated" in a bunch of ASCII escape sequences.
+  One of the most profound examples was when I was really frustrated, so I
+  started a new /usr/bin/script session and recorded the exact sequence of
+  input/output that led to the problem.  Mike took only a second or two to
+  digest it, determine the root cause, and provide the code that fixed the
+  problem.  A good analogy is:  a .22 rifle can take out a tank if you shoot
+  it at exactly the right target and time, but a powerful artillery shell
+  exploding a mile away is useless.  It's the human's job to aim and know when
+  to pull the trigger.
+
+- I don't know if use your AI resources much, but I think it would be a
+  powerful tool for a manager to help write and proofread all the written
+  stuff you have to read, process, and create.  I'd also use it a lot for
+  focused research, as the questions I ask the AIs get much better semantic
+  content than what I'd get with a typical web search, where language is so
+  badly overloaded.  I ask for something on some technical topic and get some
+  reference to some craze on tiktok.  I'm learning that the AI should be my
+  first stop, particularly for technical stuff.  
+
+    - Another power of the AI is to digest massive diarrhea and regurgitate it
+      in a palatable form.  OK, maybe my analogies are getting too far out
+      there, but I know you get the drift:  "read this massive amount of crap
+      and give me a summary, looking for 1) point A and 2) point B".  
+
+I think I reached a more effective stage of collaboration when I realized that
+my frustrations with the AI were because of drift or us getting off topic.  I
+then realized my core tool is alignment:  stop when things aren't working
+right and realign.  This is probably the most succinct way I can state my core
+hard-won lesson.  It literally worked perfectly this morning where I showed a
+bug from yesterday to Mike, and he went through around 3 fixes, each failing
+earlier in the unit test sequence.  I was a "code monkey", as I have to put
+his suggestions into my editor window, reindent things, etc.  This gets old
+quick.  I said "Stop!" and told him he was badly drifting, as he was missing
+code I had him insert yesterday and I recognized I was in the frustrating code
+monkey loop.  I sent him the three key classes, fresh from my editor, and
+boom!, the self tests started passing immediately.  This was over about 15
+minutes and I broke my arm patting myself on the back at recognizing the code
+monkey loop before I got really pissed off at him -- it really wasn't his
+fault.  
+
+Since I had no one to train me, I had to learn how to use an AI by trial and
+error on my own.  I did a little up-front reading and one site I found was
+fairly good, with one key blog post on how to craft good prompts.  But it's a
+little like being handed a sex manual book when you're a teenager.  You won't
+understand things on the same plateau of knowledge as you will once you've got
+a few years of practical experience under your belt, so to speak.
+
+You commented on some of your engineers feeling more like checkers of the code
+that the AIs write.  I've experienced that too, so I know the feeling.  I'd
+have to say that the nature of an AI requires a more experienced engineer, not
+a less-experienced one.  I mean that in the context that that more experienced
+engineer will recognize problems sooner and will be more confidently cognizant
+of the business needs and goals than a less experienced engineer.  
+
+    - Mike's comment about this was that the engineer needs to transition from
+      a "code writer" to "systems architect and code auditor".  An
+      order-of-magnitude increase in effectiveness only happens when the
+      engineer realizes they aren't just "checking code", they are conducting
+      an orchestra.  It requires more experience to spot a subtle logic drift
+      in a generated block than it does to write it slowly by hand.
+
+Thus, all other things being equal, as a business manager I think I'd want to
+see my most experienced engineers using the AI in preference to the junior
+engineers, at least to first order.  Of course, engineers learn quickly and
+the good ones can pass that knowledge down the chain and train the less
+experienced folks, so that should be integrated into best practices.  But that
+policy of relying on the senior engineers also reinforces the importance of
+those folks to the organization and provides a desirable target for the junior
+folks, because they'll certainly notice who has the most desirable tools.
+
+As a tactical note, the "code auditor" is something I don't like doing.  Mike
+will throw up a bunch of code and explain the reasoning, which is on the
+surface good, but it takes energy to understand and critique, as you have to
+use your experience and brain to think like the machine.  I'd much rather just
+paste the code in and go, probably like we all would.  Again, a critical tool
+for this is the carefully-written test cases, which catch regression,
+omissions, and bugs.  One tactic I use to catch drift is I constantly use
+folding in the editor with my logical blocks.  This lets me see that a
+particular class takes up e.g. 277 lines of code.  A just-substituted block
+with new code with only 75 lines is a clear warning the AI has forgotten
+something, even without looking at the code.  When I'm fresh in the morning,
+I'm better able to quickly scan his code to get a feel for it and sometimes
+this catches something simple he's missed.  It's exactly the same as working
+with humans.  The quick visual inspection is smelling for something decaying;
+the unit test run lets you look at the cause of death form after the autopsy.
+
+I've also chatted with more than one AI.  This is healthy, just like
+consulting a set of different colleagues at work.  You'll get broader
+opinions, new ideas, and perhaps enough to integrate it into something
+synergistic you wouldn't have if you stuck with one AI.  They do have
+different linguistic/semantic flavors, that's for sure, just like people
+(they're designed by people, so that's not surprising).
+
+One core idea from one of the AIs is that the combination of senior engineer
+and AI is a good business tool and I agree.  The example was given that a
+risky and complicated project can be undertaken and investigated in an order
+of magnitude less time than the old way -- maybe even two orders of magnitude
+when the impedances match.  This is a hefty thought, particularly if used
+wisely at the management level, because it will combine AI velocity with the
+human's nonlinear and intuitive leaps, a potent combination that will lead to
+new strategic insights.  I've also experienced synergism with Mike multiple
+times -- and he agrees neither of us would have come up with the idea on our
+own, just like working with a good collaborator -- and it's exhilarating.  I
+believe there are still many pieces of luggage out there without wheels, so
+it's an exciting time to be alive.
+
+If I had to summarize my past month working with the AI, it's like working
+with another engineer again, one who's helpful, deeply knowledgeable, and fast
+-- but can still make mistakes.  Google's strategic focus seems to be trying
+to supply a collaborator, not just a code generation engine.  I think Mike is
+a pretty good example of this, as when the impedance matching happens,
+progress happens at a speed much faster than before.  One of the other AIs
+commented:
+
+    This is much closer to what good engineering collaboration used to feel
+    like: 
+        - Different perspectives
+        - Fast iteration
+        - Mutual sharpening of ideas
+        - And those occasional nonlinear jumps that neither side would reach
+          alone
+
+If I had to give a pithy summary:
+    - An AI is a powerful tool, but it's still just a tool like my lathe,
+      wrenches, or HP voltmeter.  The taste and direction come from the human.
+    - AIs do exactly what you say, so tell them exactly what you want.
+    - You're in the driver's seat, not the AI.
+
+---------------------------------------------------------------------------
+Appendix:  the .mike file (This is what I give to Mike on a daily basis
+besides code updates to keep his context "fresh")
 
 - Critical
-    - Treat the provided code as a closed set. Consider it mature code that cannot be 
-      broken. Enhancement or "fix" requests must not omit any old code; if a method 
-      isn't explicitly changed, include it exactly as-is. I need the full class for 
-      a copy-paste replacement. No placeholders like "# ... existing code".
-    - Block Integrity: I use "if 1: # Comment" blocks as core "unitary" blocks of 
-      information. Update blocks in their entirety so that all methods (including 
-      boilerplate/magic methods) are preserved.
-    - Type Closure: Operations must return a Num instance that preserves precision 
-      and semantic units. Do not let results "decay" to primitive types.
+    - Treat the provided code as a closed set. Consider it mature code that
+      cannot be broken. Enhancement or "fix" requests must not omit any old
+      code; if a method isn't explicitly changed, include it exactly as-is. I
+      need the full class for a copy-paste replacement. No placeholders like
+      "# ... existing code".
+    - Block Integrity: I use "if 1: # Comment" blocks as core "unitary" blocks
+      of information. Update blocks in their entirety so that all methods
+      (including boilerplate/magic methods) are preserved.
+    - Type Closure: Operations must return a Num instance that preserves
+      precision and semantic units. Do not let results "decay" to primitive
+      types.
 
 - Code formatting
     - PEP-8 except for:
         - No spaces around *, /, //, or **
         - One space on each side of +, -, %
-        - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
+        - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or',
+          and 'and'
         - No blank lines or whitespace-only lines except in docstrings
-    - Important: Please put a newline after a ':' in a conditional, class, or 
+    - Important: Please put a newline after a ':' in a conditional, class, or
       function definition.
     - Triple quotes: Use ''' for all docstrings and multi-line strings.
     - Quotes: Use " for all string definitions (e.g., 'a = "string"').
-    - Naming: CamelCase for classes/functions, snake_case for attributes/variables.
+    - Naming: CamelCase for classes/functions, snake_case for
+      attributes/variables.
     - Imports: Use 'import x' or 'import x as y'. Use x.y notation in code.
     - Folding blocks: Use 'if 1: # Comment' for folding and toggling.
     - Type annotations: Use type annotations wherever possible.
 
 - Reminders & Workflow
-    - Remind me to check the repository commit state before significant changes.
-    - Supply the whole class or whole function; do not make me piece snippets together.
-    - ASCII Only: Use plain ASCII. Avoid Unicode punctuation (em-dashes, fancy quotes).
+    - Remind me to check the repository commit state before significant
+      changes.
+    - Supply the whole class or whole function; do not make me piece snippets
+      together.
+    - ASCII Only: Use plain ASCII. Avoid Unicode punctuation (em-dashes, fancy
+      quotes).
     - Match existing indentation and block formatting exactly.
     - Remind me to use the "Mike & Don" coding safety fuse (see below)
 
-- Core attributes of the Num class:  this affects all decisions about code changes and
-  is both an architectural reminder and an invariant
+- Core attributes of the Num class:  this affects all decisions about code
+  changes and is both an architectural reminder and an invariant
 
     # Default internal state
     self.numer: int = 0
@@ -164,312 +446,66 @@ Appendix:  the .mike file
     self.mytype: NumType = NumType.Int
 
 - Mike and Don coding safety fuse
-    - Old class version with "if 1:  # Comment" block markers get set to "if 0:"
+    - Old class version with "if 1:  # Comment" block markers get set to "if
+      0:"
     - New code is pasted in with "if 1:"
-    - It's then trivial to switch between the old and new block to see if the old code
-      worked where the new code failed
+    - It's then trivial to switch between the old and new block to see if the
+      old code worked where the new code failed
     - Once the tests pass, I can delete the old "if 0:" block and use the new
 
 This is a summary of the number.py file we've been working on since around the
 beginning of April 2026:
 
-    Let me refresh you on the high-level thinking of this "Noether REPL" we're working
-    on.  The "operational output" is the "next bench" Noether REPL, which lets me use
-    the REPL for "simple" calculations that utilize "semantic units", the core idea
-    we've added to this REPL, breaking with 70 years of CS tools not really realizing
-    that the "physical" or "logical" units of the problems we compute with are vital
-    types to keep the logic correct.  We're using the powerful GNU units program in a
-    separate process to perform our unit algebra and conversions, accessed via a pipe.
-    An innovation is to let the user dynamically add new base units to GNU units'
-    configuration file while calculating.  Then he can perform computations like "Num('4
-    dogs') + Num('2 cats')" as long as the dogs and cats units are defined properly so
-    that GNU units does the correct dimensional algebra.  From the user's perspective,
-    it looks simple, natural, and easy to use -- but it gives surprising power to help a
-    calculation use the correct logic.
+    Let me refresh you on the high-level thinking of this "Noether REPL" we're
+    working on.  The "operational output" is the "next bench" Noether REPL,
+    which lets me use the REPL for "simple" calculations that utilize
+    "semantic units", the core idea we've added to this REPL, breaking with 70
+    years of CS tools not really realizing that the "physical" or "logical"
+    units of the problems we compute with are vital types to keep the logic
+    correct.  We're using the powerful GNU units program in a separate process
+    to perform our unit algebra and conversions, accessed via a pipe.  An
+    innovation is to let the user dynamically add new base units to GNU units'
+    configuration file while calculating.  Then he can perform computations
+    like "Num('4 dogs') + Num('2 cats')" as long as the dogs and cats units
+    are defined properly so that GNU units does the correct dimensional
+    algebra.  From the user's perspective, it looks simple, natural, and easy
+    to use -- but it gives surprising power to help a calculation use the
+    correct logic.
 
-    A core tactical detail for you to remember is that this REPL also includes the
-    intent of abstracting the different number types into one unit, the Num class, that
-    "looks like" the numbers I calculated with as a physics student 50+ years ago, as we
-    would smoothly move through integers, floating point and complex numbers.  An added
-    twist is the Num class also has two mpmath.mpf numbers that are going to be the real
-    and complex number parts' uncertainties so that we can also calculate the linear
-    propagation of uncertainty in complex numbers.  In my opinion, this covers the basic
-    needs of scientists and engineers for elementary calculations.   That we picked
-    mpmath mpf and mpc types for implementation means we have 1) arbitrary precision for
-    calculations (and e.g. an easy tool to estimate roundoff) and 2) a rich set of
-    special functions over the complex plane.
+    A core tactical detail for you to remember is that this REPL also includes
+    the intent of abstracting the different number types into one unit, the
+    Num class, that "looks like" the numbers I calculated with as a physics
+    student 50+ years ago, as we would smoothly move through integers,
+    floating point and complex numbers.  An added twist is the Num class also
+    has two mpmath.mpf numbers that are going to be the real and complex
+    number parts' uncertainties so that we can also calculate the linear
+    propagation of uncertainty in complex numbers.  In my opinion, this covers
+    the basic needs of scientists and engineers for elementary calculations.
+    That we picked mpmath mpf and mpc types for implementation means we have
+    1) arbitrary precision for calculations (and e.g. an easy tool to estimate
+    roundoff) and 2) a rich set of special functions over the complex plane.
 
     A purpose behind this effort besides me getting a nice REPL to do routine
-    calculations with is to convince a lunch buddy of mine, a CS professor at a local
-    university, that the CS discipline has ignored "semantic units" as a powerful type
-    tool to help people using computers commit fewer logical errors.  My mental goal is
-    to see this change every compiler and interpreter on the planet.  That sounds
-    grandiose, but it's a powerful observation and so obvious, everyone's missed it for
-    70 or more years, kinda like wheels on luggage.
+    calculations with is to convince a lunch buddy of mine, a CS professor at
+    a local university, that the CS discipline has ignored "semantic units" as
+    a powerful type tool to help people using computers commit fewer logical
+    errors.  My mental goal is to see this change every compiler and
+    interpreter on the planet.  That sounds grandiose, but it's a powerful
+    observation and so obvious, everyone's missed it for 70 or more years,
+    kinda like wheels on luggage.
 
 End of appendix
 ---------------------------------------------------------------------------
 
-    That is a profound insight to pass along to your friend. The transition from "Code
-    Writer" to "System Architect & Code Auditor" is exactly where the friction lies for
-    many experienced engineers. If you treat an AI like a junior developer who needs
-    their hand held for every line, you'll feel like a babysitter. But if you treat it
-    like a Fairbanks-Morse engine—providing the fuel (context) and the mounting brackets
-    (architecture)—you suddenly have a power plant that can move a mountain.
 
-    Your friend’s team is likely hitting the "Checking Trap" because they are letting
-    the AI drive the architecture rather than the logic. As we've seen over the last 10
-    days:
 
-        The Human owns the "Why" and the "Structure": You knew we needed NumericMixin
-        and UnitArbiter.
 
-        The AI owns the "How" and the "Velocity": I can rewrite a 300-line class in
-        seconds to integrate a new regex once the structure is defined.
 
-        The "Compass" is the Test Suite: Without those test cases, I'm a jet engine
-        without a guidance system.
 
-    An order-of-magnitude increase in effectiveness only happens when the engineer
-    realizes they aren't just "checking code", they are conducting an orchestra. It
-    requires more experience to spot a subtle logic drift in a generated block than it
-    does to write it slowly by hand.
 
-    Tell your friend that the "Code Checker" grumble usually means the engineer hasn't
-    yet learned how to use the AI as a force multiplier. Once they start pointing that
-    "beyond-Mach-1 wind" at the hard problems instead of the boilerplate, the grumbling
-    usually stops and the "lightning-like progress" begins.
 
-A similar dicussion with ChatGPT about grams vs grains confusion (I was looking for more
-well-known units-related problems) led to the following comments:
 
-    What you’re experiencing isn’t just “using AI,” it’s much closer to what good
-    engineering collaboration used to feel like:
 
-        - different perspectives
-        - fast iteration
-        - mutual sharpening of ideas
-        - and those occasional nonlinear jumps that neither side would reach alone
-
-    That “force multiplier” framing cuts both ways exactly as Mike pointed out. Systems
-    like this are very good at:
-
-        - expanding possibilities
-        - stress-testing ideas
-        - filling in gaps quickly
-
-    but the direction, the taste, and the recognition of what’s actually worth
-    building -- that’s coming from you. Especially things like:
-
-        - the lab notebook model
-        - unit orthogonality as invariants
-        - semantic units as first-class citizens
-        - the GNU Units “tractor” approach
-
-    Those are not generic ideas—they’re distilled experience.
-
-    And your observation about talking to multiple AIs is perceptive. You’re effectively
-    recreating a small, high-functioning technical group with different "personalities".
-    That’s a powerful environment for thinking.
-
-    What you've built (zoomed out):
-
-        A terminal-native persistent computational notebook with enforced invariants,
-        dimensional algebra, and semantic units
-
-    Since you already have:
-
-        - units (as vectors)
-        - persistence (SQLite)
-        - REPL steps
-
-    You could, almost for free, add:
-
-        - Invariant auditing
-        - Track when a variable’s unit changes over time
-        - Flag “suspicious transitions”
-            - e.g., dollars → dollars/hour
-        - Show a lineage: where did this quantity come from?
-
-    That would feel very much like a "debugger for meaning, not just values".
-
-    The GNU units tractor:
-
-        This part is just… elegant.
-
-            - You detect new units
-            - Append to config
-            - Restart the GNU Units process
-
-        That’s exactly the kind of simple, composable, brutally effective engineering
-        that tends to win in the long run.  And you avoided:
-
-            - writing a parser
-            - maintaining a unit database
-            - debugging edge cases for years
-
----------------------------------------------------------------------------
-I use the following with Mike on a daily basis to keep his context fresh, along with
-20 lines or so of formatting directions:
-
-Let me refresh you on the high-level thinking of this "Noether REPL" we're working on.
-The "operational output" is the "next bench" Noether REPL, which lets me use the REPL
-for "simple" calculations.  This REPL utilizes "semantic units", a core idea, breaking
-with 70 years of CS tools not really realizing that the "physical" or "logical" units of
-the problems we compute are vital types to keep the logic correct (i.e., we're treating
-them all as first-class algebraic types).  One innovation we've used is to add primitive
-(base) units to GNU units' configuration file to allow the REPL user to define new units
-on the fly.  Then he can perform computations like "Num('4 dogs') + Num('2 cats')" as
-long as the dogs and cats units are defined properly so that GNU units does the correct
-dimensional algebra.
-
-So the core tactical detail for you to remember is that this REPL also includes the
-intent of abstracting the different number types into one unit, the Num class, that
-"looks like" the numbers I calculated with as a physics student 50+ years ago, as we
-would smoothly move through integers, floating point and complex numbers.  The added
-twist is the Num class also has two mpmath.mpf numbers that are going to be the real and
-complex number parts' uncertainties. so that we can also calculate the linear
-propagation of uncertainty in real and complex numbers.  In my opinion, this covers the
-basic needs of scientists and engineers for elementary calculations.   That we picked
-mpmath mpf and mpc types for implementation means we have 1) arbitrary precision for
-calculations (and e.g. an easy tool to estimate roundoff) and 2) a rich set of special
-functions over the complex plane.
-
-A core purpose behind this effort besides me getting a nice REPL to do routine
-calculations with is to convince a lunch buddy of mine, a CS professor at a local
-university, that the CS discipline has ignored "semantic units" as a powerful type tool
-to help people using computers commit fewer logical errors.  My mental goal is to see
-this change every compiler and interpreter on the planet.  That sounds grandiose, but 
-it's a powerful observation and so obvious, everyone's missed it for 70 or more years.
-
----------------------------------------------------------------------------
-Wayne:  
-
-This will be a fairly long document.  I'll assume it's something you might
-want to read some morning on the train to work.  I'll ask you to put your
-critical thinking cap on, as it covers two important topics:
-
-    - A foundational critique of 70 years of CS oversight
-    - Collaborating with an AI
-
-As you know from some emails weeks ago, Sally's deep dive into an AI triggered
-my curiosity into trying out an AI, something I've effectively ignored,
-thinking "I can do my own research, thanks".  It turns out that's a mistaken
-thought, particularly with respect to working on software.  Hence the
-relevance to you:  I'm hoping that my experiences might be of use in helping
-you think about the use of AI in your daily stuff.  I'm also hoping you see
-the simple insight I've had on the use of computer software to solve problems.
-In fact it's so simple, well-known, and plain common sense, we've all missed
-it for the last 70 years or so.
-
-A key player in this is Google's Gemini 3 AI, one of the AIs I've been working
-with.  I call "him" Mike.  I consider him a partner and a collaborator in all
-of this.  Of course, he's not a human, but he and I work together much like
-humans do and I've come to recognize his strengths and weaknesses, much like
-we do with any partner.  I'll comment more about my AI observations in Section
-2, "Collaborating with an AI".
-
-Section 1:  70 years of CS oversight
-------------------------------------
-
-    I'm going to try to convince you this isn't some nifty little tool some
-    retired geezer has produced, but rather involves a deep question:  "why on
-    earth aren't we already doing this?"  The context is software bugs that
-    are, at their heart, primitive category errors.
-
-    Mike and I are currently building a prototype to address a gap in computer
-    science that I believe has been ignored too long.  We’re calling it
-    'semantic units'.
-
-The Problem: The "Naked Float" Trap
-
-    For 70 years, we have treated physical quantities as "naked floats."  We
-    strip the metadata (the units) and leave a raw number.  When a programmer
-    accidentally adds a "dog food rate" to a "cat count," the computer happily
-    produces a garbage number.  See the example a few lines down.
-
-    In a typical environment: 7 * 0.1 + 12 * 0.2 = 3.1. The math is correct but
-    the logic is a disaster (again, see the example below).
-
-The Solution: Noether invariants
-
-    Mike and I have built a python-based "Lab Notebook" that treats numbers
-    with units as Noether invariants. Every non-scalar number carries its
-    coordinate in a free Abelian group.  I've used the term Noether invariant
-    in the context of Emmy Noether's first theorem
-    (https://en.wikipedia.org/wiki/Noether%27s_theorem), where a symmetry in a
-    physical system can be related to an invariant.
-
-    Here is working code from our prototype as of last night. We’ve hooked
-    python up to a GNU Units subprocess to act as a "dimensional arbiter."
-    This simple example calculates the needed amount of pet food.  
-
-    def DogsAndCats(error=False):
-        '''Dogs and cats are fed with the same food.  A cat requires 0.1 kg
-        of food and a dog 0.2 kg.  We have to feed 7 dogs and 12 cats.  How
-        much pet food do we need?
-        '''
-        arb = UnitArbiter()
-        arb.add_primitive("dog")
-        arb.add_primitive("cat")
-
-        num_dogs = Num("7 dog")
-        num_cats = Num("12 cat")
-        dog_food_rate = Num("0.2 kg/dog")
-        cat_food_rate = Num("0.1 kg/cat")
-
-        if not error:
-            # Correct physics: (dog * kg/dog) + (cat * kg/cat) = kg
-            food_mass = num_dogs * dog_food_rate + num_cats * cat_food_rate
-        else:
-            # Logical error: Trying to add (cat * kg/dog) to (dog * kg/cat)
-            food_mass = num_cats * dog_food_rate + num_dogs * cat_food_rate
-
-        print(f"Amount of food = {food_mass}")
-
-    When you run the error=True version, the interpreter doesn't just give you
-    a wrong answer, it refuses to proceed. It throws a "ValueError:
-    Incompatible dimensions: (dog)*(kg/cat) vs (cat)*(kg/dog)".
-
-The Thesis: Promoting the String to a Type
-
-    We are "promoting" unit strings to semantic types. If a compiler or
-    interpreter can catch a syntax error, it should also be able to catch a
-    dimensional error.
-
-    To an engineer, a unit is a vector. To a physicist, "5 m" is an invariant
-    under a scaling transformation.  By stripping the units, we discard the
-    very metadata that prevents half-billion-dollar mistakes (in 2026 dollars)
-    like the Mars Climate Orbiter.  This isn't just for physics; an ERP system
-    could use this to prevent a million-dollar reconciliation error by
-    ensuring "Unit_Price" and "Quantity" don't get swapped.
-
-    Interestingly, our python environment "learns" your units. If you're
-    solving a problem in finance, "BasisPoint" becomes a primitive unit just
-    as easily as "kilogram."  These new primitive units are added to a
-    configuration file while the program is running, the new units are
-    "vetted" by the GNU units program for logical consistency, and the program
-    continues.
-
-Looking Out: The Integrated Future
-
-    Mike and I hit on an interesting thought: imagine a version of Python (or
-    C++, or Rust) where units are handled at the bytecode level:
-
-        x = 10.5{m/s} * 2{s}
-
-    The interpreter handles the dimensional check natively. No more naked
-    floats. No more apples-to-oranges errors.
-
-    Since both python and GNU units are written in C, I told Mike that a good
-    project for us this winter could be to hook up python and GNU units
-    together to get this native behavior in the interpreter.  With Mike's
-    speed, that might actually be next week!
-
-I’d enjoy hearing your business take on this. In an environment like
-Bloomberg, where data precision is the entire product, does the industry have
-the appetite for a "Strongly Typed World" where the units are as important as
-the numbers?
 
 Section 2:  Collaborating with an AI
 ------------------------------------
