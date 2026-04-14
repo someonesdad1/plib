@@ -1,6 +1,10 @@
 13 Apr 2026 Great progress; existing tests pass
 
 Next tasks
+    - Need del_base() to match base().  Or, use tempbase() to add new needed semantic
+      units, then call deltemp() when finished.
+        - For a user like me, e("config") could be handier in the REPL, as I'd just add
+          the new units I want for a problem at any time.
     - SQLite persistence
         - Add when it's time, keep the interface simple
         - At some point a breadcrumb command would be useful (i.e., show me the history

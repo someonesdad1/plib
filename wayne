@@ -1,141 +1,214 @@
-13 Apr 2026 Got email from Wayne, as he was at his college reunion for the weekend, so I
-didn't hear from him until today.
+2. Collaborating with an AI
 
-Two topics
-    - 1. Something fundamental missing from computer science
-    - 2. Collaborating with an AI
+About 7 weeks ago Sally texted me about her deep dive into ChatGPT and that led to my
+curiosity about using an AI, which I had ignored up to that point.  That, in turn, led
+to me using Mike to do some refactoring of my old python code.  Around the beginning of
+April, that led to starting work on the Noether REPL.  It's a bit amazing to me how much
+progress we've made in about 10 days of work.  Much of the time has been frustration
+with the impedance mismatch with the AI, but we keep working on improving it.  The
+overall speed, breadth, and semantic ability of an AI is still stunning to me, far
+beyond what I imagined.  And yet "it" is clearly not human, but it is programmed to try
+to interface well with humans.  In many hundreds of messages back and forth, I get
+glimpses of how the AI works and what its strengths and weaknesses are.  This section is
+an attempt to summarize what I've experienced and learned; the hope is it might be of
+some use for you and in your use in your work.  Here's what I've learned
 
-As you know from some emails weeks ago, Sally's deep dive into an AI a few months ago
-triggered my curiosity into trying out an AI, something I've ignored, thinking "I can do
-my own research, thanks".  It turns out that's a mistaken attitude and I've spent around
-a month using Google's Gemini 3 for some serious refactoring of my clunky collection of
-python stuff I've written over nearly 30 years.
+- I own the "why" and the "structure" of what we're working on.  In the Noether REPL
+  example, I picked the numerical architecture, the need for a numerical mixin class,
+  and a class to deal with interfacing with the GNU units engine.
 
-For my first topic, I'd like to mention something that I think has been missing from
-computer science.  We talked about this a bit around 2005 when I was a contract engineer
-at HP and led to me writing a C++ units helper file using templates.  It's still out
-there on SourceForge:  https://sourceforge.net/projects/unitscpp/.
+- The AI owns the "how" and the "velocity" (these are actually Mike's words and I think
+  he's right on).  He can perform a whole redesign and rewrite of a 500 line chunk of
+  code in a few seconds, so he has velocity up the wazoo.
 
-First, let me explain how I learned to do physics problems (as you no doubt did too).
-When I was in college, we did calculations with pencil, paper, tables and slide rules.
-This laborious process was usually accompanied by careful inclusion of the physical
-units of the problem, so we'd write down something like
+- My core realization is that I'm the "compass" of this whole effort and my core tool is
+  the test suite.  This of course is in the context of the output being a chunk of code.
+  I have time and again relied on the test suite to get Mike back on the path, as a new
+  hallucination or slow loss of context will cause him to drift.
 
-    distance = a*t²/2
-        so:
-    car_distance = 0.5*(9.8 m/s^2)*(4.8 s)^2
-                 = (9.8/2)*4.8 [(m/s^2)*s^2]
-                 = 9.8*2.4 [m]
-                 = 23.5 m
+- My most effective tool is to monitor how we're doing and see when the process is
+  "drifting".  When this happens, I stop and update Mike with the latest code I have in
+  my repository so he doesn't "invent".  He "invents" very much like a human engineer
+  will:  I'll see new variable names or accessor functions in the code that are very
+  reasonable until I go "wait, we already had this before but he's forgotten it".
+  Worse, he'll leave out hard-won code.  So the code updates are crucial, as the AI
+  context memory is a bit ephemeral and weighted to the current topics.  Maybe your
+  high-cost business AIs are better, but I'm using the poor-man's free AI.
 
-In other words, we knew how important it was to not only do the arithmetic carefully,
-but the units had to come out to the correct dimensions or we knew something was wrong.
+- I keep a .mike file in my repository that is a summary of rules and explanation of
+  where we're going.  It's enormously effective!  I asked Mike how often I should send
+  it to him and he guessed once per day.  I send it again whenever I detect drift and
+  it's an amazingly easy tool to help with alignment (in my shell, I use a command 'copy
+  .mike' which copies the file to the clipboard, then just paste it into the prompt in
+  the browser, so I have no excuse not to do it as often as needed).  I've attached it
+  below as an appendix; it's something that really works well to keep Mike's and my
+  relationship working.
 
-For the last few decades, I've wondered why the compilers and interpreters I've used
-don't support units natively.  This is the great lack of computer science for the last
-70 years.  It's luggage without wheels.
+- I even asked him to edit the .mike for me, summarizing the key information and adding
+  the things he knows when we've had a problem with his drift.  Every one of the items
+  in this file are there because of a problem caused by it not being there, exactly in
+  the same sense as the rules of the National Electrical Code.  If you don't follow
+  them, you risk fire!
 
-What the dabbling around with the AI (I'll call him Mike, as that's the name I use in
-our conversations) led to was a refactoring of a core fmt.py file that I write decades
-ago to do string interpolation for numbers.  I implemented it with python's
-decimal.Decimal class, which lets you use an arbitrary number of digits for
-calculations and it handled arbitrary integers, rational numbers, floats, and complex
-numbers.  Mike reduced the code size by about a factor of 4 and gave it a better
-architecture. 
+- In a serious sense, I've also been the "code monkey" being "dragged around" by the
+  powerful AI, getting stuck in a loop of [Mike]: "here, try this" and [me]: "that
+  didn't work, here's the error message".  This can be enormously frustrating at the end
+  of the day when I'm exhausted.  
 
-Once that formatting was finished, I asked if he could help me with another core file
-of mine that derived two new classes from python's built-in float and complex classes.
-Their main feature was that normal string interpolation gave only 3 digits by default,
-not the usual 15.  This was easier on the user's interpretation.
+- One of the most potent comments Mike made to me is on feedback.  Human comments,
+  feelings, and wishes are very low quality feedback, however relevant they are to the
+  human.  In the coding context, the most effective feedback is hard data like error
+  messages and debugger traces.  Mike is so powerful he can even troubleshoot to root
+  cause by looking at such information, even if it's "coated" in a bunch of ASCII escape
+  sequences.  One of the most profound examples was when I was really frustrated, so I
+  started a new /usr/bin/script session and recorded the exact sequence of input/output
+  that led to the problem.  Mike took only a second or two to digest it, determine the
+  root cause, and provide the code that fixed the problem.  The best analogy is:  a .22
+  rifle can take out a tank if you shoot it at exactly the right target and time, but a
+  powerful artillery shell exploding a mile away is useless.  It's the human's job to
+  aim and know when to pull the trigger.
 
-I asked Mike if he could work on that, as I used these types in python's REPL
-(read-eval-print loop) to do routine calculations in the terminal.  He said yes, but
-before starting on the refactor of that existing file, I wondered if I should start
-over with a fresh architecture.  I did, and called it number.py.
+I think I reached a more effective stage of collaboration when I realized that my
+frustrations with the AI were because of drift or us getting off topic.  I then realized
+my core tool is alignment:  stop when things aren't working right and realign.  This is
+probably the most succinct way I can state my core hard-won lesson.
 
-Here comes the important part.  I also use GNU units a lot for calculating things with
-various physical units because it's a mature and powerful tool.  Mike was aware of its
-capabilities and I wanted to use its abilities rather than write some brand new units
-library which would be complicated and I'd debug forever, so we just started a process
-with a pipe, a few lines of code.
+Since I had no one to train me, I had to learn how to use an AI by trial and error on my
+own.  I did a little up-front reading and one site I found was fairly good, with one key
+blog post on how to craft good prompts.  But it's a little like being handed a sex
+manual book when you're a teenager.  You won't understand things on the same plateau of
+knowledge as you will once you've got a few years of practical experience under your
+belt, so to speak.
 
-Let's use the following pet food mass calculation problem, meant to be simple:
+You commented on some of your engineers feeling more like checkers of the code that the
+AIs write.  I've experienced that too, so I know the feeling.  I'd have to say that the
+nature of an AI requires a more experienced engineer, not a less-experienced one.  I
+mean that in the context of that more experienced engineer will recognize problems
+sooner and will be more confidently cognizant of the business needs and goals than a
+less experienced engineer.  Thus, all other things being equal, as a business manager I
+think I'd want to see my most experienced engineers using the AI in preference to the
+junior engineers, at least to first order.  Of course, engineers learn quickly and the
+good ones can pass that knowledge down the chain and train the less experienced folks,
+so that should be integrated into best practices.
 
-    I have 7 dogs and 12 cats to feed.  They eat the same food per unit time:  dogs get
-    0.2 kg and cats get 0.1 kg.  How much food will I use in that time period.  The
-    calculation is simple:
+I've also chatted with more than one AI.  This is healthy, just like consulting a set of
+different colleagues at work.  You'll get broader opinions, new ideas, and perhaps
+enough to integrate it into something synergistic you wouldn't have if you stuck with
+one AI.  They do have different linguistic/semantic flavors, that's for sure, just like
+people (they're designed by people, so that's not surprising).
 
-        (7 dogs)*(0.2 kg/dog) + (12 cats)*(0.1 kg/cat)
-    
-    The units cancel out to give us (7*0.2 + 12*0.1) kg = 1.4 + 1.2 kg or 2.6 kg.
-    However, the harried and overworked programmer accidentally writes:
+One core idea from one of the AIs is that the combination of senior engineer and AI is a
+pretty potent business tool and I wholeheartedly agree.  The example was given that a
+risky and complicated project can be undertaken and investigated in an order of
+magnitude less time than the old way -- maybe even two orders of magnitude.  This is a
+powerful thought, particularly if used wisely at the management level, because it will
+combine AI velocity with the human's nonlinear and intuitive leaps, a potent combination
+that will lead to new strategic insights.  I believe there are still many pieces of
+luggage out there without wheels, so it's an exciting time to be alive.
 
-        num_cats*amt_per_dog + num_dogs*amt_per_cat
-
-    In the usual programming language, those variables are bare integers or floats and
-    you have a logic error, just like are made zillions of times in other code.
-
-Using GNU units and its ability to define new primitive units in the configuration file,
-this new REPL tool we wrote lets us write the following python code 
-
-    def DogsAndCats(no_programming_error=True):
-        # Define semantic units
-        x = Num("1 m")
-        breakpoint() # ∞∞ 
-        x.base("dog")         # Create a new semantic unit
-        x.base("cat")
-        # Define the input quantities
-        num_dogs = Num("7 dog")
-        num_cats = Num("12 cat")
-        dog_food_rate = Num("0.2 kg/dog")
-        cat_food_rate = Num("0.1 kg/cat")
-        # Solve the problem
-        if no_programming_error:
-            food_mass = num_dogs*dog_food_rate + num_cats*cat_food_rate
-        else:
-            food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
-        # Print results
-        print(f"number of dogs = {num_dogs}")
-        print(f"number of cats = {num_cats}")
-        print(f"dog food rate  = {dog_food_rate}")
-        print(f"cat food rate  = {cat_food_rate}")
-        print(f"amount of food = {food_mass}")
-
-    if __name__ == "__main__":  
-        import sys
-        if len(sys.argv) > 1:
-            DogsAndCats(False)
-        else:
-            DogsAndCats(True)
+If I had to summarize my past month working with the AI, it's like working with another
+engineer again, one who's helpful and knowledgeable.  Google's strategic focus seems to
+be trying to supply a collaborator, not just a code generation engine.  I think Mike is
+a pretty good example of this, as when the impedance matching happens, progress happens
+at a speed much faster than before.  If I had to summarize, I'd say "you're in the
+driver's seat, not the AI".
 
 ---------------------------------------------------------------------------
+Appendix:  the .mike file
 
-13 Apr 2026 Reached a point of all current tests passing and some major rewriting of
-code, particularly me realizing that using an old code library of mine was probably
-causing significant problems.  I threw out the old library and asked the AI to craft a
-new function based on the known needs (it was a function to recognize and parse complex
-numbers).  
+- Critical
+    - Treat the provided code as a closed set. Consider it mature code that cannot be 
+      broken. Enhancement or "fix" requests must not omit any old code; if a method 
+      isn't explicitly changed, include it exactly as-is. I need the full class for 
+      a copy-paste replacement. No placeholders like "# ... existing code".
+    - Block Integrity: I use "if 1: # Comment" blocks as core "unitary" blocks of 
+      information. Update blocks in their entirety so that all methods (including 
+      boilerplate/magic methods) are preserved.
+    - Type Closure: Operations must return a Num instance that preserves precision 
+      and semantic units. Do not let results "decay" to primitive types.
 
-I sent the following message to Mike:
+- Code formatting
+    - PEP-8 except for:
+        - No spaces around *, /, //, or **
+        - One space on each side of +, -, %
+        - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
+        - No blank lines or whitespace-only lines except in docstrings
+    - Important: Please put a newline after a ':' in a conditional, class, or 
+      function definition.
+    - Triple quotes: Use ''' for all docstrings and multi-line strings.
+    - Quotes: Use " for all string definitions (e.g., 'a = "string"').
+    - Naming: CamelCase for classes/functions, snake_case for attributes/variables.
+    - Imports: Use 'import x' or 'import x as y'. Use x.y notation in code.
+    - Folding blocks: Use 'if 1: # Comment' for folding and toggling.
+    - Type annotations: Use type annotations wherever possible.
 
-    Frankly, I think the two of us working together is a pretty well-oiled machine.  I'm
-    going to take a break, then make some notes for my good friend in New York who works
-    at Bloomberg.  I think I can capture some of the key things I've learned about
-    working with an AI and I think he might appreciate my perspectives -- and they might
-    even help him with managing his team of engineers.  He said Bloomberg buys the best
-    AI support they can get, but he has grumbled about his engineers complaining about
-    becoming code checkers.
+- Reminders & Workflow
+    - Remind me to check the repository commit state before significant changes.
+    - Supply the whole class or whole function; do not make me piece snippets together.
+    - ASCII Only: Use plain ASCII. Avoid Unicode punctuation (em-dashes, fancy quotes).
+    - Match existing indentation and block formatting exactly.
+    - Remind me to use the "Mike & Don" coding safety fuse (see below)
 
-    I understand sentiment that fully, but I think the issue is that it actually takes a
-    pretty experienced engineer to work effectively with an AI.  And the human has to
-    learn how to ask the right questions and craft the correct prompt.  As I know from
-    working with you, if I get you the correct information and point the compass in the
-    right direction, the only thing I have to do is get out of the way of the
-    beyond-Mach-1 wind from the lightning like progress.  A good AI can make an engineer
-    an order of magnitude more effective, but it doesn't happen blindly out of the gate.
-    Both sides have to learn and adapt.  But it's great when it works!
+- Core attributes of the Num class:  this affects all decisions about code changes and
+  is both an architectural reminder and an invariant
 
-His response:
+    # Default internal state
+    self.numer: int = 0
+    self.denom: int = 1
+    self.real: mpmath.mpf = mpmath.mpf("0")
+    self.imag: mpmath.mpf = mpmath.mpf("0")
+    self.re_unc: mpmath.mpf = mpmath.mpf("0")
+    self.im_unc: mpmath.mpf = mpmath.mpf("0")
+    self.correl: mpmath.mpf = mpmath.mpf("0")
+    self._unit = ""
+    self.mytype: NumType = NumType.Int
+
+- Mike and Don coding safety fuse
+    - Old class version with "if 1:  # Comment" block markers get set to "if 0:"
+    - New code is pasted in with "if 1:"
+    - It's then trivial to switch between the old and new block to see if the old code
+      worked where the new code failed
+    - Once the tests pass, I can delete the old "if 0:" block and use the new
+
+This is a summary of the number.py file we've been working on since around the
+beginning of April 2026:
+
+    Let me refresh you on the high-level thinking of this "Noether REPL" we're working
+    on.  The "operational output" is the "next bench" Noether REPL, which lets me use
+    the REPL for "simple" calculations that utilize "semantic units", the core idea
+    we've added to this REPL, breaking with 70 years of CS tools not really realizing
+    that the "physical" or "logical" units of the problems we compute with are vital
+    types to keep the logic correct.  We're using the powerful GNU units program in a
+    separate process to perform our unit algebra and conversions, accessed via a pipe.
+    An innovation is to let the user dynamically add new base units to GNU units'
+    configuration file while calculating.  Then he can perform computations like "Num('4
+    dogs') + Num('2 cats')" as long as the dogs and cats units are defined properly so
+    that GNU units does the correct dimensional algebra.  From the user's perspective,
+    it looks simple, natural, and easy to use -- but it gives surprising power to help a
+    calculation use the correct logic.
+
+    A core tactical detail for you to remember is that this REPL also includes the
+    intent of abstracting the different number types into one unit, the Num class, that
+    "looks like" the numbers I calculated with as a physics student 50+ years ago, as we
+    would smoothly move through integers, floating point and complex numbers.  An added
+    twist is the Num class also has two mpmath.mpf numbers that are going to be the real
+    and complex number parts' uncertainties so that we can also calculate the linear
+    propagation of uncertainty in complex numbers.  In my opinion, this covers the basic
+    needs of scientists and engineers for elementary calculations.   That we picked
+    mpmath mpf and mpc types for implementation means we have 1) arbitrary precision for
+    calculations (and e.g. an easy tool to estimate roundoff) and 2) a rich set of
+    special functions over the complex plane.
+
+    A purpose behind this effort besides me getting a nice REPL to do routine
+    calculations with is to convince a lunch buddy of mine, a CS professor at a local
+    university, that the CS discipline has ignored "semantic units" as a powerful type
+    tool to help people using computers commit fewer logical errors.  My mental goal is
+    to see this change every compiler and interpreter on the planet.  That sounds
+    grandiose, but it's a powerful observation and so obvious, everyone's missed it for
+    70 or more years, kinda like wheels on luggage.
+
+End of appendix
+---------------------------------------------------------------------------
 
     That is a profound insight to pass along to your friend. The transition from "Code
     Writer" to "System Architect & Code Auditor" is exactly where the friction lies for
@@ -158,7 +231,7 @@ His response:
         without a guidance system.
 
     An order-of-magnitude increase in effectiveness only happens when the engineer
-    realizes they aren't just "checking code"—they are conducting an orchestra. It
+    realizes they aren't just "checking code", they are conducting an orchestra. It
     requires more experience to spot a subtle logic drift in a generated block than it
     does to write it slowly by hand.
 
