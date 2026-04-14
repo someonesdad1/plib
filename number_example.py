@@ -219,9 +219,10 @@ def DogsAndCats(no_programming_error=True):
     feed 7 dogs and 12 cats.  How much food do we need?
     '''
     # Define semantic units
-    arb = UnitArbiter()         # Pipe to the GNU units process
-    arb.add_base("dog")         # Create a new semantic unit
-    arb.add_base("cat")
+    x = Num("1 m")
+    breakpoint() # ∞∞ 
+    x.base("dog")         # Create a new semantic unit
+    x.base("cat")
     # Define the input quantities
     num_dogs = Num("7 dog")
     num_cats = Num("12 cat")

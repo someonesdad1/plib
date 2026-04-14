@@ -35,6 +35,7 @@ if 1:  # Header
         import operator
         import os
         import pathlib
+        import random
         import re
         import shutil
         import subprocess
@@ -1968,6 +1969,20 @@ if 1:   # Self-tests
                     Assert(mpmath.isnan(x.real) and mpmath.isnan(x.complex) and x.unit == "m")
                 else:
                     lwtest.ToDo("nan bug")
+        def Test_New_Unit():
+            '''It's important to be able to add new semantic units at anytime.
+            This will use a random string starting with "delete_me_" followed by 8
+            random letters.
+            '''
+            basename = "delete_me_"
+            for i in range(8):
+                c = random.randint(97, 122)
+                basename += chr(c)
+            x = Num("1 m")
+            breakpoint() # ∞∞ 
+            x.base(basename)
+            exit()
+
 '''
 Other tests needed:
     - '0 m' + '0 J' -> error
