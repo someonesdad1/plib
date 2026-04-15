@@ -33,27 +33,30 @@ if 1:   # Functions containing examples
         - The thickness of a stepping stone is 3-3/16 inches
         '''
         pi = Num(mpmath.pi)
+        pi.fmt.n = 4
         if 1:   # Define our semantic units first
             x = Num(0)
             x.base("step")
+            x.base("Bag")
         if 1:   # Define the input quantities
             number_of_steps = Num("22 steps")   # Note GNU units accepts this plural
-            density_concrete = Num("137 lb/ft³")
-            mass_per_bag = Num("90 lbm/bag")
-            cost_per_bag = Num("3.2 dollars/bag")
-            dia_step = Num("1-1/3 yard")
-            thick_step = Num("3-3/16 inches")
+            density_concrete = Num("137 lb/ft³")    # 137 lb/ft³
+            mass_per_bag = Num("90 lb/Bag")
+            cost_per_bag = Num("3.2 dollar/Bag")
+            dia = Num("3-1/3 yd")
+            thickness = Num("3-3/16 inch")
         if 1:   # Print out our problem to show things are correct
             print(f"number_of_steps = {number_of_steps}")
             print(f"density_concrete = {density_concrete} = {density_concrete.to('kg/m3')}")
-            print(f"mass_per_bag = {mass_per_bag} = {density_concrete.to('kg/bag')} {t.err}BUG{t.n}")
+            print(f"mass_per_bag = {mass_per_bag} = {mass_per_bag.to('kg/Bag')}")
             print(f"cost_per_bag = {cost_per_bag}")
-            print(f"dia_step = {repr(dia_step)}")   # bug: fmt.Fmt doesn't handle mixed fractions
-            print(f"thick_step = {repr(thick_step)}") # bug: fmt.Fmt doesn't handle mixed fractions
+            print(f"dia = {dia}")
+            print(f"thickness = {thickness}") 
+            print()
         if 1:   # Perform the calculation
             step = Num("1 step")    # A unit step
             # Calculate the volume of a cylinder 
-            vol = pi*dia_step**2/4*thick_step
+            vol = pi*dia**2/4*thickness
             # Calculate the volume per step to help us keep the units consistent
             vol_per_step = vol/step
             print(f"+ vol_per_step = {vol_per_step}")
@@ -63,20 +66,21 @@ if 1:   # Functions containing examples
             mass_per_step = vol_per_step*density_concrete
             print(f"+ mass_per_step = {mass_per_step}")
             # Get total mass of steps
-            mass_all_steps = mass_per_step*number_of_steps
+            mass = mass_per_step*number_of_steps
             if 1:
-                mass_all_steps.unit = "lb"
+                mass.unit = "lb"
+            print(f"+ mass = {mass}")
             # Calculate number of bags needed
-            n = (mass_all_steps/mass_per_bag).num   # .num gets just number
-            exit() # ∞∞ 
-            number_of_bags = number.ceil(mass_all_steps/mass_per_bag)
+            number_of_bags = mass/mass_per_bag
+            print(f"+ number_of_bags = {number_of_bags}")
+            n = (mass/mass_per_bag).num   # .num gets just number
             total_cost = cost_per_bag*number_of_bags
         # Print report
         print(wrap.dedent(f'''
             Cost to make {number_of_steps} concrete steps:
-                diameter  = {repr(dia_step)}
-                thickness = {repr(thick_step)}
-                total concrete mass = {mass_all_steps}
+                diameter  = {dia}
+                thickness = {thickness}
+                total concrete mass = {mass}
                 number of bags = {number_of_bags}
                 total cost = ${total_cost}
         '''))

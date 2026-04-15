@@ -934,6 +934,59 @@ if 1:   # Num
                 res.im_unc *= factor
             res._unit = unit
             return res.promote() if auto_promote else res
+        def almost(self, y: ty.Union["Num", float, int, mpmath.mpf, mpmath.mpc], ndigits: int) -> bool:
+            '''
+            Returns True if self and y are physically conformable and equal within
+            approximately 'ndigits' of decimal significance.  Note it also handles
+            the complex number case too as the abs() of the log10 is calculated.
+            '''
+            assert ndigits > 0
+            # 1. Standardize to Num for unit and type handling
+            if not isinstance(y, Num):
+                y = Num(y)
+            if self.mytype == NumType.Unc or y.mytype = NumType.Unc:
+                raise NotImplementedError("Uncertainty not supported yet")
+            # 2. Exact equality check (Handles identity and both-zero cases)
+            if self == y:
+                return True
+            # 3. Dimensional Rigor
+            # We cannot be "almost" equal if we are comparing meters to seconds.
+            # If the user wants a raw numeric comparison, they should use Num.raw_value.
+            is_ok, _ = arbiter.check_conformable(self.unit, y.unit)
+            if not is_ok:
+                return False
+            # 4. Relative Difference Calculation
+            # We use raw_value to bypass unit-safety overhead during the math itself.
+            vx, vy = self.raw_value, y.raw_value
+            diff_a = None
+            if vy != 0:
+                try:
+                    diff_a = abs((vx - vy) / vy)
+                except ArithmeticError:
+                    pass
+            diff_b = None
+            if vx != 0:
+                try:
+                    diff_b = abs((vy - vx) / vx)
+                except ArithmeticError:
+                    pass
+            # 5. Evaluate the most favorable relative difference
+            valid_diffs = [d for d in [diff_a, diff_b] if d is not None]
+            if not valid_diffs:
+                return False # Should be handled by self == y, but safe fallback
+            val = min(valid_diffs)
+            if val == 0:
+                return True
+            if not mpmath.isfinite(val):
+                return False
+            # 6. Logarithmic Digit Estimation
+            # We use mpmath.log10 to maintain the precision of the underlying tower.
+            try:
+                # A difference of 0.001 (1 part in 1000) results in n=3.
+                n = int(abs(mpmath.log10(val)))
+                return n >= ndigits
+            except (ArithmeticError, ValueError):
+                return False
         @property
         def unit(self) -> str:
             return self._unit.strip()
@@ -1368,12 +1421,39 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
-if 0:  # Temp experiment
-    def f():
-        x = Num("inf m")
-        x.help()
-    f()
-    #exit()
+
+if 1:  # Temp experiment
+    # Experiment to evaluate x.almost(y, numdigits)
+    # This returns True 
+    def almost(x: ty.Any, y: ty.Any, ndigits: int) -> bool:
+        'Return True if x == y within about ndigits decimal digits'
+        assert ndigits > 0
+        try:
+            a = abs((x - y)/y)
+        except Exception:
+            a = None
+        try:
+            b = abs((y - x)/x)
+        except Exception:
+            b = None
+        if a is None and b is None:
+            return False
+        if a is None:
+            val = b
+        elif b is None:
+            val = a
+        else:
+            val = min(a, b)
+        # Now val should ideally be a small number.  We take the base 10 logarithm and
+        # estimate the number of digits things are equal by int(abs(log10(val))), which
+        # is a fairly pessimistic estimate
+        n = int(abs(log10(val)))
+        return n >= ndigits
+    print(almost(1, 1.0001, 3))
+    print(almost(1, 1.0001, 4))
+    exit()
+
+    # Mike's improvements (he had very valid observations)
 
 if 1:   # Self-tests
         def Test_Constructor_With_Numbers():
@@ -1684,6 +1764,9 @@ if 1:   # Self-tests
             x = Num("1 m")
             print(f"basename = {basename!r}")
             x.base(basename) # The Arbiter will turn this into "name\t!"
+        def Test_Functions():
+            x = Num(radians(30))
+            Assert(sin(x) == Num("1/2"))
 
 '''
 Other tests needed:

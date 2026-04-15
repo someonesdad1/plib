@@ -1,6 +1,19 @@
 14 Apr 2026 03:53:30 pm Tue
 
 Next tasks
+    - Bug in Concrete() demo
+        - Turns out to be caused by "bag" already being defined in m3
+        - Need a check to see that it's not already defined, as using num.base()
+          implies you're adding a new primitive unit.  You must find that it's an unkown
+          unit, otherwise raise an exception
+        - A practical fix could be a set of config files to switch to that you customize
+          to your needs
+        - We might need a python script that would read a text file of desired units, 
+          create a units config file from it and run the -c check against it
+    - x.almost(y, numdigits):  returns True if x and y are equal to within n digits
+        - Calculate min(abs((x - y)/y), abs((y - x)/x))
+        
+
     - Need del_base() to match base().  Or, use tempbase() to add new needed semantic
       units, then call deltemp() when finished.
         - For a user like me, e("config") could be handier in the REPL, as I'd just add
