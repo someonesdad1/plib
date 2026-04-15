@@ -1,12 +1,6 @@
 14 Apr 2026 03:53:30 pm Tue
 
 Next tasks
-    - Error handling channel
-        - Need to discuss overall architecture to handle REPL app and general purpose
-          programming app
-    - Need REPL message from num.base(new_unit) when new_unit is already defined
-    - num.base(4) causes exit in REPL because of exception
-    - Need num.del_base() to match base()?
     - SQLite persistence
         - Add when it's time, keep the interface simple
         - At some point a breadcrumb command would be useful (i.e., show me the history
@@ -14,16 +8,6 @@ Next tasks
     - Uncertainty math
         - This will be a goodly amount of work
         - Use uncertainties as a standard for testing
-    - Function wrapping for REPL convenience
-        - Bring in e.g. most of math/cmath
-        - Show user how it's done; let him bring in what he wants
-        - All functions should be defined over the complex plane
-        - Question:  should there be a flag to limit everything to real values?  The
-          HP-42s did it and I thought it was a good design move.
-        - I think default functions should have a dimensional guard that cause an error
-          message in the REPL if you ask for sin(Num("5 m")).  The primary reason is the
-          numerical answer depends on the scale, so arguments have to be scalars.  The
-          user can always use sin(Num("5 m").num) if he insists.
     - REPL hacking
         - 'q' command:  single command to quit the REPL, just like the debugger
         - Once set up, can show user how to extend to their tastes
@@ -62,7 +46,3 @@ Next tasks
             available via readline.
 
     - Help documentation
-    - Packaging
-        - I think the Noether REPL might be a useful thing to put by itself somewhere on
-          github, possibly PyPy.  Mike can help with the packaging and the advice
-          towards what to pick.
