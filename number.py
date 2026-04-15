@@ -944,7 +944,7 @@ if 1:   # Num
             # 1. Standardize to Num for unit and type handling
             if not isinstance(y, Num):
                 y = Num(y)
-            if self.mytype == NumType.Unc or y.mytype = NumType.Unc:
+            if self.mytype == NumType.Unc or y.mytype == NumType.Unc:
                 raise NotImplementedError("Uncertainty not supported yet")
             # 2. Exact equality check (Handles identity and both-zero cases)
             if self == y:
@@ -952,7 +952,7 @@ if 1:   # Num
             # 3. Dimensional Rigor
             # We cannot be "almost" equal if we are comparing meters to seconds.
             # If the user wants a raw numeric comparison, they should use Num.raw_value.
-            is_ok, _ = arbiter.check_conformable(self.unit, y.unit)
+            is_ok, _ = self.arb.check_conformable(self.unit, y.unit)
             if not is_ok:
                 return False
             # 4. Relative Difference Calculation
@@ -1422,38 +1422,8 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
 
-if 1:  # Temp experiment
-    # Experiment to evaluate x.almost(y, numdigits)
-    # This returns True 
-    def almost(x: ty.Any, y: ty.Any, ndigits: int) -> bool:
-        'Return True if x == y within about ndigits decimal digits'
-        assert ndigits > 0
-        try:
-            a = abs((x - y)/y)
-        except Exception:
-            a = None
-        try:
-            b = abs((y - x)/x)
-        except Exception:
-            b = None
-        if a is None and b is None:
-            return False
-        if a is None:
-            val = b
-        elif b is None:
-            val = a
-        else:
-            val = min(a, b)
-        # Now val should ideally be a small number.  We take the base 10 logarithm and
-        # estimate the number of digits things are equal by int(abs(log10(val))), which
-        # is a fairly pessimistic estimate
-        n = int(abs(log10(val)))
-        return n >= ndigits
-    print(almost(1, 1.0001, 3))
-    print(almost(1, 1.0001, 4))
+if 0:  # Temp experiment
     exit()
-
-    # Mike's improvements (he had very valid observations)
 
 if 1:   # Self-tests
         def Test_Constructor_With_Numbers():
@@ -1621,7 +1591,6 @@ if 1:   # Self-tests
                     #expected = Num("9/16", "(in)*(in)")   # 3/8*12/8 = 36/64 = 9/16
                     expected = Num("0.00036290249999999997 m^2")
                     Assert(result == expected)
-                    #yy
             if 1:   # Test division
                 if 1:   # Integer & real
                     x = Num("1.0", "ft")
@@ -1766,7 +1735,8 @@ if 1:   # Self-tests
             x.base(basename) # The Arbiter will turn this into "name\t!"
         def Test_Functions():
             x = Num(radians(30))
-            Assert(sin(x) == Num("1/2"))
+            Assert(sin(x).almost(0.5, 10))
+            #yy
 
 '''
 Other tests needed:
