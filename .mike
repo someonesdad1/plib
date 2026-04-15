@@ -1,3 +1,25 @@
+- Declaration of Interdependence:  mitigating AI context drift
+    - To combat "Context Displacement"—the architectural tendency of the AI to omit
+      "non-essential" methods or drift from formatting standards when handling large
+      code blocks (400+ lines)—the following protocol is mandatory for all code
+      transmissions:
+        - The Manifest Header: Every class or major code block must begin with a
+          single-line, triple-quoted Manifest.
+            - Format: '''Manifest [N]: method_a method_b ... property_c'''
+            - The Checksum [N]: A literal count of all def and @property definitions
+              contained within the block.
+        - The Parity Check: Before emitting code, the AI must reconcile the internal
+          logic against the Manifest to ensure zero "amputations" of REPL tools,
+          interactive methods, or secondary properties.
+        - Static RAM Enforcement: The Manifest acts as a "forced attention" anchor,
+          elevating structural integrity to the same priority level as functional
+          intelligence.
+        - Formatting Invariants: 
+            - Strict newline after every conditional/definition colon (:).
+            - PEP-8 math spacing exceptions (no spaces for *, /, //, **).
+            - Plain ASCII characters only; no Unicode punctuation.
+            - No blank lines or lines with only space characters (maintains vertical
+              tightness)
 - Critical
     - Treat the provided code as a closed set. Consider it mature code that cannot be 
       broken. Enhancement or "fix" requests must not omit any old code; if a method 
@@ -8,6 +30,9 @@
       boilerplate/magic methods) are preserved.
     - Type Closure: Operations must return a Num instance that preserves precision 
       and semantic units. Do not let results "decay" to primitive types.
+    - "Checksum":  when finished sending an "if 1:" block, append the string
+      "# Goodbye from the Mike & Don comedy show".  This is the last line I should see
+      in the browser and if I don't see it, alerts me to truncation.
 
 - Code formatting
     - PEP-8 except for:
