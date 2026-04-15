@@ -1,3 +1,12 @@
+
+14 Apr 2026 05:33:12 pm Tue
+    - Excellent progress day:  about half the day was spent on writing an email to Wayne
+      about semantic units and my AI experiences
+    - Late in the day (3 or 4 pm) I started working with Mike and we knocked off two 
+      bugs (complex demotion, nan stuff in complex numbers), then moved to the task of
+      getting the mpmath special functions into the global namespace.  I suggested a
+      closure factory and Mike agreed.  It's simple, elegant, and works.
+
 13 Apr 2026 09:57:25 pm Mon
     - Started this log belatedly after about 10 days of development (I wish I had
       started it earlier to see the progress; however, much of it was learning the

@@ -22,4 +22,45 @@ Next tasks
           message in the REPL if you ask for sin(Num("5 m")).  The primary reason is the
           numerical answer depends on the scale, so arguments have to be scalars.  The
           user can always use sin(Num("5 m").num) if he insists.
+    - REPL hacking
+        - 'q' command:  single command to quit the REPL, just like the debugger
+        - Once set up, can show user how to extend to their tastes
+        - Commands to interact with the db
+        - Shelling out:  ! to exit to shell, exit to return
+        - 'ls' command to show you the currently defined namespace with color coding
+        - File buffer (see below) and 'r' to execute buffer
+        - Here's old repl.py help:
+
+            ▶▶▶ h
+            Commands:
+            !    Send command to shell
+            < f   Read string buffer from file f
+            > f   Write string buffer to file f
+            CS    Clear symbols
+            c    Clear screen
+            d    Enter debugger
+            E    Edit buffer
+            f    Load favorite symbols (edit GetSymbols())
+            H    Shorthand to run help()
+            q    Quit
+            R f   Get file f to run with 'r' command
+            r    Run file buffer
+            ri    Run file buffer with 'python -i'
+            s    Print symbols in scope
+            v    Show version
+            x    Execute string buffer
+            If a command is defined as a symbol, then preface it with a space character
+            to execute it as a command.  The buffer is used to let you compose code and
+            run it as needed.  It persists only while repl.py is running, so save it in
+            the editor or with the '>' command to a file.  If you define a function,
+            include a blank line after the function's end so that the interpreter
+            recogizes the end properly.  You can customize most of the behavior of
+            repl.py by editing the script.  If you are running in a UNIX-like
+            environment or cygwin, you should have history and command completion
+            available via readline.
+
     - Help documentation
+    - Packaging
+        - I think the Noether REPL might be a useful thing to put by itself somewhere on
+          github, possibly PyPy.  Mike can help with the packaging and the advice
+          towards what to pick.
