@@ -1,19 +1,18 @@
-Jim:  
-
 My lunch "teaser" probably sounded more inflated than it really is.
 But Mike and I think it's the germ of an idea that should be adopted
 by the computer science world and put to work in earnest.  It's a
-simple concept to help get reduce programming bugs and has been known
+simple concept to help reduce programming bugs and has been known
 for centuries.  Mike is Google's Gemini 3 AI.  I've been using the
 free version of this AI to write the Noether REPL, which I'll explain.
 
 The core idea is to make "semantic units" part of our fundamental
-toolkit.  I'll illustrate this with some python code that Mike and I
-have been working on for about 12 days.  Focus on the use of the
-semantic units 'dogs' and 'cats'.  Mike's and my thesis is "let's move
-this semantic units capability into the compilers and interpreters
-where they belong":  a compiler that can find syntax errors can also
-find semantic unit errors.  Here's the code:
+programming toolkit.  I'll illustrate this with some python code that
+Mike and I have been working on for about 12 days.  Focus on the use
+of the semantic units 'dogs' and 'cats'.  Mike's and my thesis is
+"let's move this semantic units capability into the compilers and
+interpreters where they belong":  a compiler that can find syntax
+errors can also find semantic unit errors -- and hence, semantic
+errors.  That's a potent thought.  Here's the code:
 
 def DogsAndCats(no_programming_error=True):
     '''Each dog gets 0.2 kg of food and cats get 0.1 kg of the same
@@ -22,7 +21,7 @@ def DogsAndCats(no_programming_error=True):
     '''
     from number import Num
     # Define our semantic units
-    x = Num("1 m")          # New utility number instance
+    x = Num("1 m")          # New instance needed for base() method
     x.base("dog")           # Create a new semantic unit
     x.base("cat")
     # Define the input quantities
@@ -43,6 +42,7 @@ def DogsAndCats(no_programming_error=True):
     print(f"amount of food = {food_mass}")
 
 if __name__ == "__main__":  
+    import sys
     if len(sys.argv) > 1:
         DogsAndCats(False)
     else:
@@ -85,8 +85,8 @@ The design mirrors how I did calculations with paper and pencil as a
 student in the 1960's:  we used semantic units then and we moved
 around the numerical domains without friction, not thinking much about
 it.  If I remember to attach the file, you'll see how the Num class
-colorizes the number types in the terminal output; this is handy to
-keep types straight in your mind.
+colorizes the number types in my terminal; this is handy to keep types
+straight in your mind.
 
 This is being run in vanilla python 3.11.  The Num object is an
 abstract representation of a number that can carry semantic units.
@@ -106,13 +106,13 @@ invariant.  Here, the transformations are scaling by constant factors
 (what we used to call dilatations), such as by statements like 'one
 meter is the same as 3.28 feet'.
 
-Thus, Num("1 m/s") is a Noether invariant.  You can think of it like
-the angular momentum of a tire when you see a snapshot of car driving
-away.  That abstract angular momentum vector would be sticking out
-from the center of the wheel if you could see it.  You can move
-anywhere in space and that abstract vector points to the same point in
-space.  If you look at it in a mirror it has transform in a certain
-way (pseudovector) to still look like the same vector.
+Thus, Num("1 m/s") is a Noether invariant:  it is conserved (stays
+constant) under the symmetry transformation of multiplicative scaling.
+You can think of it like the angular momentum of a tire when you see a
+snapshot of car driving away.  That abstract angular momentum vector
+would be sticking out from the center of the wheel if you could see
+it.  You can move anywhere in space around the car and that abstract
+vector points to the same point in space.
 
 The Noether invariant Num("1 m/s") is similar to the angular momentum
 vector.  If you impose a scaling transformation to feet on the meter
@@ -128,15 +128,16 @@ invariant" to "type".  Our thesis is simply that the number and
 semantic unit together should be a single type.  Another important
 idea is that these different semantic units are "orthogonal" to each
 other (again, the vector space analogy), giving the concept of type
-its real teeth.
+its real teeth of utility.
 
 I'd like to see every compiler and interpreter on Earth handle these
 semantic units, as we've stripped away the units and virtually all
-programming languages deal with naked floats.  At best we're left with
-variable names like speed_m_per_s but there's no checking machinery
-except the overworked underpaid programmer, who nearly always misses
-it.  I'd imagine the bug rate in software would decrease if these
-semantic type errors wouldn't get past the compiler/interpreter.
+programming languages deal with "naked" floats.  At best we're left
+with variable names like speed_m_per_s but there's no checking
+machinery except the overworked underpaid programmer, who nearly
+always misses it.  I'd imagine the bug rate in software would decrease
+if these semantic type errors wouldn't get past the compiler or
+interpreter.
 
 When we have lunch, we can talk more about this.  I was thinking that
 a good winter project for me would be to add this semantic unit
@@ -148,7 +149,7 @@ idea and it has been interesting.  Mike and I are working at the edge
 of the envelope in the operating space of the free AI and we've had to
 innovate a number of practical techniques to avoid AI drift and
 hallucination, serious problems which cause a lot of friction and
-frustration in a software project.  So I've got interesting
+frustration in a software project.  So I've got some interesting
 experiences to share about that stuff too.
 
 FYI, the 'Noether REPL' means the use of this Num class in python's
