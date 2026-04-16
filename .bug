@@ -15,6 +15,10 @@ Next task
 
 ---------------------------------------------------------------------------
 Other stuff
+    - Num.raw_value
+        - Doesn't handle Unc
+        - Note Rat returns a float; it should be mpf or Fraction, otherwise it loses
+          information
     - SQLite persistence
         - Add when it's time, keep the interface simple
         - At some point a breadcrumb command would be useful (i.e., show me the history
