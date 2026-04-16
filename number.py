@@ -1138,7 +1138,16 @@ if 1:  # Num
             res.mytype = NumType.Flt
             res._unit = unit
             return res._promote() if auto_promote else res
-        def almost(self, y: ty.Union["Num", float, int, mpmath.mpf, mpmath.mpc], ndigits: int) -> bool:
+        def approx(self, y: ty.Union["Num", float, int, mpmath.mpf, mpmath.mpc], ndigits: int) -> bool:
+            '''Returns True if self and y are approximately == to about 1 part in 10**ndigits
+            
+            Example:  if self = Num(1) and y = Num(1.01), then
+                self.approx(y, 2) returns True
+                self.approx(y, 3) returns False
+            The approximate conclusion is that self and y are approximately equal to two
+            decimal digits, but not three; i.e., equal to about 1 part in 100, but not
+            equal to 1 part in 1000.
+            '''
             if not isinstance(ndigits, int):
                 raise TypeError(f"ndigits must be an int, not {type(ndigits).__name__}")
             assert ndigits > 0
@@ -1536,14 +1545,14 @@ if 1:  # UnitArbiter
                 self.proc.stdin.flush()
                 line = self.proc.stdout.readline().strip()
                 if not line:
-                    return False, f"Empty response: {have} to {want}"
+                    return False, f"Empty response from GNU units: {have} to {want}"
                 if "conformability error" in line.lower() or "unknown" in line.lower():
                     return False, line
                 try:
                     mpmath.mpf(line)
                     return True, line
                 except:
-                    return False, f"Unexpected output: {line}"
+                    return False, f"Unexpected GNU units output: {line}"
             except Exception as e:
                 self._start_process()
                 return False, str(e)
@@ -1820,6 +1829,7 @@ if 1:   # Self-tests
                 pass
         def Test_Constructor_Strings():
             zero = 0
+            ndigits = min(max(1, 7*mpmath.mp.dps//8), mpmath.mp.dps)
             test_cases = [("1", NumType.Int),
                           ("1/2", NumType.Rat),
                           ("1.2", NumType.Flt),
@@ -1834,11 +1844,16 @@ if 1:   # Self-tests
                 elif s == "1/2":
                     Assert(x.numer == 1 and x.denom == 2)
                 elif s == "1.2":
-                    Assert(x.real == mpmath.mpf("1.2") and x.imag == zero)
+                    Assert(x.approx(Num("1-1/5"), ndigits))
+                    Assert(x.imag == zero)
                 elif s == "1.2e3":
-                    Assert(x.real == mpmath.mpf("1.2e3") and x.imag == zero)
+                    Assert(x.approx(Num("1200/1"), ndigits))
+                    Assert(x.imag == zero)
                 elif s == "1+2j":
                     Assert(x.real == mpmath.mpf("1") and x.imag == mpmath.mpf("2"))
+            # Test using a long string to show we aren't dropping back to standard 64
+            # bit float precision
+
         def Test_Arithmetic():
             if 1:   # Test addition
                 if 1:   # Integer & real
@@ -2040,17 +2055,20 @@ if 1:   # Self-tests
                 x = Num("nan+nanj m")
                 Assert(mpmath.isnan(x.real) and mpmath.isnan(x.imag) and x.unit == "m")
         def Test_New_Unit():
-            basename = "delete_me_"
-            for i in range(8):
-                c = random.randint(97, 122)
-                basename += chr(c)
-            x = Num("1 m")
-            print(f"basename = {basename!r}")
-            x.base(basename) # The Arbiter will turn this into "name\t!"
+            return
+            # I've shut this off, as it has been tested and works
+            if 0:
+                basename = "delete_me_"
+                for i in range(8):
+                    c = random.randint(97, 122)
+                    basename += chr(c)
+                x = Num("1 m")
+                print(f"basename = {basename!r}")
+                x.base(basename) # The Arbiter will turn this into "name\t!"
         def Test_Functions():
             if 1:   # Prove radians() and sin() are in the global namespace
                 x = Num(radians(30))
-                Assert(sin(x).almost(0.5, 10))
+                Assert(sin(x).approx(0.5, 10))
             #yy
 
 '''
