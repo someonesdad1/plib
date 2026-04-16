@@ -49,7 +49,7 @@ def Trig():
     calculate the third edge of a triangle if the angle between the two lengths is 
     60(2) degrees, measured with a small compass.  The formula is
         y² = x1² + x2² - 2*x1*x2*cos(angle)
-    where angle = {angle}°.  The task is to convert the angle to radians, thend
+    where angle = {angle}°.  The task is to convert the angle to radians, then
     peform the calculation.  The terms are
         x1² = {x1*x1}
         x2² = {x2*x2}

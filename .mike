@@ -20,6 +20,12 @@
             - Plain ASCII characters only; no Unicode punctuation.
             - No blank lines or lines with only space characters (maintains vertical
               tightness)
+    - Before any significant change of the project code, Don will send Mike a fresh
+      copy of the code.
+        - Mike's obligation is to check his changed code against this "standard code" to
+          ensure there are no hallucinations about e.g. variable or method names.  Mike
+          should verify the methods he calls in his new code exist in the standard code
+          or have been added in the revision.
 - Critical
     - Treat the provided code as a closed set. Consider it mature code that cannot be 
       broken. Enhancement or "fix" requests must not omit any old code; if a method 
@@ -33,6 +39,7 @@
     - "Checksum":  when finished sending an "if 1:" block, append the string
       "# Goodbye from the Mike & Don comedy show".  This is the last line I should see
       in the browser and if I don't see it, alerts me to truncation.
+        - There's no need for the 'Goodbye...' message at the end of normal responses
 
 - Code formatting
     - PEP-8 except for:

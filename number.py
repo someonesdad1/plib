@@ -206,211 +206,6 @@ if 1:  # Header
         '''
 
 if 0:  # NumericMixin
-    class NumericMixin:
-        '''
-        Operator overloading for the Num class.
-        Ensures unit propagation, type promotion, and uncertainty handling.
-        '''
-        def __add__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "add")
-            return self._binary_op(other, lambda a, b: a+b)
-        def __sub__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "sub")
-            return self._binary_op(other, lambda a, b: a-b)
-        def __mul__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            # Units multiply: (m) * (m) = (m*m)
-            res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})*({other.unit})"
-            elif self.unit or other.unit:
-                res_unit = self.unit or other.unit
-            res = self._binary_op(other, lambda a, b: a*b)
-            res.unit = res_unit
-            return res
-        def __truediv__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            # Units divide: (m) / (s) = (m/s)
-            res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})/({other.unit})"
-            elif self.unit:
-                res_unit = self.unit
-            elif other.unit:
-                res_unit = f"1/({other.unit})"
-            res = self._binary_op(other, lambda a, b: a/b)
-            res.unit = res_unit
-            return res
-        def __pow__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            # Powers often require dimensionless exponents in GNU Units
-            res = self._binary_op(other, lambda a, b: a**b)
-            if self.unit:
-                # Basic string manipulation for simple unit powers
-                try:
-                    exp = int(other.as_mpf)
-                    res.unit = f"({self.unit})^{exp}"
-                except:
-                    res.unit = f"({self.unit})^({other.raw_value})"
-            return res
-        def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
-            '''Internal helper for error propagation using the uncertainties library.'''
-            u1 = uncertainties.ufloat(float(self.real), float(self.re_unc))
-            u2 = uncertainties.ufloat(float(other.real), float(other.re_unc))
-            res_u = op_func(u1, u2)
-            return Num(res_u, unit=self.unit)
-        def __lt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value < other.raw_value
-        def __le__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value <= other.raw_value
-        def __gt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value > other.raw_value
-        def __ge__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value >= other.raw_value
-        def __eq__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                try:
-                    other = Num(other)
-                except:
-                    return False
-            try:
-                other = self._normalize(other, "cmp")
-                return self.raw_value == other.raw_value
-            except ValueError:
-                return False
-        def __abs__(self) -> "Num":
-            return self._make_result(abs(self.raw_value), unit=self.unit)
-        def __neg__(self) -> "Num":
-            return self._make_result(-self.raw_value, unit=self.unit)
-        def __radd__(self, other: ty.Any) -> "Num":
-            return Num(other) + self
-        def __rsub__(self, other: ty.Any) -> "Num":
-            return Num(other) - self
-        def __rmul__(self, other: ty.Any) -> "Num":
-            return Num(other) * self
-        def __rtruediv__(self, other: ty.Any) -> "Num":
-            return Num(other) / self
-if 0:  # NumericMixin
-    '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
-    class NumericMixin:
-        '''
-        Operator overloading for the Num class.
-        Ensures unit propagation, type promotion, and uncertainty handling.
-        '''
-        def __add__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "add")
-            return self._binary_op(other, lambda a, b: a+b)
-        def __sub__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "sub")
-            return self._binary_op(other, lambda a, b: a-b)
-        def __mul__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})*({other.unit})"
-            elif self.unit or other.unit:
-                res_unit = self.unit or other.unit
-            res = self._binary_op(other, lambda a, b: a*b)
-            res.unit = res_unit
-            return res
-        def __truediv__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})/({other.unit})"
-            elif self.unit:
-                res_unit = self.unit
-            elif other.unit:
-                res_unit = f"1/({other.unit})"
-            res = self._binary_op(other, lambda a, b: a/b)
-            res.unit = res_unit
-            return res
-        def __pow__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            res = self._binary_op(other, lambda a, b: a**b)
-            if self.unit:
-                try:
-                    exp = int(other.as_mpf)
-                    res.unit = f"({self.unit})^{exp}"
-                except:
-                    res.unit = f"({self.unit})^({other.raw_value})"
-            return res
-        def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
-            '''Internal helper for error propagation using the uncertainties library.'''
-            u1 = uncertainties.ufloat(float(self.real), float(self.re_unc))
-            u2 = uncertainties.ufloat(float(other.real), float(other.re_unc))
-            res_u = op_func(u1, u2)
-            return Num(res_u, unit=self.unit)
-        def __lt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value < other.raw_value
-        def __le__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value <= other.raw_value
-        def __gt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value > other.raw_value
-        def __ge__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value >= other.raw_value
-        def __eq__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                try:
-                    other = Num(other)
-                except:
-                    return False
-            try:
-                other = self._normalize(other, "cmp")
-                return self.raw_value == other.raw_value
-            except ValueError:
-                return False
-        def __abs__(self) -> "Num":
-            return self._make_result(abs(self.raw_value), unit=self.unit)
-        def __neg__(self) -> "Num":
-            return self._make_result(-self.raw_value, unit=self.unit)
-        def __radd__(self, other: ty.Any) -> "Num":
-            return Num(other) + self
-        def __rsub__(self, other: ty.Any) -> "Num":
-            return Num(other) - self
-        def __rmul__(self, other: ty.Any) -> "Num":
-            return Num(other) * self
-        def __rtruediv__(self, other: ty.Any) -> "Num":
-            return Num(other) / self
-if 1:  # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
     class NumericMixin:
         '''
@@ -499,6 +294,243 @@ if 1:  # NumericMixin
             try:
                 # If units differ, try to normalize 'other' to 'self' units via GNU Units
                 # This catches (V)*(A) == kg*m^2/s^3
+                other_adj = self._normalize(other, "cmp")
+                return self.raw_value == other_adj.raw_value
+            except (ValueError, TypeError):
+                return False
+        def __abs__(self) -> "Num":
+            return self._make_result(abs(self.raw_value), unit=self.unit)
+        def __neg__(self) -> "Num":
+            return self._make_result(-self.raw_value, unit=self.unit)
+        def __radd__(self, other: ty.Any) -> "Num":
+            return Num(other) + self
+        def __rsub__(self, other: ty.Any) -> "Num":
+            return Num(other) - self
+        def __rmul__(self, other: ty.Any) -> "Num":
+            return Num(other) * self
+        def __rtruediv__(self, other: ty.Any) -> "Num":
+            return Num(other) / self
+if 0:  # NumericMixin
+    '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
+    class NumericMixin:
+        '''
+        Operator overloading for the Num class.
+        Ensures unit propagation, type promotion, and uncertainty handling.
+        '''
+        def __add__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "add")
+            return self._binary_op(other, lambda a, b: a+b)
+        def __sub__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "sub")
+            return self._binary_op(other, lambda a, b: a-b)
+        def __mul__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self.unit and other.unit:
+                res_unit = f"({self.unit})*({other.unit})"
+            elif self.unit or other.unit:
+                res_unit = self.unit or other.unit
+            res = self._binary_op(other, lambda a, b: a*b)
+            res.unit = res_unit
+            return res
+        def __truediv__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self.unit and other.unit:
+                res_unit = f"({self.unit})/({other.unit})"
+            elif self.unit:
+                res_unit = self.unit
+            elif other.unit:
+                res_unit = f"1/({other.unit})"
+            res = self._binary_op(other, lambda a, b: a/b)
+            res.unit = res_unit
+            return res
+        def __pow__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res = self._binary_op(other, lambda a, b: a**b)
+            if self.unit:
+                try:
+                    exp = int(other.as_mpf)
+                    res.unit = f"({self.unit})^{exp}"
+                except:
+                    res.unit = f"({self.unit})^({other.raw_value})"
+            return res
+        def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
+            '''
+            Vision 1: The Jacobian Propagation Engine (Optimized).
+            Propagates circular uncertainty disks through complex space.
+            '''
+            from mpmath import workdps, diff, sqrt
+            z_val = op_func(self.as_mpc, other.as_mpc)
+            with workdps(mpmath.mp.dps + 4):
+                df_dself = diff(lambda x: op_func(x, other.as_mpc), self.as_mpc)
+                df_dother = diff(lambda y: op_func(self.as_mpc, y), other.as_mpc)
+            s_sens = abs(df_dself)
+            o_sens = abs(df_dother)
+            var_re = (s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2
+            new_re_unc = sqrt(var_re)
+            var_im = (s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2
+            new_im_unc = sqrt(var_im)
+            res = self._make_result(z_val, unit=self.unit)
+            res.re_unc = new_re_unc
+            res.im_unc = new_im_unc
+            res.mytype = NumType.Unc
+            return res
+        def __lt__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value < other.raw_value
+        def __le__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value <= other.raw_value
+        def __gt__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value > other.raw_value
+        def __ge__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value >= other.raw_value
+        def __eq__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                try:
+                    other = Num(other)
+                except:
+                    return False
+            if self.unit == other.unit:
+                return self.raw_value == other.raw_value
+            try:
+                other_adj = self._normalize(other, "cmp")
+                return self.raw_value == other_adj.raw_value
+            except (ValueError, TypeError):
+                return False
+        def __abs__(self) -> "Num":
+            return self._make_result(abs(self.raw_value), unit=self.unit)
+        def __neg__(self) -> "Num":
+            return self._make_result(-self.raw_value, unit=self.unit)
+        def __radd__(self, other: ty.Any) -> "Num":
+            return Num(other) + self
+        def __rsub__(self, other: ty.Any) -> "Num":
+            return Num(other) - self
+        def __rmul__(self, other: ty.Any) -> "Num":
+            return Num(other) * self
+        def __rtruediv__(self, other: ty.Any) -> "Num":
+            return Num(other) / self
+if 1:  # NumericMixin
+    '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
+    class NumericMixin:
+        '''
+        Operator overloading for the Num class.
+        Ensures unit propagation, type promotion, and uncertainty handling.
+        '''
+        def __add__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "add")
+            return self._binary_op(other, lambda a, b: a+b)
+        def __sub__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "sub")
+            return self._binary_op(other, lambda a, b: a-b)
+        def __mul__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self.unit and other.unit:
+                res_unit = f"({self.unit})*({other.unit})"
+            elif self.unit or other.unit:
+                res_unit = self.unit or other.unit
+            res = self._binary_op(other, lambda a, b: a*b)
+            res.unit = res_unit
+            return res
+        def __truediv__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self.unit and other.unit:
+                res_unit = f"({self.unit})/({other.unit})"
+            elif self.unit:
+                res_unit = self.unit
+            elif other.unit:
+                res_unit = f"1/({other.unit})"
+            res = self._binary_op(other, lambda a, b: a/b)
+            res.unit = res_unit
+            return res
+        def __pow__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res = self._binary_op(other, lambda a, b: a**b)
+            if self.unit:
+                try:
+                    exp = int(other.as_mpf)
+                    res.unit = f"({self.unit})^{exp}"
+                except:
+                    res.unit = f"({self.unit})^({other.raw_value})"
+            return res
+        def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
+            '''
+            Vision 1: The Jacobian Propagation Engine.
+            Hygiene Fix: Uses mp_sqrt to avoid global namespace collision.
+            '''
+            from mpmath import workdps, diff, sqrt as mp_sqrt
+            z_val = op_func(self.as_mpc, other.as_mpc)
+            with workdps(mpmath.mp.dps + 4):
+                df_dself = diff(lambda x: op_func(x, other.as_mpc), self.as_mpc)
+                df_dother = diff(lambda y: op_func(self.as_mpc, y), other.as_mpc)
+                s_sens = abs(df_dself)
+                o_sens = abs(df_dother)
+                var_re = (s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2
+                # CRITICAL: Use mp_sqrt here, NOT the global sqrt
+                new_re_unc = mp_sqrt(var_re)
+                var_im = (s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2
+                new_im_unc = mp_sqrt(var_im)
+            res = Num(z_val, unit=self.unit)
+            res.re_unc = new_re_unc
+            res.im_unc = new_im_unc
+            res.mytype = NumType.Unc
+            return res
+        def __lt__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value < other.raw_value
+        def __le__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value <= other.raw_value
+        def __gt__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value > other.raw_value
+        def __ge__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "cmp")
+            return self.raw_value >= other.raw_value
+        def __eq__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                try:
+                    other = Num(other)
+                except:
+                    return False
+            if self.unit == other.unit:
+                return self.raw_value == other.raw_value
+            try:
                 other_adj = self._normalize(other, "cmp")
                 return self.raw_value == other_adj.raw_value
             except (ValueError, TypeError):
@@ -1162,6 +1194,19 @@ if 1:  # Num
             if val == 0:
                 return True
             return int(abs(mpmath.log10(val))) >= ndigits
+        def dump(self, indent: str = "") -> str:
+            'Dump our current state to stdout'
+            print(f"{indent}Num(<id(self)>) core attributes:")
+            print(f"{indent}    self.numer   {self.numer}")
+            print(f"{indent}    self.denom   {self.denom}")
+            print(f"{indent}    self.real    {self.real}")
+            print(f"{indent}    self.imag    {self.imag}")
+            print(f"{indent}    self.re_unc  {self.re_unc}")
+            print(f"{indent}    self.im_unc  {self.im_unc}")
+            print(f"{indent}    self.correl  {self.correl}")
+            print(f"{indent}    self.unit    {self.unit!r}")
+            print(f"{indent}    self.mytype  {self.mytype}")
+            print(f"{indent}    1=Int, 2=Rat, 3=Flt, 4=Cpx, 5=Unc")
         @property
         def unit(self) -> str:
             return self._unit.strip()
@@ -1190,10 +1235,10 @@ if 1:  # Num
             return mpmath.mpc(self.as_mpf, 0)
         @property
         def as_mpf(self) -> mpmath.mpf:
-            if self.mytype == NumType.Int:
-                return mpmath.mpf(str(self.numer))
-            if self.mytype == NumType.Rat:
-                return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
+            # If we have an integer or ratio magnitude, use it regardless of mytype
+            if self.numer != 0:
+                return mpmath.mpf(self.numer) / mpmath.mpf(self.denom)
+            # Otherwise fall back to the float storage
             return self.real
         @property
         def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
@@ -1207,280 +1252,6 @@ if 1:  # Num
             return res
 
 if 0:  # UnitArbiter
-    class UnitArbiter:
-        '''
-        Singleton co-process manager for GNU Units integration.
-        Handles unit conversion, conformability checks, and dynamic unit registration.
-        '''
-        _instance = None
-        units_bin: str = "units"
-        main_config: str = ""
-        dynamic_config: str = "~/.units_dynamic"
-        def __new__(cls) -> "UnitArbiter":
-            if cls._instance is None:
-                cls._instance = super(UnitArbiter, cls).__new__(cls)
-                cls._instance._initialized = False
-            return cls._instance
-        def __init__(self) -> None:
-            if self._initialized:
-                return
-            self.bin_path = str(Path(UnitArbiter.units_bin).expanduser())
-            self.dynamic_path = Path(UnitArbiter.dynamic_config).expanduser()
-            if not self.dynamic_path.exists():
-                self.dynamic_path.parent.mkdir(parents=True, exist_ok=True)
-                self.dynamic_path.touch()
-            self.proc = None
-            self._start_process()
-            self._initialized = True
-        def _start_process(self) -> None:
-            '''Launches GNU Units in compact mode to ensure symbols over words.'''
-            if self.proc:
-                try:
-                    self.proc.terminate()
-                    self.proc.wait(timeout=0.2)
-                except:
-                    pass
-            # Using --compact and -t (terse) enforces symbols (ft) over names (foot)
-            cmd = [self.bin_path, "-q", "--compact", "-t"]
-            if UnitArbiter.main_config:
-                # Per 2026-04 discovery: empty string loads default; handled by Path logic
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            cmd.extend(["-f", str(self.dynamic_path)])
-            self.proc = subprocess.Popen(
-                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, text=True, bufsize=1
-            )
-        def _translate_unicode(self, s: str) -> str:
-            '''Converts superscript unicode exponents to ASCII carats for GNU Units.'''
-            exp_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
-            out = ""
-            for char in s:
-                if char in "⁰¹²³⁴⁵⁶⁷⁸⁹":
-                    out += "^" + char.translate(exp_map)
-                else:
-                    out += char
-            return out
-        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
-            if not have or not want:
-                return (True, "1.0") if have == want else (False, "Mismatch")
-            if not self.proc or self.proc.poll() is not None:
-                self._start_process()
-            try:
-                self.proc.stdin.write(f"{self._translate_unicode(have)}\n{self._translate_unicode(want)}\n")
-                self.proc.stdin.flush()
-                line = self.proc.stdout.readline().strip()
-                if not line:
-                    return False, f"Empty response: {have} to {want}"
-                if "conformability error" in line.lower() or "unknown" in line.lower():
-                    return False, line
-                try:
-                    mpmath.mpf(line)
-                    return True, line
-                except:
-                    return False, f"Unexpected output: {line}"
-            except Exception as e:
-                self._start_process()
-                return False, str(e)
-        def simplify(self, value: ty.Any, unit_str: str) -> tuple[ty.Any, str]:
-            if not unit_str or unit_str == "1":
-                return value, ""
-            cmd = [self.bin_path, "-q", "--compact", "-t", "-f", str(self.dynamic_path)]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            proc = subprocess.run(cmd + [self._translate_unicode(unit_str)], capture_output=True, text=True)
-            output = proc.stdout.strip()
-            match = re.match(r'^([\d.e+-]+)?\s*(.*)$', output)
-            factor = mpmath.mpf(match.group(1) or "1.0") if match else mpmath.mpf("1.0")
-            remainder = match.group(2).strip() if match else unit_str
-            if "=" in remainder:
-                remainder = remainder.split("=")[0].strip()
-            return value * factor, remainder
-        def is_known_unit(self, unit_str: str) -> bool:
-            '''Checks validity via separate process to avoid co-process pipe hangs.'''
-            if not unit_str:
-                return True
-            cmd = [self.bin_path, "-q", "-t", "--compact", "-f", str(self.dynamic_path)]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            res = subprocess.run(cmd + [self._translate_unicode(unit_str)], capture_output=True, text=True)
-            return res.returncode == 0 and "error" not in res.stderr.lower()
-        def add_base(self, unit_name: str) -> None:
-            '''Appends a new base dimension to the dynamic units file.'''
-            definition = f"{unit_name}\t!"
-            is_ok, err = self._check_definition(definition)
-            if not is_ok:
-                raise ValueError(f"Invalid unit definition for '{unit_name}': {err}")
-            with open(self.dynamic_path, "a") as f:
-                f.write(f"\n{definition}\n")
-            self._start_process()
-        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
-            '''Dry-run a definition using -c to ensure it doesn't break the units parser.'''
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
-                tmp.write(definition + "\n")
-                tmp_path = tmp.name
-            cmd = [self.bin_path, "-c", "-q"]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            cmd.extend(["-f", str(self.dynamic_path), "-f", tmp_path])
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
-                is_ok = (result.returncode == 0)
-                error_msg = result.stderr or result.stdout
-            except subprocess.TimeoutExpired:
-                is_ok, error_msg = False, "Timeout validating definition."
-            finally:
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
-            return is_ok, error_msg
-        def _register_unit(self, unit_name: str) -> str:
-            unit_name = unit_name.strip()
-            if not unit_name:
-                return "Error: Unit name empty."
-            if not unit_name[0].isalpha():
-                return f"Error: '{unit_name}' must start with a letter."
-            if self.is_known_unit(unit_name):
-                return "ok"
-            try:
-                self.add_base(unit_name)
-                return "ok"
-            except Exception as e:
-                return f"Error: {str(e)}"
-if 0:  # UnitArbiter
-    '''Manifest [10]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit'''
-    class UnitArbiter:
-        '''
-        Singleton co-process manager for GNU Units integration.
-        Handles unit conversion, conformability checks, and dynamic unit registration.
-        '''
-        _instance = None
-        units_bin: str = "units"
-        main_config: str = ""
-        dynamic_config: str = "~/.units_dynamic"
-        def __new__(cls) -> "UnitArbiter":
-            if cls._instance is None:
-                cls._instance = super(UnitArbiter, cls).__new__(cls)
-                cls._instance._initialized = False
-            return cls._instance
-        def __init__(self) -> None:
-            if self._initialized:
-                return
-            self.bin_path = str(Path(UnitArbiter.units_bin).expanduser())
-            self.dynamic_path = Path(UnitArbiter.dynamic_config).expanduser()
-            if not self.dynamic_path.exists():
-                self.dynamic_path.parent.mkdir(parents=True, exist_ok=True)
-                self.dynamic_path.touch()
-            self.proc = None
-            self._start_process()
-            self._initialized = True
-        def _start_process(self) -> None:
-            '''Launches GNU Units in compact mode to ensure symbols over words.'''
-            if self.proc:
-                try:
-                    self.proc.terminate()
-                    self.proc.wait(timeout=0.2)
-                except:
-                    pass
-            cmd = [self.bin_path, "-q", "--compact", "-t"]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            cmd.extend(["-f", str(self.dynamic_path)])
-            self.proc = subprocess.Popen(
-                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, text=True, bufsize=1
-            )
-        def _translate_unicode(self, s: str) -> str:
-            '''Converts superscript unicode exponents to ASCII carats for GNU Units.'''
-            exp_map = str.maketrans("0123456789", "0123456789")
-            out = ""
-            for char in s:
-                if char in "0123456789":
-                    out += "^" + char.translate(exp_map)
-                else:
-                    out += char
-            return out
-        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
-            if not have or not want:
-                return (True, "1.0") if have == want else (False, "Mismatch")
-            if not self.proc or self.proc.poll() is not None:
-                self._start_process()
-            try:
-                self.proc.stdin.write(f"{self._translate_unicode(have)}\n{self._translate_unicode(want)}\n")
-                self.proc.stdin.flush()
-                line = self.proc.stdout.readline().strip()
-                if not line:
-                    return False, f"Empty response: {have} to {want}"
-                if "conformability error" in line.lower() or "unknown" in line.lower():
-                    return False, line
-                try:
-                    mpmath.mpf(line)
-                    return True, line
-                except:
-                    return False, f"Unexpected output: {line}"
-            except Exception as e:
-                self._start_process()
-                return False, str(e)
-        def simplify(self, value: ty.Any, unit_str: str) -> tuple[ty.Any, str]:
-            if not unit_str or unit_str == "1":
-                return value, ""
-            cmd = [self.bin_path, "-q", "--compact", "-t", "-f", str(self.dynamic_path)]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            proc = subprocess.run(cmd + [self._translate_unicode(unit_str)], capture_output=True, text=True)
-            output = proc.stdout.strip()
-            match = re.match(r'^([\d.e+-]+)?\s*(.*)$', output)
-            factor = mpmath.mpf(match.group(1) or "1.0") if match else mpmath.mpf("1.0")
-            remainder = match.group(2).strip() if match else unit_str
-            if "=" in remainder:
-                remainder = remainder.split("=")[0].strip()
-            return value * factor, remainder
-        def is_known_unit(self, unit_str: str) -> bool:
-            if not unit_str:
-                return True
-            cmd = [self.bin_path, "-q", "-t", "--compact", "-f", str(self.dynamic_path)]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            res = subprocess.run(cmd + [self._translate_unicode(unit_str)], capture_output=True, text=True)
-            return res.returncode == 0 and "error" not in res.stderr.lower()
-        def add_base(self, unit_name: str) -> None:
-            definition = f"{unit_name}\t!"
-            is_ok, err = self._check_definition(definition)
-            if not is_ok:
-                raise ValueError(f"Invalid unit definition for '{unit_name}': {err}")
-            with open(self.dynamic_path, "a") as f:
-                f.write(f"\n{definition}\n")
-            self._start_process()
-        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
-                tmp.write(definition + "\n")
-                tmp_path = tmp.name
-            cmd = [self.bin_path, "-c", "-q"]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            cmd.extend(["-f", str(self.dynamic_path), "-f", tmp_path])
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
-                is_ok = (result.returncode == 0)
-                error_msg = result.stderr or result.stdout
-            except subprocess.TimeoutExpired:
-                is_ok, error_msg = False, "Timeout validating definition."
-            finally:
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
-            return is_ok, error_msg
-        def _register_unit(self, unit_name: str) -> str:
-            unit_name = unit_name.strip()
-            if not unit_name:
-                return "Error: Unit name empty."
-            if not unit_name[0].isalpha():
-                return f"Error: '{unit_name}' must start with a letter."
-            if self.is_known_unit(unit_name):
-                return "ok"
-            try:
-                self.add_base(unit_name)
-                return "ok"
-            except Exception as e:
-                return f"Error: {str(e)}"
-if 1:  # UnitArbiter
     '''Manifest [10]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit'''
     class UnitArbiter:
         '''
@@ -1617,19 +1388,191 @@ if 1:  # UnitArbiter
                 return "ok"
             except Exception as e:
                 return f"Error: {str(e)}"
-
+if 1:  # UnitArbiter
+    '''Manifest [11]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
+    class UnitArbiter:
+        '''
+        Singleton co-process manager for GNU Units and Math Orchestration.
+        Handles unit conversion and injects uncertainty-aware math wrappers.
+        '''
+        _instance = None
+        units_bin: str = "units"
+        main_config: str = ""
+        dynamic_config: str = "~/.units_dynamic"
+        def __new__(cls) -> "UnitArbiter":
+            if cls._instance is None:
+                cls._instance = super(UnitArbiter, cls).__new__(cls)
+                cls._instance._initialized = False
+            return cls._instance
+        def __init__(self) -> None:
+            if self._initialized:
+                return
+            self.bin_path = str(Path(UnitArbiter.units_bin).expanduser())
+            self.dynamic_path = Path(UnitArbiter.dynamic_config).expanduser()
+            if not self.dynamic_path.exists():
+                self.dynamic_path.parent.mkdir(parents=True, exist_ok=True)
+                self.dynamic_path.touch()
+            self.proc = None
+            self._start_process()
+            self._initialized = True
+            # Lift math functions into the global namespace
+            self.inject_math()
+        def _start_process(self) -> None:
+            '''Launches GNU Units in compact mode to ensure symbols over words.'''
+            if self.proc:
+                try:
+                    self.proc.terminate()
+                    self.proc.wait(timeout=0.2)
+                except:
+                    pass
+            cmd = [self.bin_path, "-q", "--compact", "-t"]
+            if UnitArbiter.main_config:
+                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
+            cmd.extend(["-f", str(self.dynamic_path)])
+            self.proc = subprocess.Popen(
+                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, text=True, bufsize=1
+            )
+        def _translate_unicode(self, s: str) -> str:
+            '''Converts superscript unicode exponents to ASCII carats for GNU Units.'''
+            superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+            exp_map = str.maketrans(superscripts, "0123456789")
+            out = ""
+            for char in s:
+                if char in superscripts:
+                    out += "^" + char.translate(exp_map)
+                else:
+                    out += char
+            return out
+        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
+            if not have or not want:
+                return (True, "1.0") if have == want else (False, "Mismatch")
+            if not self.proc or self.proc.poll() is not None:
+                self._start_process()
+            try:
+                self.proc.stdin.write(f"{self._translate_unicode(have)}\n{self._translate_unicode(want)}\n")
+                self.proc.stdin.flush()
+                line = self.proc.stdout.readline().strip()
+                if not line:
+                    return False, f"Empty response from GNU units: {have} to {want}"
+                if "conformability error" in line.lower() or "unknown" in line.lower():
+                    return False, line
+                try:
+                    mpmath.mpf(line)
+                    return True, line
+                except:
+                    return False, f"Unexpected GNU units output: {line}"
+            except Exception as e:
+                self._start_process()
+                return False, str(e)
+        def simplify(self, value: ty.Any, unit_str: str) -> tuple[ty.Any, str]:
+            if not unit_str or unit_str == "1":
+                return value, ""
+            cmd = [self.bin_path, "-q", "--compact", "-t", "-f", str(self.dynamic_path)]
+            if UnitArbiter.main_config:
+                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
+            proc = subprocess.run(cmd + [self._translate_unicode(unit_str)], capture_output=True, text=True)
+            output = proc.stdout.strip()
+            match = re.match(r'^([\d.e+-]+)?\s*(.*)$', output)
+            factor = mpmath.mpf(match.group(1) or "1.0") if match else mpmath.mpf("1.0")
+            remainder = match.group(2).strip() if match else unit_str
+            if "=" in remainder:
+                remainder = remainder.split("=")[0].strip()
+            return value * factor, remainder
+        def is_known_unit(self, unit_str: str) -> bool:
+            if not unit_str:
+                return True
+            cmd = [self.bin_path, "-q", "-t", "--compact", "-f", str(self.dynamic_path)]
+            if UnitArbiter.main_config:
+                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
+            res = subprocess.run(cmd + [self._translate_unicode(unit_str)], capture_output=True, text=True)
+            return res.returncode == 0 and "error" not in res.stderr.lower()
+        def add_base(self, unit_name: str) -> None:
+            definition = f"{unit_name}\t!"
+            is_ok, err = self._check_definition(definition)
+            if not is_ok:
+                raise ValueError(f"Invalid unit definition for '{unit_name}': {err}")
+            with open(self.dynamic_path, "a") as f:
+                f.write(f"\n{definition}\n")
+            self._start_process()
+        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+                tmp.write(definition + "\n")
+                tmp_path = tmp.name
+            cmd = [self.bin_path, "-c", "-q"]
+            if UnitArbiter.main_config:
+                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
+            cmd.extend(["-f", str(self.dynamic_path), "-f", tmp_path])
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
+                is_ok = (result.returncode == 0)
+                error_msg = result.stderr or result.stdout
+            except subprocess.TimeoutExpired:
+                is_ok, error_msg = False, "Timeout validating definition."
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+            return is_ok, error_msg
+        def _register_unit(self, unit_name: str) -> str:
+            unit_name = unit_name.strip()
+            if not unit_name:
+                return "Error: Unit name empty."
+            if not unit_name[0].isalpha():
+                return f"Error: '{unit_name}' must start with a letter."
+            if self.is_known_unit(unit_name):
+                return "ok"
+            try:
+                self.add_base(unit_name)
+                return "ok"
+            except Exception as e:
+                return f"Error: {str(e)}"
+        def inject_math(self) -> None:
+            '''
+            Automated Math Orchestrator. 
+            Injects uncertainty-aware wrappers into the global namespace.
+            '''
+            import sys
+            import mpmath
+            from mpmath import workdps, diff, sqrt as mp_sqrt
+            target = sys.modules['__main__']
+            def create_wrapper(func_name: str, is_dimensionless: bool = True):
+                mp_func = getattr(mpmath, func_name)
+                def wrapped(x: ty.Any) -> "Num":
+                    # If it's already a Num, proceed with Noether logic
+                    if isinstance(x, Num):
+                        if is_dimensionless and x.unit:
+                            raise ValueError(f"{func_name} requires a dimensionless Num (got {x.unit})")
+                        z_val = mp_func(x.as_mpc)
+                        res_unit = "" if is_dimensionless else x.unit
+                        if func_name == "sqrt":
+                            res_unit = f"sqrt({x.unit})" if x.unit else ""
+                        if x.mytype != NumType.Unc:
+                            return Num(z_val, unit=res_unit)
+                        with workdps(mpmath.mp.dps + 4):
+                            deriv = diff(mp_func, x.as_mpc)
+                            sens = abs(deriv)
+                            new_re_unc = sens * x.re_unc
+                            new_im_unc = sens * x.im_unc
+                        res = Num(z_val, unit=res_unit)
+                        res.re_unc = new_re_unc
+                        res.im_unc = new_im_unc
+                        res.mytype = NumType.Unc
+                        return res
+                    # If it's not a Num, just use the raw mpmath function
+                    return mp_func(x)
+                return wrapped
+            trig_funcs = ["cos", "sin", "tan", "acos", "asin", "atan", "exp", "log"]
+            # 'abs' removed from here - let the built-in handle it
+            misc_funcs = ["sqrt"] 
+            for name in trig_funcs:
+                setattr(target, name, create_wrapper(name, is_dimensionless=True))
+            for name in misc_funcs:
+                setattr(target, name, create_wrapper(name, is_dimensionless=False))
+                
 if 1:  # Functions
     def RegisterUnit(unit_name: str) -> None:
         '''Global helper for the Num class to ensure units are registered.'''
         UnitArbiter()._register_unit(unit_name)
-    def _RegisterUnit(unit_name: str) -> None:
-        '''
-        Gatekeeper for the Num constructor. If a unit is unknown,
-        it is registered as a new base (primitive) dimension.
-        '''
-        arb = UnitArbiter()
-        if not arb.is_known_unit(unit_name):
-            arb.add_base(unit_name)
     def e(n: "Num"):
         '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
         import tempfile, os, subprocess
@@ -1642,41 +1585,6 @@ if 1:  # Functions
         subprocess.call([editor, temp_path])
         # ... logic to read the file back and update n.d ...
         print(f"Updated {n.unit} metadata.")
-    def NoetherWrap(func_name: str, logic: str = "dimensionless"):
-        '''
-        Closure factory to bridge mpmath functions to Num containers.
-        Handles unit validation and alerts for unimplemented uncertainty math.
-        '''
-        mp_func = getattr(mpmath, func_name)
-        def wrapped(*args, **kwargs) -> "Num":
-            # 1. Standardize inputs to Num objects
-            n_args = [arg if isinstance(arg, Num) else Num(arg) for arg in args]
-            # 2. Uncertainty Alert (Temporal Hook)
-            for i, a in enumerate(n_args):
-                if a.mytype == NumType.Unc:
-                    print(f"DEBUG: {func_name} received NumType.Unc for arg {i}. "
-                        f"Uncertainty propagation not yet implemented.", file=sys.stderr)
-            # 3. Apply Unit Logic Gates
-            res_unit = ""
-            if logic == "dimensionless":
-                for i, a in enumerate(n_args):
-                    if a.unit:
-                        raise ValueError(f"{func_name} argument {i} must be dimensionless, got {a.unit!r}")
-            elif logic == "conformable":
-                if len(n_args) >= 2:
-                    have, want = n_args[0].unit, n_args[1].unit
-                    is_ok, _ = arbiter.check_conformable(have, want)
-                    if not is_ok:
-                        raise ValueError(f"{func_name} arguments must be conformable: {have!r} vs {want!r}")
-            elif logic == "sqrt":
-                if n_args[0].unit:
-                    # Placeholder: unit math for square roots to be handled in next iteration
-                    res_unit = f"sqrt({n_args[0].unit})" 
-            # 4. Execute using raw values
-            raw_values = [a.raw_value for a in n_args]
-            result_val = mp_func(*raw_values, **kwargs)
-            return Num(result_val, unit=res_unit)._promote()
-        return wrapped
 
 if 1:   # Global namespace function population
     # Trigonometric, Exponential, and Scaling
@@ -1853,7 +1761,19 @@ if 1:   # Self-tests
                     Assert(x.real == mpmath.mpf("1") and x.imag == mpmath.mpf("2"))
             # Test using a long string to show we aren't dropping back to standard 64
             # bit float precision
-
+            with mpmath.extradps(20):
+                sx = "1.123456789012345678901234567890"
+                sy = "11.23456789012345678901234567890"
+                x = mpmath.mpf(sx)
+                y = mpmath.mpf(sy)
+                result = x*y
+                expected = mpmath.mpf("12.621551567779301945529644873425361979")
+                Assert(result == expected)
+                x = Num(sx + " m")
+                y = Num(sy + " kg")
+                result = x*y
+                expected = Num("12.621551567779301945529644873425361979 (m)*(kg)")
+                Assert(result == expected)
         def Test_Arithmetic():
             if 1:   # Test addition
                 if 1:   # Integer & real
@@ -2070,6 +1990,121 @@ if 1:   # Self-tests
                 x = Num(radians(30))
                 Assert(sin(x).approx(0.5, 10))
             #yy
+        def Test_Uncertainty():
+            '''This output came from the _unc.py script, which uses the python
+            uncertainties library to calculate the results.  I consider it a gold
+            standard whose results we must reproduce.
+            
+            Introduction
+              This simulates a measurement made in the yard with a Starrett fiberglass
+              200 foot tape measure.  The tape measure is graduated in units of 0.01 ft.
+              I have no standard or calibration to know the uncertainty, so I'm forced
+              to estimate a type B uncertainty.  Much of the measurement uncertainty
+              won't come from the uncertainty in the tape measure itself, it will come
+              from going over the bumpy lawn and having to be pulled on to get things
+              straighter (tape stretch and small cumulative cosine errors).  I'll
+              estimate the uncertainty at 0.1 ft, which means the standard deviation is
+              about 1.2 inches.  If you regard a measurement as "nearly certain" if it's
+              within 3 standard deviations, then that means we regard each measurement
+              as "known" within about ±3.5 inches as a near certainty.  For a 50 to 100
+              ft typical measurement in the yard, that doesn't sound too optimistic or
+              pessimistic.
+            
+            Basic arithmetic:
+              x1 = 100.00(10)
+              x2 = 150.00(10)
+              x1 + x2 = 250.00(14)
+              x1 - x2 = -50.00(14)
+              x1*x2 = 15000(18)
+              x1/x2 = 0.66667(80)
+            Problematic:
+              sqrt(ufloat(0, 1)) = 0.0+/-nan
+              ufloat(0, 1)/ufloat(0.0001, 1) = (0.0+/-1.0)e+04
+            Trig:
+              Using the cosine law and lengths x1 = 100.00+/-0.10 and x2 = 150.00+/-0.10,
+              calculate the third edge of a triangle if the angle between the two lengths is 
+              60(2) degrees, measured with a small compass.  The formula is
+                  y² = x1² + x2² - 2*x1*x2*cos(angle)
+              where angle = 60.0+/-2.0°.  The task is to convert the angle to radians, then
+              peform the calculation.  The terms are
+                  x1² = 10000+/-20
+                  x2² = 22500+/-30
+                  2*x1*x2 = (3.000+/-0.004)e+04
+                  cos(radians(angle)) = 0.500+/-0.030
+              Putting the pieces together, the result is
+                  y = 132.3+/-3.4
+              Note:  a calculator gives 132.388.
+
+            Num constructor guts:
+                self.numer: int = 0
+                self.denom: int = 1
+                self.real: mpmath.mpf = mpmath.mpf("0")
+                self.imag: mpmath.mpf = mpmath.mpf("0")
+                self.re_unc: mpmath.mpf = mpmath.mpf("0")
+                self.im_unc: mpmath.mpf = mpmath.mpf("0")
+                self.correl: mpmath.mpf = mpmath.mpf("0")
+                self._unit = ""
+                self.mytype: NumType = NumType.Int
+            '''
+            mpf, mpc = mpmath.mpf, mpmath.mpc
+            indent = " "*4
+            x1 = Num("100 ft")
+            x2 = Num("150 ft")
+            # Manually convert to Unc instances
+            x1.re_unc = mpf("0.1")
+            x2.re_unc = x1.re_unc
+            x1.mytype = NumType.Unc
+            x2.mytype = NumType.Unc
+            if 1:   # Addition
+                result = x1 + x2
+                if 0:   # Dump values for debugging
+                    print("x1 dump")
+                    x1.dump(indent)
+                    print("\nx2 dump")
+                    x2.dump(indent)
+                    print("\nresult dump")
+                    result.dump(indent)
+                Assert(result == Num("250 ft"))
+                myresult = Num(str(result.re_unc))
+                expected = mpf("0.1")*mpmath.sqrt(2)
+                Assert(myresult.approx(expected, 14))
+            if 1:   # Multiplication
+                result = x1 * x2
+                if 0:   # Dump values for debugging
+                    print("x1 dump")
+                    x1.dump(indent)
+                    print("\nx2 dump")
+                    x2.dump(indent)
+                    print("\nresult dump")
+                    result.dump(indent)
+                Assert(result == Num("15000 ft2") == Num("15000 (ft)*(ft)"))
+                myresult = Num(str(result.re_unc))
+                expected = mpf("18")
+                Assert(myresult.approx(expected, 2))
+            if 1:   # Division
+                result = x1 / x2
+                if 0:   # Dump values for debugging
+                    print("x1 dump")
+                    x1.dump(indent)
+                    print("\nx2 dump")
+                    x2.dump(indent)
+                    print("\nresult dump")
+                    result.dump(indent)
+                Assert(result.approx(2/3, 14))
+                myresult = Num(str(result.re_unc))
+                expected = mpf("0.00080")
+                Assert(myresult.approx(expected, 2))
+            if 1:   # Cosine law example
+                theta = Num(radians(60))    # 60°±2° 
+                theta.re_unc = radians(mpf(2))
+                theta.mytype = NumType.Unc
+                result = sqrt(x1*x1 + x2*x2 - 2*x1*x2*cos(theta))
+                if 1:   # Dump
+                    print("theta dump")
+                    theta.dump(indent)  # 1.0472 radians
+                    print("result dump")
+                    result.dump(indent)
+
 
 '''
 Other tests needed:
