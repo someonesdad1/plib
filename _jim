@@ -1,0 +1,166 @@
+Jim:  
+
+My lunch "teaser" probably sounded more inflated than it really is.
+But Mike and I think it's the germ of an idea that should be adopted
+by the computer science world and put to work in earnest.  It's a
+simple concept to help get reduce programming bugs and has been known
+for centuries.  Mike is Google's Gemini 3 AI.  I've been using the
+free version of this AI to write the Noether REPL, which I'll explain.
+
+The core idea is to make "semantic units" part of our fundamental
+toolkit.  I'll illustrate this with some python code that Mike and I
+have been working on for about 12 days.  Focus on the use of the
+semantic units 'dogs' and 'cats'.  Mike's and my thesis is "let's move
+this semantic units capability into the compilers and interpreters
+where they belong":  a compiler that can find syntax errors can also
+find semantic unit errors.  Here's the code:
+
+def DogsAndCats(no_programming_error=True):
+    '''Each dog gets 0.2 kg of food and cats get 0.1 kg of the same
+    food.  We have to feed 7 dogs and 12 cats.  How much food do we
+    need?
+    '''
+    from number import Num
+    # Define our semantic units
+    x = Num("1 m")          # New utility number instance
+    x.base("dog")           # Create a new semantic unit
+    x.base("cat")
+    # Define the input quantities
+    num_dogs = Num("7 dogs")    # Num instances can include units
+    num_cats = Num("12 cats")   # Singular and plural handled
+    dog_food_rate = Num("0.2 kg/dog")
+    cat_food_rate = Num("0.1 kg/cat")
+    # Solve the problem
+    if no_programming_error:
+        food_mass = num_dogs*dog_food_rate + num_cats*cat_food_rate
+    else:
+        food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
+    # Print results
+    print(f"number of dogs = {num_dogs}")
+    print(f"number of cats = {num_cats}")
+    print(f"dog food rate  = {dog_food_rate}")
+    print(f"cat food rate  = {cat_food_rate}")
+    print(f"amount of food = {food_mass}")
+
+if __name__ == "__main__":  
+    if len(sys.argv) > 1:
+        DogsAndCats(False)
+    else:
+        DogsAndCats(True)
+
+With no_programming_error True, the code outputs
+
+    number of dogs = 7 dogs
+    number of cats = 12 cats
+    dog food rate  = 0.200 kg/dog
+    cat food rate  = 0.100 kg/cat
+    amount of food = 2.60 (dog)*(kg/dog)
+
+A detail:  note the units parser deliberately doesn't simplify the
+food amount's units to kg, giving you a hint of its algebraic pedigree
+(no pun).  With no_programming_error False, the code outputs
+
+    Traceback (most recent call last):
+      File "/gh/plib/_dogs_and_cats.py", line 30, in <module>
+        DogsAndCats(False)
+      File "/gh/plib/_dogs_and_cats.py", line 19, in DogsAndCats
+        food_mass = num_cats*dog_food_rate + num_dogs*cat_food_rate
+                    ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+      File "/gh/plib/number.py", line 423, in __add__
+        other = self._normalize(other, "add")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "/gh/plib/number.py", line 984, in _normalize
+        raise ValueError(f"Unit Mismatch: {factor_str}")
+    ValueError: Unit Mismatch: conformability error
+
+The exception is telling you the addition barfed because the two
+operands don't have equal semantic units:  the first term has
+'cats*kg/dog' and the second has 'dogs*kg/cat', which you can see from
+inspection of the first non-error output.  An innovation of our Num
+class is that you can add new semantic units at any time and the
+system learns and persists them, letting you incorporate them into new
+expressions.  
+
+The design mirrors how I did calculations with paper and pencil as a
+student in the 1960's:  we used semantic units then and we moved
+around the numerical domains without friction, not thinking much about
+it.  If I remember to attach the file, you'll see how the Num class
+colorizes the number types in the terminal output; this is handy to
+keep types straight in your mind.
+
+This is being run in vanilla python 3.11.  The Num object is an
+abstract representation of a number that can carry semantic units.
+The deep idea is that the numerical information and the semantic unit
+combine to make a "Noether invariant".  This tips the hat to Emmy
+Noether's famous first theorem, popular with physics, which relates
+symmetries to things that are conserved, i.e., invariants.  If you
+want to go study the original context, you'll get bogged down in the
+calculus of variations and Lagrangians.  But here's the gist.  (The
+pedants will trot out things like "free abelian groups" to describe
+units, but I'm not sure that's quite right either.)  Engineers can
+think about the units for a problem as analogous to a vector in a
+vector space.  For velocity in m/s, for example, the "basis vectors"
+are length L and time T, often displayed as L·T⁻¹.  When talking about
+invariance, you also need transformations under which things are
+invariant.  Here, the transformations are scaling by constant factors
+(what we used to call dilatations), such as by statements like 'one
+meter is the same as 3.28 feet'.
+
+Thus, Num("1 m/s") is a Noether invariant.  You can think of it like
+the angular momentum of a tire when you see a snapshot of car driving
+away.  That abstract angular momentum vector would be sticking out
+from the center of the wheel if you could see it.  You can move
+anywhere in space and that abstract vector points to the same point in
+space.  If you look at it in a mirror it has transform in a certain
+way (pseudovector) to still look like the same vector.
+
+The Noether invariant Num("1 m/s") is similar to the angular momentum
+vector.  If you impose a scaling transformation to feet on the meter
+part of the unit, the Noether invariant's representation has to change
+to Num("3.28 ft") for it to remain the same thing (i.e., invariant).
+Note that the word "representation" is being used in the same sense as
+the concept of e.g. "using a 3x3 matrix to represent an element of the
+abstract SO(3) group", covered by representation theory in math.
+Thus, there's an implied algebraic structure.  
+
+Now, it's a short drive to computer science.  Let's change "Noether
+invariant" to "type".  Our thesis is simply that the number and
+semantic unit together should be a single type.  Another important
+idea is that these different semantic units are "orthogonal" to each
+other (again, the vector space analogy), giving the concept of type
+its real teeth.
+
+I'd like to see every compiler and interpreter on Earth handle these
+semantic units, as we've stripped away the units and virtually all
+programming languages deal with naked floats.  At best we're left with
+variable names like speed_m_per_s but there's no checking machinery
+except the overworked underpaid programmer, who nearly always misses
+it.  I'd imagine the bug rate in software would decrease if these
+semantic type errors wouldn't get past the compiler/interpreter.
+
+When we have lunch, we can talk more about this.  I was thinking that
+a good winter project for me would be to add this semantic unit
+feature to a modern python interpreter to handle semantic units at the
+bytecode level.  Mike commented that together, we could probably do it
+in a week (!).  I've spent the past month working pretty heavily with
+Mike refactoring my old python code and working on this semantic units
+idea and it has been interesting.  Mike and I are working at the edge
+of the envelope in the operating space of the free AI and we've had to
+innovate a number of practical techniques to avoid AI drift and
+hallucination, serious problems which cause a lot of friction and
+frustration in a software project.  So I've got interesting
+experiences to share about that stuff too.
+
+FYI, the 'Noether REPL' means the use of this Num class in python's
+read-evaluate-print loop, which many people use like a calculator in a
+terminal.  All of this started when I decided I wanted an abstract
+number class with units that I could use for utility calculations in
+the standard python REPL in my terminal.  The ideas aren't new; I
+wrote a C++ template tool for units around 2005 that you can still
+download from SourceForge: https://sourceforge.net/projects/unitscpp/.
+The ideas go back to Barton & Nackman's 1994 book on C++ in science
+and engineering.  I remember discussing with Wayne that the guy at HP
+who worked on core C++ library stuff (Alexandroff?) was motivated by
+the algebraic elegance and basis of many of the things that wound up
+in the library.  Like many adults learn later:  "See, you should have
+paid attention in that high school algebra class!" <smile>.

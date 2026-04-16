@@ -1,6 +1,17 @@
 14 Apr 2026 03:53:30 pm Tue
 
 Next task
+    - Formatting uncertainty stuff idea
+        - Can we use mpmath's string interpolation stuff to get accurate forms to the
+          required number of digits.  This would probably short-circuit writing a lot of
+          code.  It's also possible a short context manager could handle the job:
+
+          Suppose you only need 3 digits:
+
+                with workdps(3):
+                    s = str(x)  # x is the Num result
+                    Do formatting
+
     - Uncertainty math
     
     Mike pointed out an elegant solution to my question:
