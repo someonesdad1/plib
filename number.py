@@ -2097,10 +2097,12 @@ if 1:  # UnitArbiter
                 return "ok"
             except Exception as e:
                 return f"Error: {str(e)}"
+
         def inject_math(self) -> None:
+            '''Inject uncertainty-aware math wrappers into __main__ namespace.'''
             import sys
             import mpmath
-            from mpmath import workdps, diff, sqrt as mp_sqrt
+            from mpmath import workdps, diff, mp
             target = sys.modules['__main__']
             def create_wrapper(func_name: str, is_dimensionless: bool = True):
                 mp_func = getattr(mpmath, func_name)
@@ -2118,11 +2120,20 @@ if 1:  # UnitArbiter
                             res_unit = "rad"
                         if x.mytype != NumType.Unc:
                             return Num(z_val, unit=res_unit)
-                        with workdps(mpmath.mp.dps+4):
-                            deriv = diff(mp_func, x.as_mpc)
-                            sens = abs(deriv)
-                            new_re_unc = sens*x.re_unc
-                            new_im_unc = sens*x.im_unc
+                        with workdps(mp.dps + 4):
+                            # Icelandic Heuristic: Two-step convergence check
+                            h_base = mp.power(10, -(mp.dps // 2))
+                            d1 = diff(mp_func, x.as_mpc, h=h_base)
+                            d2 = diff(mp_func, x.as_mpc, h=h_base / 2)
+                            sens = abs(d1)
+                            sens2 = abs(d2)
+                            # Check for divergence (Ratio > 1% difference)
+                            if abs(sens - sens2) / (sens + 1e-30) > 0.01:
+                                print(f"Warning: Possible singularity suspected in "
+                                      f"{func_name} at {x.raw_value}.\n"
+                                      f"Uncertainty propagation may be non-physical.", file=sys.stderr)
+                            new_re_unc = sens * x.re_unc
+                            new_im_unc = sens * x.im_unc
                         res = Num(z_val, unit=res_unit)
                         res.re_unc = new_re_unc
                         res.im_unc = new_im_unc
@@ -2131,7 +2142,6 @@ if 1:  # UnitArbiter
                     return mp_func(x)
                 return wrapped
             trig_funcs = ["cos", "sin", "tan", "acos", "asin", "atan", "exp", "log"]
-            # Added degrees and radians to the misc_funcs so they bypass dimensionless checks
             misc_funcs = ["sqrt", "degrees", "radians"]
             for name in trig_funcs:
                 setattr(target, name, create_wrapper(name, is_dimensionless=True))
@@ -2224,6 +2234,20 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
 
 if 0:  # Temp experiment
+    # Try to duplicate PUL's nan result.  The idea here is to do two calculations of the
+    # derivative in UnitArbiter.inject_math.wrapped where uncertainty gets propagated.
+    # If the slope is really steep like the 1e11 case for the sqrt at zero, the two
+    # estimates should be hugely different.
+    x = Num("0")
+    x.re_unc = mpmath.mpf(1)
+    x.mytype = NumType.Unc
+    result = sqrt(x)
+    # Note:  the numerical differentiation gives a large number 1.9e11 for
+    # the sensitivity sens in inject_math.wrapped().  However, it of course
+    # doesn't result in a NaN like the python uncertainties library gets.
+    Assert(result == Num(0))
+    y = Num(result.re_unc)
+    Assert(y.approx(1.94368e+11, 4))
     exit()
 
 if 1:   # Self-tests
@@ -2671,16 +2695,29 @@ if 1:   # Self-tests
                 myresult = Num(str(result.re_unc))
                 expected = mpf("0.00080")
                 Assert(myresult.approx(expected, 2))
-            if 1:   # Cosine law example
+            if 0:   # Cosine law example
                 theta = Num(radians(60))    # 60°±2° 
                 theta.re_unc = radians(mpf(2))
                 theta.mytype = NumType.Unc
                 result = sqrt(x1*x1 + x2*x2 - 2*x1*x2*cos(theta))
-                if 1:   # Dump
+                if 0:   # Dump
                     print("theta dump")
                     theta.dump(indent)  # 1.0472 radians
                     print("result dump")
                     result.dump(indent)
+            if 1:   # NaN example
+                x = Num("0")
+                x.re_unc = mpf(1)
+                x.mytype = NumType.Unc
+                result = sqrt(x)
+                # Note:  the numerical differentiation gives a large number (1.9e11 for
+                # the default diff, but we're using a heuristic to select the step size
+                # h) sensitivity sens in inject_math.wrapped().  However, it of course
+                # doesn't result in a NaN like the python uncertainties library gets.
+                Assert(result == Num(0))
+                y = Num(result.re_unc)
+                Assert(y.approx(22360, 4))
+                #yy
 
 
 '''
