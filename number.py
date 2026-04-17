@@ -208,143 +208,6 @@ if 1:  # Header
 if 0:  # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
     class NumericMixin:
-        '''
-        Operator overloading for the Num class.
-        Ensures unit propagation, type promotion, and uncertainty handling.
-        '''
-        def __add__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "add")
-            return self._binary_op(other, lambda a, b: a+b)
-        def __sub__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "sub")
-            return self._binary_op(other, lambda a, b: a-b)
-        def __mul__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})*({other.unit})"
-            elif self.unit or other.unit:
-                res_unit = self.unit or other.unit
-            res = self._binary_op(other, lambda a, b: a*b)
-            res.unit = res_unit
-            return res
-        def __truediv__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-            res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})/({other.unit})"
-            elif self.unit:
-                res_unit = self.unit
-            elif other.unit:
-                res_unit = f"1/({other.unit})"
-            res = self._binary_op(other, lambda a, b: a/b)
-            res.unit = res_unit
-            return res
-        def __pow__(self, other: ty.Any) -> "Num":
-            if not isinstance(other, Num):
-                other = Num(other)
-
-            # Guard: Physical dimensions cannot be raised to complex powers
-            if self.unit and other.mytype == NumType.Cpx:
-                raise TypeError(f"Cannot raise unit-bearing quantity ({self.unit}) to a complex power")
-
-            res = self._binary_op(other, lambda a, b: a**b)
-
-            if self.unit:
-                # Construct the raw power string
-                try:
-                    # Check for integer-like float to keep string clean
-                    exp_f = float(other.as_mpf)
-                    exp_str = str(int(exp_f)) if exp_f.is_integer() else str(exp_f)
-                except:
-                    exp_str = str(other.raw_value)
-
-                raw_unit = f"({self.unit})^{exp_str}"
-
-                # Ask the arbiter to simplify the resulting unit (e.g., gallons^(2/3) -> m^2)
-                # This ensures that result.unit becomes "m^2" and the value is scaled
-                new_val, simplified_unit = self.arb.simplify(res.raw_value, raw_unit)
-
-                # Re-wrap in a Num to ensure promotion and unit assignment
-                return Num(new_val, unit=simplified_unit)
-
-            return res
-        def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
-            '''
-            Vision 1: The Jacobian Propagation Engine.
-            Hygiene Fix: Uses mp_sqrt to avoid global namespace collision.
-            '''
-            from mpmath import workdps, diff, sqrt as mp_sqrt
-            z_val = op_func(self.as_mpc, other.as_mpc)
-            with workdps(mpmath.mp.dps+4):
-                df_dself = diff(lambda x: op_func(x, other.as_mpc), self.as_mpc)
-                df_dother = diff(lambda y: op_func(self.as_mpc, y), other.as_mpc)
-                s_sens = abs(df_dself)
-                o_sens = abs(df_dother)
-                var_re = (s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2
-                # CRITICAL: Use mp_sqrt here, NOT the global sqrt from the wrapper
-                new_re_unc = mp_sqrt(var_re)
-                var_im = (s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2
-                new_im_unc = mp_sqrt(var_im)
-            res = Num(z_val, unit=self.unit)
-            res.re_unc = new_re_unc
-            res.im_unc = new_im_unc
-            res.mytype = NumType.Unc
-            return res
-        def __lt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value < other.raw_value
-        def __le__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value <= other.raw_value
-        def __gt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value > other.raw_value
-        def __ge__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value >= other.raw_value
-        def __eq__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                try:
-                    other = Num(other)
-                except:
-                    return False
-            if self.unit == other.unit:
-                return self.raw_value == other.raw_value
-            try:
-                other_adj = self._normalize(other, "cmp")
-                return self.raw_value == other_adj.raw_value
-            except (ValueError, TypeError):
-                return False
-        def __abs__(self) -> "Num":
-            return self._make_result(abs(self.raw_value), unit=self.unit)
-        def __neg__(self) -> "Num":
-            return self._make_result(-self.raw_value, unit=self.unit)
-        def __radd__(self, other: ty.Any) -> "Num":
-            return Num(other)+self
-        def __rsub__(self, other: ty.Any) -> "Num":
-            return Num(other)-self
-        def __rmul__(self, other: ty.Any) -> "Num":
-            return Num(other)*self
-        def __rtruediv__(self, other: ty.Any) -> "Num":
-            return Num(other)/self
-if 0:  # NumericMixin
-    '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
-    class NumericMixin:
         '''Operator overloading for the Num class.'''
         def __add__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num): other = Num(other)
@@ -502,39 +365,45 @@ if 1:  # NumericMixin
             return res
         def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
             from mpmath import workdps, diff, sqrt as mp_sqrt
+            # Use mpc to ensure we have a common high-precision starting point
             z_val = op_func(self.as_mpc, other.as_mpc)
             with workdps(mpmath.mp.dps+4):
+                # Calculate partial derivatives numerically
                 df_dself = diff(lambda x: op_func(x, other.as_mpc), self.as_mpc)
                 df_dother = diff(lambda y: op_func(self.as_mpc, y), other.as_mpc)
                 s_sens = abs(df_dself)
                 o_sens = abs(df_dother)
+                # Gaussian error propagation
                 new_re_unc = mp_sqrt((s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2)
                 new_im_unc = mp_sqrt((s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2)
-            res = Num(z_val, unit=self.unit)
+            # Use _make_result to handle nominal value storage/promotion correctly
+            res = self._make_result(z_val, unit=self.unit)
+            # Manually attach uncertainty now that nominal value is safely stored
             res.re_unc = new_re_unc
             res.im_unc = new_im_unc
             res.mytype = NumType.Unc
             return res
-        def __lt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value < other.raw_value
-        def __le__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value <= other.raw_value
-        def __gt__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value > other.raw_value
-        def __ge__(self, other: ty.Any) -> bool:
-            if not isinstance(other, Num):
-                other = Num(other)
-            other = self._normalize(other, "cmp")
-            return self.raw_value >= other.raw_value
+        def _check_ordering(self, other: ty.Any, op: str):
+            '''Raise a clean TypeError if ordering is non-physical or ambiguous.'''
+            # Promotion logic
+            other_num = other if isinstance(other, Num) else Num(other)
+            if self.mytype == NumType.Cpx or other_num.mytype == NumType.Cpx:
+                raise TypeError(f"'{op}' not supported between complex numbers.")
+            if self.mytype == NumType.Unc or other_num.mytype == NumType.Unc:
+                raise TypeError(f"'{op}' not supported for numbers with uncertainty. "
+                                f"Compare .raw_value if you want nominal ordering.")
+        def __lt__(self, other):
+            self._check_ordering(other, "<")
+            return self.raw_value < (other.raw_value if isinstance(other, Num) else other)
+        def __le__(self, other):
+            self._check_ordering(other, "<=")
+            return self.raw_value <= (other.raw_value if isinstance(other, Num) else other)
+        def __gt__(self, other):
+            self._check_ordering(other, ">")
+            return self.raw_value > (other.raw_value if isinstance(other, Num) else other)
+        def __ge__(self, other):
+            self._check_ordering(other, ">=")
+            return self.raw_value >= (other.raw_value if isinstance(other, Num) else other)
         def __eq__(self, other: ty.Any) -> bool:
             if not isinstance(other, Num):
                 try:
@@ -573,367 +442,6 @@ if 1:  # NumericMixin
         def __rtruediv__(self, other: ty.Any) -> "Num":
             return Num(other)/self
 
-if 0:  # Num
-    '''Manifest [24]: __init__ almost as_int_or_rat as_mpc as_mpf base help num _promote raw_value to unit _binary_op _extract_unit _make_result _normalize _parse_proper_fraction _parse_string _r _s __repr__ __str__ __pow__'''
-    class Num(NumericMixin):
-        '''Represent a general number useful for routine calculations'''
-        type_color = {
-            NumType.Int: t("mag", "gry1"),
-            NumType.Rat: t("brn", "gry1"),
-            NumType.Flt: t("ygr", "gry1"),
-            NumType.Cpx: t("sky", "gry1"),
-            NumType.Unc: t("pur", "gry1"),
-        }
-        flip = False
-        show_color = True
-        active_system = "default"
-        Fmt = fmt.Fmt()
-        def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
-            self._doc = ""
-            self.arb = UnitArbiter()
-            self.fmt = Num.Fmt
-            if isinstance(value, str):
-                val_str, found_unit = self._extract_unit(value)
-                if found_unit:
-                    unit = found_unit if not unit else f"({found_unit})*({unit})"
-                value = val_str
-            self.numer: int = 0
-            self.denom: int = 1
-            self.real: mpmath.mpf = mpmath.mpf("0")
-            self.imag: mpmath.mpf = mpmath.mpf("0")
-            self.re_unc: mpmath.mpf = mpmath.mpf("0")
-            self.im_unc: mpmath.mpf = mpmath.mpf("0")
-            self.correl: mpmath.mpf = mpmath.mpf("0")
-            self._unit = ""
-            self.mytype: NumType = NumType.Int
-            if unit:
-                self.unit = unit
-            if value is None:
-                return
-            if isinstance(value, Num):
-                self.numer, self.denom = value.numer, value.denom
-                self.real, self.imag = value.real, value.imag
-                self.re_unc, self.im_unc = value.re_unc, value.im_unc
-                self._unit = unit if unit else value.unit
-                self.mytype = value.mytype
-            elif isinstance(value, int):
-                self.numer = value
-                self.mytype = NumType.Int
-            elif isinstance(value, fractions.Fraction):
-                self.numer, self.denom = value.numerator, value.denominator
-                self.mytype = NumType.Rat
-            elif isinstance(value, (float, decimal.Decimal)):
-                self.real = mpmath.mpf(str(value))
-                self.mytype = NumType.Flt
-            elif isinstance(value, complex):
-                self.real = mpmath.mpf(str(value.real))
-                self.imag = mpmath.mpf(str(value.imag))
-                self.mytype = NumType.Cpx
-            elif hasattr(value, "_mpf_") or isinstance(value, mpmath.mpf):
-                self.real = value
-                self.mytype = NumType.Flt
-            elif isinstance(value, mpmath.mpc):
-                self.real, self.imag = value.real, value.imag
-                self.mytype = NumType.Cpx
-            elif isinstance(value, uncertainties.UFloat):
-                self.real = mpmath.mpf(str(value.nominal_value))
-                self.re_unc = mpmath.mpf(str(value.std_dev))
-                self.mytype = NumType.Unc
-            elif isinstance(value, str):
-                self._parse_string(value.strip())
-            else:
-                raise TypeError(f"Type of {value!r} is not supported")
-        def _promote(self) -> "Num":
-            if self.mytype == NumType.Rat:
-                f = fractions.Fraction(self.numer, self.denom)
-                self.numer, self.denom = f.numerator, f.denominator
-                if self.denom == 1:
-                    self.mytype = NumType.Int
-            elif self.mytype == NumType.Cpx:
-                if self.imag == 0:
-                    self.mytype = NumType.Flt
-            return self
-        def _binary_op(self, other: "Num", op_func: ty.Callable) -> "Num":
-            target_type = max(self.mytype.value, other.mytype.value)
-            res_unit = self.unit
-            if target_type <= NumType.Rat.value:
-                raw_val = op_func(self.as_int_or_rat, other.as_int_or_rat)
-                return self._make_result(raw_val, unit=res_unit)
-            if target_type == NumType.Unc.value:
-                return self._do_uncertainty_math(other, op_func)
-            if self.mytype == NumType.Cpx or other.mytype == NumType.Cpx:
-                raw_val = op_func(self.as_mpc, other.as_mpc)
-                return self._make_result(raw_val, unit=res_unit)
-            a_val = self.real if self.mytype >= NumType.Flt else self.as_mpf
-            b_val = other.real if other.mytype >= NumType.Flt else other.as_mpf
-            raw_val = op_func(a_val, b_val)
-            return self._make_result(raw_val, unit=res_unit)
-        def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
-            return Num(value, unit=unit)._promote()
-        def _normalize(self, other: "Num", operation: str = "") -> "Num":
-            if self.unit == other.unit:
-                return other
-            if operation in ("mul", "div"):
-                return other
-            if operation in ("add", "sub", "cmp"):
-                if bool(self.unit) != bool(other.unit):
-                    raise ValueError(f"Unit Mismatch: {self.unit} vs {other.unit}")
-            is_ok, factor_str = self.arb.check_conformable(other.unit, self.unit)
-            if not is_ok:
-                raise ValueError(f"Unit Mismatch: {factor_str}")
-            factor = mpmath.mpf(factor_str)
-            adjusted = Num(other)
-            if adjusted.mytype <= NumType.Rat:
-                adjusted.real = adjusted.as_mpf*factor
-                adjusted.mytype = NumType.Flt
-            else:
-                adjusted.real *= factor
-                adjusted.imag *= factor
-                adjusted.re_unc *= factor
-                adjusted.im_unc *= factor
-            adjusted._unit = self.unit
-            return adjusted
-        def _parse_proper_fraction(self, s: str) -> mpmath.mpf:
-            regex = r"^([+-])?(\d+)?(?:[- ](\d+)/(\d+))?$"
-            match = re.match(regex, s.strip())
-            if not match:
-                raise ValueError(f"Invalid fraction format: {s}")
-            sign = -1 if match.group(1) == "-" else 1
-            whole = int(match.group(2)) if match.group(2) else 0
-            num = int(match.group(3)) if match.group(3) else 0
-            den = int(match.group(4)) if match.group(4) else 1
-            return sign*(mpmath.mpf(whole)+(mpmath.mpf(num)/mpmath.mpf(den)))
-        def _parse_string(self, value: str) -> None:
-            raw = value.strip().replace(" ", "").lower()
-            if not raw:
-                raise ValueError("Empty string provided to Num")
-            if raw in ("inf", "-inf", "nan"):
-                self.real = mpmath.mpf(raw)
-                self.mytype = NumType.Flt
-                return
-            if re.fullmatch(r"[+-]?\d+", raw):
-                self.numer = int(raw)
-                self.mytype = NumType.Int
-                return
-            if ("/" in raw and "-" in raw and raw[0] != "-"):
-                self.real = self._parse_proper_fraction(value)
-                self.mytype = NumType.Flt
-                return
-            if "/" in raw and "j" not in raw and "i" not in raw:
-                parts = raw.split("/")
-                if len(parts) == 2:
-                    try:
-                        self.numer, self.denom = int(parts[0]), int(parts[1])
-                        if self.denom == 0:
-                            raise ZeroDivisionError
-                        self.mytype = NumType.Rat
-                        return
-                    except (ValueError, ZeroDivisionError):
-                        pass
-            norm = raw.replace("i", "j")
-            pattern = r"(?<!e)(?=[+-])"
-            parts = [p for p in re.split(pattern, norm) if p]
-            try:
-                if len(parts) == 1:
-                    p = parts[0]
-                    if p.endswith("j"):
-                        val = p[:-1].replace("+", "")
-                        if val in ("", "-"):
-                            val += "1"
-                        self.imag = mpmath.mpf(val)
-                        self.mytype = NumType.Cpx
-                    else:
-                        self.real = mpmath.mpf(p.replace("+", ""))
-                        self.mytype = NumType.Flt
-                elif len(parts) == 2:
-                    re_p, im_p = parts
-                    if not im_p.endswith("j"):
-                        self.real = mpmath.mpf(norm.replace("+", ""))
-                        self.mytype = NumType.Flt
-                    else:
-                        self.real = mpmath.mpf(re_p.replace("+", ""))
-                        val = im_p[:-1].replace("+", "")
-                        if val in ("", "-"):
-                            val += "1"
-                        self.imag = mpmath.mpf(val)
-                        self.mytype = NumType.Cpx
-                else:
-                    self.real = mpmath.mpf(norm.replace("+", ""))
-                    self.mytype = NumType.Flt
-            except:
-                raise ValueError(f"Could not parse numeric part: {value}")
-        def _extract_unit(self, s: str) -> ty.Tuple[str, str]:
-            s = s.strip()
-            if " " not in s:
-                return s, ""
-            parts = s.rsplit(None, 1)
-            val_part, unit_part = parts
-            if unit_part[0].isalpha() or unit_part[0] in "(%":
-                if not val_part.lower().endswith("e"):
-                    return val_part.strip(), unit_part.strip()
-            return s, ""
-        def base(self, unit: str = "") -> None:
-            if not isinstance(unit, str):
-                raise TypeError(f"Unit must be a string, not {type(unit).__name__}")
-            target = unit if unit else self.unit
-            if not target:
-                print("No unit provided to register.")
-                return
-            status = self.arb._register_unit(target)
-            if status != "ok":
-                print(status)
-        def help(self, topic: str = "") -> None:
-            if not isinstance(topic, str):
-                raise TypeError(f"Topic must be a string, not {type(topic).__name__}")
-            h = Help()
-            if not topic:
-                h()
-            else:
-                h(topic)
-        def _s(self) -> str:
-            if self.mytype == NumType.Int:
-                s = self.fmt(self.numer)
-            elif self.mytype == NumType.Rat:
-                s = self.fmt(fractions.Fraction(self.numer, self.denom))
-            elif self.mytype == NumType.Cpx:
-                s = self.fmt(self.as_mpc)
-            elif self.mytype == NumType.Unc:
-                s = f"{self.real} +/- {self.re_unc}"
-            else:
-                s = self.fmt(self.real)
-            unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
-            color = Num.type_color.get(self.mytype, t.wht)
-            return f"{color}{s}{t.n}{unit_string}"
-        def _r(self) -> str:
-            if self.mytype == NumType.Int:
-                s = str(self.numer)
-            elif self.mytype == NumType.Rat:
-                s = f"{self.numer}/{self.denom}"
-            elif self.mytype == NumType.Cpx:
-                s = f"{self.as_mpc!r}"
-            else:
-                s = str(self.real)
-            if self.unit:
-                s += f" {self.unit}"
-            return f"Num('{s}')"
-        def __str__(self) -> str:
-            return self._r() if Num.flip else self._s()
-        def __repr__(self) -> str:
-            return self._s() if Num.flip else self._r()
-        def to(self, unit: str, auto_promote: bool = True) -> "Num":
-            if not isinstance(unit, str):
-                raise TypeError(f"Target unit must be a string, not {type(unit).__name__}")
-            if not unit or unit == self.unit:
-                return Num(self)
-            is_ok, factor_str = self.arb.check_conformable(self.unit, unit)
-            if not is_ok:
-                self.arb._register_unit(unit)
-                is_ok, factor_str = self.arb.check_conformable(self.unit, unit)
-                if not is_ok:
-                    raise ValueError(f"Incompatible: {self.unit} -> {unit}")
-            factor = mpmath.mpf(factor_str)
-            res = Num(self)
-            res.real = res.as_mpf*factor
-            res.mytype = NumType.Flt
-            res._unit = unit
-            return res._promote() if auto_promote else res
-        def approx(self, y: ty.Union["Num", float, int, mpmath.mpf, mpmath.mpc], ndigits: int) -> bool:
-            if not isinstance(ndigits, int):
-                raise TypeError(f"ndigits must be an int, not {type(ndigits).__name__}")
-            assert ndigits > 0
-            if not isinstance(y, Num):
-                y = Num(y)
-            if self == y:
-                return True
-            vx, vy = self.as_mpf, y.as_mpf
-            if vy == 0:
-                return abs(vx) < 10**(-ndigits)
-            val = abs((vx-vy)/vy)
-            if val == 0:
-                return True
-            return int(abs(mpmath.log10(val))) >= ndigits
-        def dump(self, indent: str = "") -> str:
-            print(f"{indent}Num(<id(self)>) core attributes:")
-            print(f"{indent}    self.numer    {self.numer}")
-            print(f"{indent}    self.denom    {self.denom}")
-            print(f"{indent}    self.real     {self.real}")
-            print(f"{indent}    self.imag     {self.imag}")
-            print(f"{indent}    self.re_unc   {self.re_unc}")
-            print(f"{indent}    self.im_unc   {self.im_unc}")
-            print(f"{indent}    self.correl   {self.correl}")
-            print(f"{indent}    self.unit     {self.unit!r}")
-            print(f"{indent}    self.mytype   {self.mytype}")
-            print(f"{indent}    1=Int, 2=Rat, 3=Flt, 4=Cpx, 5=Unc")
-        @property
-        def unit(self) -> str:
-            return self._unit.strip()
-        @unit.setter
-        def unit(self, value: str) -> None:
-            if not isinstance(value, str):
-                raise TypeError("Unit must be a string")
-            if value:
-                self.arb._register_unit(value)
-                self._unit = value.strip()
-            else:
-                self._unit = ""
-        @property
-        def raw_value(self) -> ty.Union[int, mpmath.mpf, mpmath.mpc]:
-            if self.mytype == NumType.Int:
-                return self.numer
-            if self.mytype == NumType.Rat:
-                return self.numer/self.denom
-            if self.mytype == NumType.Cpx:
-                return self.as_mpc
-            return self.real
-        @property
-        def as_mpc(self) -> mpmath.mpc:
-            if self.mytype == NumType.Cpx:
-                return mpmath.mpc(self.real, self.imag)
-            return mpmath.mpc(self.as_mpf, 0)
-        @property
-        def as_mpf(self) -> mpmath.mpf:
-            if self.numer != 0:
-                return mpmath.mpf(self.numer) / mpmath.mpf(self.denom)
-            return self.real
-        @property
-        def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
-            if self.mytype == NumType.Int:
-                return self.numer
-            return fractions.Fraction(self.numer, self.denom)
-        @property
-        def num(self) -> "Num":
-            res = Num(self)
-            res.unit = ""
-            return res
-        @property
-        def raw_value(self) -> ty.Union[int, mpmath.mpf, mpmath.mpc]:
-            if self.mytype == NumType.Int:
-                return self.numer
-            if self.mytype == NumType.Rat:
-                return self.numer/self.denom
-            if self.mytype == NumType.Cpx:
-                return self.as_mpc
-            return self.real
-        @property
-        def as_mpc(self) -> mpmath.mpc:
-            if self.mytype == NumType.Cpx:
-                return mpmath.mpc(self.real, self.imag)
-            return mpmath.mpc(self.as_mpf, 0)
-        @property
-        def as_mpf(self) -> mpmath.mpf:
-            if self.numer != 0:
-                return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
-            return self.real
-        @property
-        def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
-            if self.mytype == NumType.Int:
-                return self.numer
-            return fractions.Fraction(self.numer, self.denom)
-        @property
-        def num(self) -> "Num":
-            res = Num(self)
-            res.unit = ""
-            return res
 if 0:  # Num
     '''Manifest [23]: __init__ _promote _binary_op _make_result _normalize _parse_proper_fraction _parse_string _extract_unit base help _s _r __str__ __repr__ to approx dump unit raw_value as_mpc as_mpf as_int_or_rat num'''
     class Num(NumericMixin):
@@ -1293,29 +801,33 @@ if 1:  # Num
             self._doc = ""
             self.arb = UnitArbiter()
             self.fmt = Num.Fmt
+            # 1. Capture and consolidate units from string or argument
             if isinstance(value, str):
                 val_str, found_unit = self._extract_unit(value)
                 if found_unit:
                     unit = found_unit if not unit else f"({found_unit})*({unit})"
                 value = val_str
+            # 2. Base initialization
             self.numer: int = 0
             self.denom: int = 1
-            self.real: mpmath.mpf = mpmath.mpf("0")
-            self.imag: mpmath.mpf = mpmath.mpf("0")
+            self._real: mpmath.mpf = mpmath.mpf("0")
+            self._imag: mpmath.mpf = mpmath.mpf("0")
             self.re_unc: mpmath.mpf = mpmath.mpf("0")
             self.im_unc: mpmath.mpf = mpmath.mpf("0")
             self.correl: mpmath.mpf = mpmath.mpf("0")
             self._unit = ""
             self.mytype: NumType = NumType.Int
-            if unit:
-                self.unit = unit
             if value is None:
+                # Still apply the unit even if value is None
+                if unit: self.unit = unit
                 return
+            # 3. Type-specific parsing
             if isinstance(value, Num):
                 self.numer, self.denom = value.numer, value.denom
-                self.real, self.imag = value.real, value.imag
+                self._real, self._imag = value._real, value._imag
                 self.re_unc, self.im_unc = value.re_unc, value.im_unc
-                self._unit = unit if unit else value.unit
+                # Respect passed unit over the source Num unit if provided
+                unit = unit if unit else value.unit
                 self.mytype = value.mytype
             elif isinstance(value, int):
                 self.numer = value
@@ -1324,26 +836,30 @@ if 1:  # Num
                 self.numer, self.denom = value.numerator, value.denominator
                 self.mytype = NumType.Rat
             elif isinstance(value, (float, decimal.Decimal)):
-                self.real = mpmath.mpf(str(value))
+                self._real = mpmath.mpf(str(value))
                 self.mytype = NumType.Flt
             elif isinstance(value, complex):
-                self.real = mpmath.mpf(str(value.real))
-                self.imag = mpmath.mpf(str(value.imag))
+                self._real = mpmath.mpf(str(value.real))
+                self._imag = mpmath.mpf(str(value.imag))
                 self.mytype = NumType.Cpx
             elif hasattr(value, "_mpf_") or isinstance(value, mpmath.mpf):
-                self.real = value
+                self._real = value
                 self.mytype = NumType.Flt
             elif isinstance(value, mpmath.mpc):
-                self.real, self.imag = value.real, value.imag
+                self._real, self._imag = value.real, value.imag
                 self.mytype = NumType.Cpx
             elif isinstance(value, uncertainties.UFloat):
-                self.real = mpmath.mpf(str(value.nominal_value))
+                self._real = mpmath.mpf(str(value.nominal_value))
                 self.re_unc = mpmath.mpf(str(value.std_dev))
                 self.mytype = NumType.Unc
             elif isinstance(value, str):
                 self._parse_string(value.strip())
             else:
                 raise TypeError(f"Type of {value!r} is not supported")
+            # 4. Final Unit Assertion
+            # This ensures that even if _parse_string wiped _unit, we restore it.
+            if unit:
+                self.unit = unit
         def _promote(self) -> "Num":
             if self.mytype == NumType.Rat:
                 f = fractions.Fraction(self.numer, self.denom)
@@ -1351,7 +867,7 @@ if 1:  # Num
                 if self.denom == 1:
                     self.mytype = NumType.Int
             elif self.mytype == NumType.Cpx:
-                if self.imag == 0:
+                if self._imag == 0:
                     self.mytype = NumType.Flt
             return self
         def _binary_op(self, other: "Num", op_func: ty.Callable) -> "Num":
@@ -1365,8 +881,8 @@ if 1:  # Num
             if self.mytype == NumType.Cpx or other.mytype == NumType.Cpx:
                 raw_val = op_func(self.as_mpc, other.as_mpc)
                 return self._make_result(raw_val, unit=res_unit)
-            a_val = self.real if self.mytype >= NumType.Flt else self.as_mpf
-            b_val = other.real if other.mytype >= NumType.Flt else other.as_mpf
+            a_val = self._real if self.mytype >= NumType.Flt else self.as_mpf
+            b_val = other._real if other.mytype >= NumType.Flt else other.as_mpf
             raw_val = op_func(a_val, b_val)
             return self._make_result(raw_val, unit=res_unit)
         def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
@@ -1376,20 +892,20 @@ if 1:  # Num
                 return other
             if operation in ("mul", "div"):
                 return other
-            if operation in ("add", "sub", "cmp"):
-                if bool(self.unit) != bool(other.unit):
-                    raise ValueError(f"Unit Mismatch: {self.unit} vs {other.unit}")
+            # Check for unit compatibility
             is_ok, factor_str = self.arb.check_conformable(other.unit, self.unit)
             if not is_ok:
                 raise ValueError(f"Unit Mismatch: {factor_str}")
             factor = mpmath.mpf(factor_str)
             adjusted = Num(other)
-            if adjusted.mytype <= NumType.Rat:
-                adjusted.real = adjusted.as_mpf*factor
-                adjusted.mytype = NumType.Flt
-            else:
-                adjusted.real *= factor
-                adjusted.imag *= factor
+            # Apply factor first to a float-storage variable
+            new_real = adjusted.as_mpf * factor
+            new_imag = adjusted._imag * factor if adjusted.mytype == NumType.Cpx else mpmath.mpf("0")
+            # Now set the type and values manually to bypass migration logic
+            adjusted._real = new_real
+            adjusted._imag = new_imag
+            adjusted._mytype = NumType.Flt if adjusted.mytype.value < NumType.Flt.value else adjusted.mytype
+            if adjusted.mytype == NumType.Unc:
                 adjusted.re_unc *= factor
                 adjusted.im_unc *= factor
             adjusted._unit = self.unit
@@ -1404,12 +920,11 @@ if 1:  # Num
             num = int(match.group(3)) if match.group(3) else 0
             den = int(match.group(4)) if match.group(4) else 1
             return sign*(mpmath.mpf(whole)+(mpmath.mpf(num)/mpmath.mpf(den)))
-        def _parse_string(self, value: str) -> None:
             raw = value.strip().replace(" ", "").lower()
             if not raw:
                 raise ValueError("Empty string provided to Num")
             if raw in ("inf", "-inf", "nan"):
-                self.real = mpmath.mpf(raw)
+                self._real = mpmath.mpf(raw)
                 self.mytype = NumType.Flt
                 return
             if re.fullmatch(r"[+-]?\d+", raw):
@@ -1417,7 +932,7 @@ if 1:  # Num
                 self.mytype = NumType.Int
                 return
             if ("/" in raw and "-" in raw and raw[0] != "-"):
-                self.real = self._parse_proper_fraction(value)
+                self._real = self._parse_proper_fraction(value)
                 self.mytype = NumType.Flt
                 return
             if "/" in raw and "j" not in raw and "i" not in raw:
@@ -1441,28 +956,94 @@ if 1:  # Num
                         val = p[:-1].replace("+", "")
                         if val in ("", "-"):
                             val += "1"
-                        self.imag = mpmath.mpf(val)
+                        self._imag = mpmath.mpf(val)
                         self.mytype = NumType.Cpx
                     else:
-                        self.real = mpmath.mpf(p.replace("+", ""))
+                        self._real = mpmath.mpf(p.replace("+", ""))
                         self.mytype = NumType.Flt
                 elif len(parts) == 2:
                     re_p, im_p = parts
                     if not im_p.endswith("j"):
-                        self.real = mpmath.mpf(norm.replace("+", ""))
+                        self._real = mpmath.mpf(norm.replace("+", ""))
                         self.mytype = NumType.Flt
                     else:
-                        self.real = mpmath.mpf(re_p.replace("+", ""))
+                        self._real = mpmath.mpf(re_p.replace("+", ""))
                         val = im_p[:-1].replace("+", "")
                         if val in ("", "-"):
                             val += "1"
-                        self.imag = mpmath.mpf(val)
+                        self._imag = mpmath.mpf(val)
                         self.mytype = NumType.Cpx
                 else:
-                    self.real = mpmath.mpf(norm.replace("+", ""))
+                    self._real = mpmath.mpf(norm.replace("+", ""))
                     self.mytype = NumType.Flt
             except:
                 raise ValueError(f"Could not parse numeric part: {value}")
+        def _parse_string(self, s: str) -> None:
+            '''Logic to decompose strings into numeric components.'''
+            s = s.strip()
+            if not s: return
+
+            # 1. Handle uncertainty like 1.23(45)
+            if "(" in s:
+                idx = s.find("(")
+                if idx > 0 and s[idx-1].isdigit():
+                    try:
+                        main_part = s[:idx]
+                        unc_part = s[idx+1:].rstrip(")")
+                        self._real = mpmath.mpf(main_part)
+                        dec_idx = main_part.find(".")
+                        prec = len(main_part) - dec_idx - 1 if dec_idx != -1 else 0
+                        self.re_unc = mpmath.mpf(unc_part) * mpmath.power(10, -prec)
+                        self.mytype = NumType.Unc
+                        return
+                    except:
+                        pass
+
+            # 2. Handle Complex
+            if "j" in s.lower() or "i" in s.lower():
+                try:
+                    # mpc parser is robust for 1+2j, 1j, etc.
+                    val = mpmath.mpc(s.lower().replace("i", "j").replace(" ", ""))
+                    self._real, self._imag = val.real, val.imag
+                    self.mytype = NumType.Cpx
+                    return
+                except:
+                    pass
+
+            # 3. Handle Rationals
+            if "/" in s:
+                try:
+                    f = fractions.Fraction(s)
+                    self.numer, self.denom = f.numerator, f.denominator
+                    self.mytype = NumType.Rat
+                    return
+                except:
+                    pass
+
+            # 4. Handle Integers
+            try:
+                # Only accept as Int if the string is purely numeric
+                # (prevents scientific notation like 1e3 from being truncated here)
+                if s.isdigit() or (s.startswith('-') and s[1:].isdigit()):
+                    self.numer = int(s)
+                    self.mytype = NumType.Int
+                    return
+            except ValueError:
+                pass
+
+            # 5. Default to Float
+            try:
+                self._real = mpmath.mpf(s)
+                self.mytype = NumType.Flt
+                return
+            except ValueError:
+                pass
+
+            # 6. Naked unit string case (e.g. Num("ft"))
+            # Only hit this if it failed every numeric parser above
+            self.numer = 1
+            self.denom = 1
+            self.mytype = NumType.Int
         def _extract_unit(self, s: str) -> ty.Tuple[str, str]:
             s = s.strip()
             if " " not in s:
@@ -1499,9 +1080,9 @@ if 1:  # Num
             elif self.mytype == NumType.Cpx:
                 s = self.fmt(self.as_mpc)
             elif self.mytype == NumType.Unc:
-                s = f"{self.real} +/- {self.re_unc}"
+                s = f"{self._real} +/- {self.re_unc}"
             else:
-                s = self.fmt(self.real)
+                s = self.fmt(self._real)
             unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
             color = Num.type_color.get(self.mytype, t.wht)
             return f"{color}{s}{t.n}{unit_string}"
@@ -1513,7 +1094,7 @@ if 1:  # Num
             elif self.mytype == NumType.Cpx:
                 s = f"{self.as_mpc!r}"
             else:
-                s = str(self.real)
+                s = str(self._real)
             if self.unit:
                 s += f" {self.unit}"
             return f"Num('{s}')"
@@ -1534,7 +1115,7 @@ if 1:  # Num
                     raise ValueError(f"Incompatible: {self.unit} -> {unit}")
             factor = mpmath.mpf(factor_str)
             res = Num(self)
-            res.real = res.as_mpf*factor
+            res._real = res.as_mpf*factor
             res.mytype = NumType.Flt
             res._unit = unit
             return res._promote() if auto_promote else res
@@ -1557,8 +1138,8 @@ if 1:  # Num
             print(f"{indent}Num({id(self)}) core attributes:")
             print(f"{indent}    self.numer    {self.numer}")
             print(f"{indent}    self.denom    {self.denom}")
-            print(f"{indent}    self.real     {self.real}")
-            print(f"{indent}    self.imag     {self.imag}")
+            print(f"{indent}    self._real    {self._real}")
+            print(f"{indent}    self._imag    {self._imag}")
             print(f"{indent}    self.re_unc   {self.re_unc}")
             print(f"{indent}    self.im_unc   {self.im_unc}")
             print(f"{indent}    self.correl   {self.correl}")
@@ -1578,24 +1159,26 @@ if 1:  # Num
             else:
                 self._unit = ""
         @property
-        def raw_value(self) -> ty.Union[int, mpmath.mpf, mpmath.mpc]:
+        def raw_value(self) -> ty.Union[int, fractions.Fraction, mpmath.mpf, mpmath.mpc]:
+            '''Return the underlying numerical value for mixin/unit operations.'''
             if self.mytype == NumType.Int:
                 return self.numer
             if self.mytype == NumType.Rat:
-                return self.numer/self.denom
-            if self.mytype == NumType.Cpx:
+                return fractions.Fraction(self.numer, self.denom)
+            if self.mytype in (NumType.Cpx, NumType.Unc):
                 return self.as_mpc
-            return self.real
+            return self._real
         @property
         def as_mpc(self) -> mpmath.mpc:
-            if self.mytype == NumType.Cpx:
-                return mpmath.mpc(self.real, self.imag)
+            '''Return the nominal value as a complex mpmath number.'''
+            if self.mytype in (NumType.Cpx, NumType.Unc):
+                return mpmath.mpc(self._real, self._imag)
             return mpmath.mpc(self.as_mpf, 0)
         @property
         def as_mpf(self) -> mpmath.mpf:
             if self.numer != 0:
                 return mpmath.mpf(self.numer)/mpmath.mpf(self.denom)
-            return self.real
+            return self._real
         @property
         def as_int_or_rat(self) -> ty.Union[int, fractions.Fraction]:
             if self.mytype == NumType.Int:
@@ -1612,183 +1195,51 @@ if 1:  # Num
         @property
         def e(self) -> "Num":
             return Num(+mpmath.e)
+        @property
+        def real(self) -> "Num":
+            '''Returns the real component as a new Num instance with units.'''
+            return Num(self.as_mpc.real, unit=self.unit)
+        @property
+        def imag(self) -> "Num":
+            '''Returns the imaginary component as a new Num instance with units.'''
+            return Num(self.as_mpc.imag, unit=self.unit)
+        @property
+        def unc(self) -> "Num":
+            '''Returns the real uncertainty component as a new Num instance with units.'''
+            return Num(self.re_unc, unit=self.unit)
+        @property
+        def mytype(self) -> NumType:
+            return self._mytype
+        @mytype.setter
+        def mytype(self, new_type: NumType) -> None:
+            if hasattr(self, "_mytype") and self._mytype == new_type:
+                return
+            old_type = getattr(self, "_mytype", None)
+            # --- PRE-CAST DATA MIGRATION ---
+            # Fix: Only migrate if the target field is currently zero/default
+            if old_type in (NumType.Int, NumType.Rat) and new_type.value >= NumType.Flt.value:
+                if self._real == 0:  # Only migrate if we haven't manually set _real yet
+                    self._real = self.as_mpf
+                    self._imag = mpmath.mpf("0")
+            # --- CASTING LOGIC ---
+            if old_type is not None and new_type.value < old_type.value:
+                # Downcasting: Apply lossy transformations
+                if new_type == NumType.Flt:
+                    self._real = abs(self.as_mpc)
+                    self._imag = mpmath.mpf("0")
+                elif new_type == NumType.Rat:
+                    from fractions import Fraction
+                    f = Fraction(float(self.as_mpf)).limit_denominator()
+                    self.numer, self.denom = f.numerator, f.denominator
+                elif new_type == NumType.Int:
+                    self.numer = int(abs(self.as_mpf))
+                    self.denom = 1
+                # Purge Ghost Data
+                if new_type.value < NumType.Unc.value:
+                    self.re_unc = self.im_unc = self.correl = mpmath.mpf("0")
+            self._mytype = new_type
 
 if 0:  # UnitArbiter
-    '''Manifest [11]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
-    class UnitArbiter:
-        '''
-        Singleton co-process manager for GNU Units and Math Orchestration.
-        Handles unit conversion and injects uncertainty-aware math wrappers.
-        '''
-        _instance = None
-        units_bin: str = "units"
-        main_config: str = ""
-        dynamic_config: str = "~/.units_dynamic"
-        def __new__(cls) -> "UnitArbiter":
-            if cls._instance is None:
-                cls._instance = super(UnitArbiter, cls).__new__(cls)
-                cls._instance._initialized = False
-            return cls._instance
-        def __init__(self) -> None:
-            if self._initialized:
-                return
-            self.bin_path = str(Path(UnitArbiter.units_bin).expanduser())
-            self.dynamic_path = Path(UnitArbiter.dynamic_config).expanduser()
-            if not self.dynamic_path.exists():
-                self.dynamic_path.parent.mkdir(parents=True, exist_ok=True)
-                self.dynamic_path.touch()
-            self.proc = None
-            self._start_process()
-            self._initialized = True
-            self.inject_math()
-        def _start_process(self) -> None:
-            if self.proc:
-                try:
-                    self.proc.terminate()
-                    self.proc.wait(timeout=0.2)
-                except:
-                    pass
-            cmd = [self.bin_path, "-q", "--compact", "-t"]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            cmd.extend(["-f", str(self.dynamic_path)])
-            self.proc = subprocess.Popen(
-                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, text=True, bufsize=1
-            )
-        def _translate_unicode(self, s: str) -> str:
-            superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹"
-            exp_map = str.maketrans(superscripts, "0123456789")
-            out = ""
-            for char in s:
-                if char in superscripts:
-                    out += "^"+char.translate(exp_map)
-                else:
-                    out += char
-            return out
-        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
-            if not have or not want:
-                return (True, "1.0") if have == want else (False, "Mismatch")
-            if not self.proc or self.proc.poll() is not None:
-                self._start_process()
-            try:
-                self.proc.stdin.write(f"{self._translate_unicode(have)}\n{self._translate_unicode(want)}\n")
-                self.proc.stdin.flush()
-                line = self.proc.stdout.readline().strip()
-                if not line:
-                    return False, f"Empty response from GNU units: {have} to {want}"
-                if "conformability error" in line.lower() or "unknown" in line.lower():
-                    return False, line
-                try:
-                    mpmath.mpf(line)
-                    return True, line
-                except:
-                    return False, f"Unexpected GNU units output: {line}"
-            except Exception as e:
-                self._start_process()
-                return False, str(e)
-        def simplify(self, value: ty.Any, unit_str: str) -> tuple[ty.Any, str]:
-            if not unit_str or unit_str == "1":
-                return value, ""
-            cmd = [self.bin_path, "-q", "--compact", "-t", "-f", str(self.dynamic_path)]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            proc = subprocess.run(cmd+[self._translate_unicode(unit_str)], capture_output=True, text=True)
-            output = proc.stdout.strip()
-            match = re.match(r'^([\d.e+-]+)?\s*(.*)$', output)
-
-            # Normalization via Unary Plus (+) to match current dps
-            factor_raw = match.group(1) or "1.0" if match else "1.0"
-            factor = +mpmath.mpf(factor_raw)
-            res_val = +(value * factor)
-
-            remainder = match.group(2).strip() if match else unit_str
-            if "=" in remainder:
-                remainder = remainder.split("=")[0].strip()
-            return res_val, remainder
-        def is_known_unit(self, unit_str: str) -> bool:
-            if not unit_str:
-                return True
-            cmd = [self.bin_path, "-q", "-t", "--compact", "-f", str(self.dynamic_path)]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            res = subprocess.run(cmd+[self._translate_unicode(unit_str)], capture_output=True, text=True)
-            return res.returncode == 0 and "error" not in res.stderr.lower()
-        def add_base(self, unit_name: str) -> None:
-            definition = f"{unit_name}\t!"
-            is_ok, err = self._check_definition(definition)
-            if not is_ok:
-                raise ValueError(f"Invalid unit definition for '{unit_name}': {err}")
-            with open(self.dynamic_path, "a") as f:
-                f.write(f"\n{definition}\n")
-            self._start_process()
-        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
-                tmp.write(definition+"\n")
-                tmp_path = tmp.name
-            cmd = [self.bin_path, "-c", "-q"]
-            if UnitArbiter.main_config:
-                cmd.extend(["-f", str(Path(UnitArbiter.main_config).expanduser())])
-            cmd.extend(["-f", str(self.dynamic_path), "-f", tmp_path])
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
-                is_ok = (result.returncode == 0)
-                error_msg = result.stderr or result.stdout
-            except subprocess.TimeoutExpired:
-                is_ok, error_msg = False, "Timeout validating definition."
-            finally:
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
-            return is_ok, error_msg
-        def _register_unit(self, unit_name: str) -> str:
-            unit_name = unit_name.strip()
-            if not unit_name:
-                return "Error: Unit name empty."
-            if not unit_name[0].isalpha():
-                return f"Error: '{unit_name}' must start with a letter."
-            if self.is_known_unit(unit_name):
-                return "ok"
-            try:
-                self.add_base(unit_name)
-                return "ok"
-            except Exception as e:
-                return f"Error: {str(e)}"
-        def inject_math(self) -> None:
-            import sys
-            import mpmath
-            from mpmath import workdps, diff, sqrt as mp_sqrt
-            target = sys.modules['__main__']
-            def create_wrapper(func_name: str, is_dimensionless: bool = True):
-                mp_func = getattr(mpmath, func_name)
-                def wrapped(x: ty.Any) -> "Num":
-                    if isinstance(x, Num):
-                        if is_dimensionless and x.unit:
-                            raise ValueError(f"{func_name} requires a dimensionless Num (got {x.unit})")
-                        z_val = mp_func(x.as_mpc)
-                        res_unit = "" if is_dimensionless else x.unit
-                        if func_name == "sqrt":
-                            res_unit = f"sqrt({x.unit})" if x.unit else ""
-                        if x.mytype != NumType.Unc:
-                            return Num(z_val, unit=res_unit)
-                        with workdps(mpmath.mp.dps+4):
-                            deriv = diff(mp_func, x.as_mpc)
-                            sens = abs(deriv)
-                            new_re_unc = sens*x.re_unc
-                            new_im_unc = sens*x.im_unc
-                        res = Num(z_val, unit=res_unit)
-                        res.re_unc = new_re_unc
-                        res.im_unc = new_im_unc
-                        res.mytype = NumType.Unc
-                        return res
-                    return mp_func(x)
-                return wrapped
-            trig_funcs = ["cos", "sin", "tan", "acos", "asin", "atan", "exp", "log"]
-            misc_funcs = ["sqrt"]
-            for name in trig_funcs:
-                setattr(target, name, create_wrapper(name, is_dimensionless=True))
-            for name in misc_funcs:
-                setattr(target, name, create_wrapper(name, is_dimensionless=False))
-if 1:  # UnitArbiter
     '''Manifest [11]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
     class UnitArbiter:
         '''
@@ -2155,7 +1606,7 @@ if 1:  # Functions
     def e(n: "Num"):
         '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
         import tempfile, os, subprocess
-        initial_text = f"Unit: {n.unit}\nValue: {n.real}\nDoc: {n.d}"
+        initial_text = f"Unit: {n.unit}\nValue: {n._real}\nDoc: {n.d}"
         with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tf:
             tf.write(initial_text)
             temp_path = tf.name
@@ -2255,7 +1706,7 @@ if 1:   # Self-tests
             zero = 0
             if 1:   # No input
                 num = Num()
-                Assert(num.real == 0 and num.imag == 0)
+                Assert(num._real == 0 and num._imag == 0)
                 Assert(num.mytype == NumType.Int)
             if 1:   # int
                 if 1:   # Positive
@@ -2285,44 +1736,44 @@ if 1:   # Self-tests
             if 1:   # float
                 x, T = 3095.7357, NumType.Flt
                 num = Num(x)
-                Assert(num.real == x and num.imag == 0)
+                Assert(num._real == x and num._imag == 0)
                 Assert(num.mytype == T)
                 num = Num(-x)
-                Assert(num.real == -x and num.imag == 0)
+                Assert(num._real == -x and num._imag == 0)
                 Assert(num.mytype == T)
             if 1:   # Decimal
                 s = "3095.7357"
                 x, T = decimal.Decimal(s), NumType.Flt
                 num = Num(x)
-                Assert(num.real == mpmath.mpf(s) and num.imag == zero)
+                Assert(num._real == mpmath.mpf(s) and num._imag == zero)
                 Assert(num.mytype == T)
                 num = Num(-x)
-                Assert(num.real == -x and num.imag == zero)
+                Assert(num._real == -x and num._imag == zero)
                 Assert(num.mytype == T)
             if 1:   # mpmath.mpf
                 s, T = "3095.7357", NumType.Flt
                 x = mpmath.mpf(s)
                 num = Num(x)
-                Assert(num.real == x and num.imag == zero)
+                Assert(num._real == x and num._imag == zero)
                 Assert(num.mytype == T)
                 num = Num(-x)
-                Assert(num.real == -x and num.imag == zero)
+                Assert(num._real == -x and num._imag == zero)
                 Assert(num.mytype == T)
             if 1:   # Complex
                 x, T = -1+3j, NumType.Cpx
                 num = Num(x)
-                Assert(num.real == mpmath.mpf(-1) and num.imag == mpmath.mpf(3))
+                Assert(num._real == mpmath.mpf(-1) and num._imag == mpmath.mpf(3))
                 Assert(num.mytype == T)
                 num = Num(-x)
-                Assert(num.real == mpmath.mpf(1) and num.imag == mpmath.mpf(-3))
+                Assert(num._real == mpmath.mpf(1) and num._imag == mpmath.mpf(-3))
                 Assert(num.mytype == T)
             if 1:   # mpmath.mpc
                 x, T = mpmath.mpc(-1, 3), NumType.Cpx
                 num = Num(x)
-                Assert(num.real == mpmath.mpf(-1) and num.imag == mpmath.mpf(3))
+                Assert(num._real == mpmath.mpf(-1) and num._imag == mpmath.mpf(3))
                 Assert(num.mytype == T)
                 num = Num(-x)
-                Assert(num.real == mpmath.mpf(1) and num.imag == mpmath.mpf(-3))
+                Assert(num._real == mpmath.mpf(1) and num._imag == mpmath.mpf(-3))
                 Assert(num.mytype == T)
             if 1:   # Rational
                 pass
@@ -2338,20 +1789,20 @@ if 1:   # Self-tests
                           ("1+2j", NumType.Cpx)]
             for s, typ in test_cases:
                 x = Num(s)
-                Assert(x.mytype == typ, got=typ, expected=x.mytype)
+                Assert(x.mytype == typ, expected=typ, got=x.mytype)
                 # Check numerical value
                 if s == "1":
                     Assert(x.numer == 1 and x.denom == 1)
                 elif s == "1/2":
                     Assert(x.numer == 1 and x.denom == 2)
                 elif s == "1.2":
-                    Assert(x.approx(Num("1-1/5"), ndigits))
-                    Assert(x.imag == zero)
+                    Assert(x._real == mpmath.mpf(s))
+                    Assert(x._imag == zero)
                 elif s == "1.2e3":
                     Assert(x.approx(Num("1200/1"), ndigits))
-                    Assert(x.imag == zero)
+                    Assert(x._imag == zero)
                 elif s == "1+2j":
-                    Assert(x.real == mpmath.mpf("1") and x.imag == mpmath.mpf("2"))
+                    Assert(x._real == mpmath.mpf("1") and x._imag == mpmath.mpf("2"))
             # Test using a long string to show we aren't dropping back to standard 64
             # bit float precision
             with mpmath.extradps(20):
@@ -2375,7 +1826,7 @@ if 1:   # Self-tests
                     result = x + y
                     expected = "4.28083989501312"   # 15 digit GNU units answer
                     expected = "4.2808399000000001"
-                    Assert(result.real == mpmath.mpf(expected))
+                    Assert(result._real == mpmath.mpf(expected))
                     Assert(result == Num(expected, "ft") or
                            result == Num(expected, "foot"))
                 if 1:   # Rational
@@ -2408,7 +1859,7 @@ if 1:   # Self-tests
                     y = Num("1", "m")
                     result = x - y
                     expected = "-2.2808399000000001"
-                    Assert(result.real == mpmath.mpf(expected))
+                    Assert(result._real == mpmath.mpf(expected))
                     Assert(result == Num(expected, "foot"))
                 if 1:   # Rational
                     x = Num("3/8", "in")
@@ -2423,7 +1874,7 @@ if 1:   # Self-tests
                     y = Num("2.0", "A")
                     result = x*y
                     expected = "3.0"
-                    Assert(result.real == mpmath.mpf(expected))
+                    Assert(result._real == mpmath.mpf(expected))
                     #Assert(result == Num("3.0 kg*m^2/s^3"))  Old parse; new keeps V*A
                     Assert(result == Num("3.0 (V)*(A)"))
                 if 1:   # Rational
@@ -2460,7 +1911,7 @@ if 1:   # Self-tests
             units.
             '''
             x = Num("1.23 A")
-            Assert(x.real == mpmath.mpf("1.23"))
+            Assert(x._real == mpmath.mpf("1.23"))
             Assert(x.unit == "A")
             y = x/x.num
             # Now y is in some sense a unit vector in the units space
@@ -2566,15 +2017,15 @@ if 1:   # Self-tests
                 Assert(x == Num("1") and x.mytype == NumType.Int)
             if 1:   # inf and nan
                 x = Num("inf m")
-                Assert(x.real == mpmath.mpf("inf") and x.unit == "m")
+                Assert(x._real == mpmath.mpf("inf") and x.unit == "m")
                 x = Num("-inf m")
-                Assert(x.real == mpmath.mpf("-inf") and x.unit == "m")
+                Assert(x._real == mpmath.mpf("-inf") and x.unit == "m")
                 x = Num("nan m")
-                Assert(mpmath.isnan(x.real) and x.unit == "m")
+                Assert(mpmath.isnan(x._real) and x.unit == "m")
                 x = Num("0+nanj m")
-                Assert(x.real == 0 and mpmath.isnan(x.imag) and x.unit == "m")
+                Assert(x._real == 0 and mpmath.isnan(x._imag) and x.unit == "m")
                 x = Num("nan+nanj m")
-                Assert(mpmath.isnan(x.real) and mpmath.isnan(x.imag) and x.unit == "m")
+                Assert(mpmath.isnan(x._real) and mpmath.isnan(x._imag) and x.unit == "m")
         def Test_New_Unit():
             return
             # I've shut this off, as it has been tested and works
@@ -2639,8 +2090,8 @@ if 1:   # Self-tests
             Num constructor guts:
                 self.numer: int = 0
                 self.denom: int = 1
-                self.real: mpmath.mpf = mpmath.mpf("0")
-                self.imag: mpmath.mpf = mpmath.mpf("0")
+                self._real: mpmath.mpf = mpmath.mpf("0")
+                self._imag: mpmath.mpf = mpmath.mpf("0")
                 self.re_unc: mpmath.mpf = mpmath.mpf("0")
                 self.im_unc: mpmath.mpf = mpmath.mpf("0")
                 self.correl: mpmath.mpf = mpmath.mpf("0")
@@ -2658,7 +2109,7 @@ if 1:   # Self-tests
             x2.mytype = NumType.Unc
             if 1:   # Addition
                 result = x1 + x2
-                if 0:   # Dump values for debugging
+                if 1:   # Dump values for debugging
                     print("x1 dump")
                     x1.dump(indent)
                     print("\nx2 dump")
@@ -2731,24 +2182,6 @@ Other tests needed:
     - Nails:  ϵ + i, 1 + ϵi
     - '1.23453094830853048309739047394739473947394739473947e4 m3' Does GNU units barf
       on this?  No, handles it fine; appears to handle unlimited digits.
-
-1. The "Ghost of Precision Past"
-
-    In Test_Constructor_Strings, you use:
-
-    Assert(x.real == mpmath.mpf("1.2") and x.imag == zero)
-
-        Critique: Since we are using mpmath for arbitrary precision, the test is
-        currently at the mercy of whatever mp_context precision is set to at that
-        moment.
-
-        The dark corner: If the library ever changes mp.dps globally during a
-        calculation, a direct == might fail due to trailing epsilon differences.
-
-        Recommendation: Consider an AssertClose() or checking x.mytype first. You
-        already do this, but adding a test case for a very long string—e.g.,
-        Num("1.123456789012345678901234567890")—would verify that we aren't accidentally
-        dropping back to standard 64-bit float precision during the parse.
 
 2. The "Surgeon's Edge" (Complex Signs)
 
