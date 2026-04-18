@@ -1,0 +1,100 @@
+# Format:  <test string>, <expected number form>, <expected Type>
+# +n means see note at bottom
+# Note:  these are test cases for the number parser only
+# Note:  I think testing with the default mpmath context is fine
+# exc means an exception is raised
+
+# Integer
+    0, 0, Int
+    1, 1, Int
+    -0, 0, Int
+    -1, -1, Int
+    398579387349375937593749379385740684095840, 398579387349375937593749379385740684095840, Int
+    -398579387349375937593749379385740684095840, -398579387349375937593749379385740684095840, Int
+
+# Rational
+    0/0, exc, --        "Divide by zero"
+    -0/0, exc, --       "Divide by zero"
+    0/0.0, exc, --      "Unrecognized"
+    -0/0.0, exc, --     "Unrecognized"
+    2/2, 1/1, Rat
+    -2/2, 1/1, Rat
+    2.0/2, exc, --      "Unrecognized"
+    222222222222/2222222222, 10101010101/101010101
+    -222222222222/2222222222, -10101010101/101010101
+
+# Real
+    0., 0.0, Flt
+    1., 1.0, Flt
+    0.0, 0.0, Flt
+    1.0, 1.0, Flt
+    .0, 0.0, Flt
+    -.0, 0.0, Flt
+    -0.0, 0.0, Flt
+    -1., -1.0, Flt
+    -.1, -0.1, Flt
+    -0.0, 0.0, Flt
+    -1.0, -1.0, Flt
+    398579387349375937593749379385740684095840., mpf('3.9857938734937592e+41'), Flt
+    -398579387349375937593749379385740684095840., mpf('-3.9857938734937592e+41'), Flt
+    inf, inf, Flt
+    -inf, -inf, Flt
+    nan, nan, Flt
+    -nan, nan, Flt
+    
+# Complex
+    0j, 0+0j, Cpx
+    1j, 0+1j, Cpx
+    0+0j, 0+0j, Cpx
+    0+1j, 0+1j, Cpx
+    1+0j, 1+0j, Cpx
+    1+1j, 1+1j, Cpx
+    1-0j, 1+0j, Cpx
+    1-1j, 1-1j, Cpx
+
+# Uncertainty
+    0(0), , Unc
+    1(0), , Unc
+    -1(0), , Unc
+    0(100), , Unc
+    1(100), , Unc
+    -1(100), , Unc
+    1(500), , Unc   +1
+    1(500)/2, exc, --  +2
+    1.234(12345678), , Unc  +3
+    1.234(12345678e88), exc, --  +4
+    1.234(inf), exc, --
+    1.234(-inf), exc, --
+    1.234(nan), exc, --
+    1.234(56)e44, , Unc
+    -1.234(56)e-44, , Unc
+    1(10000000000000000000000000)e100, , Unc
+    -1(10000000000000000000000000)e100, , Unc
+    -1(10)-1(20)i, , Unc
+    -147.883(22)+89.112(3)j, , Unc
+    -147.883(22)-89.112(3)j, , Unc
+
+# Notes
+    - Not listed, but note our notation has no way of definining a correlation between
+      the two components of a complex number
+    - I'm going to mandate that 'inf' and 'nan' cannot appear in any string that
+      expresses an uncertainty, primarily because it makes practical sense (and makes
+      parsing easier).  Of course, a number with uncertainty run through a function may
+      result in such a thing.
+        - If the parser you write can handle such things, then I'd say let's allow it.
+          The primary reason for the mandate is to simplify the parser.
+    - If possible, can you collect all the "mandates" of our recent back/forth messages
+      and summarize them for me?  I'll put them into the docstring of the number.py
+      file, as they are important reminders.
+
+    +1  This is an uncertain integer; it really means a random variable near 0 that has
+    a large uncertainty (standard deviation)
+
+    +2  This could be interpreted as an uncertainty expression, but I think it should
+    be illegal (i.e., no uncertainty strings with a "/" in them)
+
+    +3  Similar to +1, but a valid uncertainty expression
+
+    +4  The portion in parentheses can only contain string.digits, but can be an
+    arbitrary integer otherwise
+

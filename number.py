@@ -1397,6 +1397,8 @@ if 1: # UnitArbiter
             if not os.path.exists(self.dynamic_config):
                 with open(self.dynamic_config, "w") as f: f.write("")
             cmd.extend(["-f", self.dynamic_config])
+            if g.dbg:
+                print(f"DEBUG Units _start_process command:\n  {' '.join(cmd)}")
             self.proc = subprocess.Popen(
                 cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, bufsize=1
@@ -1440,33 +1442,27 @@ if 1: # UnitArbiter
                 if g.dbg:
                     print(f"DEBUG Units EXCEPTION: {e}")
                 return False, str(e)
-        def simplify(self, value: ty.Any, unit_str: str) -> ty.Tuple[ty.Any, str]: # OLD
-            '''Reduces complex units to their base representation.'''
-            if not self.proc or self.proc.poll() is not None:
-                self._start_process()
-            unit_str = self._translate_unicode(unit_str)
-            if g.dbg:
-                print(f"DEBUG Units SIMPLIFY SENT: {unit_str}")
-            self.proc.stdin.write(f"{unit_str}\n")
-            self.proc.stdin.flush()
-            res = self.proc.stdout.readline().strip()
-            if g.dbg:
-                print(f"DEBUG Units SIMPLIFY RECEIVED: {res}")
-            return value, res
         def simplify(self, value: ty.Any, unit_str: str) -> ty.Tuple[ty.Any, str]:
-            '''Reduces complex units using expression evaluation.'''
-            # In --compact -t mode, units acts as an expression evaluator.
-            # We must send exactly one line and read exactly one line.
-            if g.dbg:
-                print(f"DEBUG Units SIMPLIFY SENT: {unit_str}")
-            # Send the request
-            self.proc.stdin.write(f"{unit_str}\n")
+            '''
+            Reduces the unit expression. We multiply the local magnitude
+            by the conversion factor returned by GNU units.
+            '''
+            # Send ONLY the unit string to units.
+            # As you found, (gallons)^(2/3) -> 0.02428... m^2
+            query = f"{unit_str}\n\n"
+            self.proc.stdin.write(query)
             self.proc.stdin.flush()
-            # Read the response
+            # Read the response (e.g., "0.0242889506882033 m^2")
             res = self.proc.stdout.readline().strip()
-            if g.dbg:
-                print(f"DEBUG Units SIMPLIFY RECEIVED: {res}")
-            return value, res
+            # Parse the response: [factor] [unit]
+            # Example: factor=0.024288, unit=m^2
+            parts = res.split(" ", 1)
+            conv_factor = mpmath.mpf(parts[0])
+            new_unit = parts[1]
+            # Multiply the magnitude we already calculated by the conversion factor
+            # This gives 1.5874... * 0.024288... = 0.038556...
+            final_value = mpmath.mpf(value) * conv_factor
+            return final_value, new_unit
         def is_known_unit(self, unit_str: str) -> bool:
             '''Query if a unit exists in the current database.'''
             self.proc.stdin.write(f"{unit_str}\n")
@@ -1487,7 +1483,7 @@ if 1: # UnitArbiter
             '''Wraps mpmath functions to handle uncertainty and units.'''
             pass
 
-if 1: # StringParser Infrastructure
+if 0: # StringParser Infrastructure
     @dataclasses.dataclass
     class ParsedPayload:
         '''Container for decomposition results from StringParser.'''
@@ -1597,6 +1593,127 @@ if 1: # StringParser Infrastructure
         @staticmethod
         def _is_pure_unit(s: str) -> bool:
             return not any(c.isdigit() for c in s) and not any(c.lower() in 'ij' for c in s)
+if 1: # StringParser Infrastructure
+    @dataclasses.dataclass
+    class ParsedPayload:
+        '''Container for decomposition results from StringParser.'''
+        type: NumType
+        real: mpmath.mpf
+        imag: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+        numer: int = 0
+        denom: int = 1
+        re_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+        im_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+        unit: str = ""
+    class StringParser:
+        '''Engine to dichotomize numeric strings and units with recursive precision.'''
+
+        @staticmethod
+        def flexible_mpc(s: str) -> mpmath.mpc:
+            """Parses a string allowing i, j, I, J as imaginary units."""
+            clean_s = re.sub(r'(?<![a-z])[ij](?![a-z])', 'j', s, flags=re.IGNORECASE)
+            return mpmath.mpc(clean_s)
+
+        @staticmethod
+        def parse(s: str, passed_unit: str = "") -> ParsedPayload:
+            s = s.strip()
+            if not s:
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), unit=passed_unit)
+
+            # 1. THE HARD GUARD: If it looks complex, it CANNOT be a unit.
+            # This regex captures "1+2j", "1-2j", "2j", "1j"
+            if re.search(r'\d+[+-]?\d*[ij]', s, flags=re.IGNORECASE):
+                try:
+                    val = StringParser.flexible_mpc(s)
+                    return ParsedPayload(NumType.Cpx, val.real, imag=val.imag, unit=passed_unit)
+                except:
+                    pass
+
+            # 2. Extract unit
+            num_part, found_unit = StringParser._extract_unit(s)
+
+            # 3. DEBUGGER PROTECTION: If we found a unit but the input had NO space,
+            # we are likely in a false-positive scenario.
+            # If the original s was '1+2j' and we are here, something is wrong.
+
+            final_unit = (found_unit if not passed_unit
+                          else f"({found_unit})*({passed_unit})").strip()
+
+            if StringParser._is_pure_unit(num_part):
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=1, unit=s)
+
+            # 4. Tier 0: Special numeric values (inf, nan)
+            lower_num = num_part.lower()
+            if "nan" in lower_num or "inf" in lower_num:
+                return ParsedPayload(NumType.Flt, mpmath.mpf(num_part), unit=final_unit)
+
+            # 5. Tier A: Complex Uncertainty (Parentheses)
+            if "(" in num_part and ("j" in num_part.lower() or "i" in num_part.lower()):
+                clean = num_part.lower().replace("i", "j")
+                hinge_idx = -1
+                paren_depth = 0
+                for i, char in enumerate(clean):
+                    if char == '(': paren_depth += 1
+                    elif char == ')': paren_depth -= 1
+                    elif char in ('+', '-') and paren_depth == 0 and i > 0:
+                        hinge_idx = i
+                if hinge_idx != -1:
+                    re_s, sign = clean[:hinge_idx].strip(), clean[hinge_idx]
+                    im_s = clean[hinge_idx+1:].strip().replace("j", "")
+                    re_p = StringParser.parse(re_s)
+                    im_p = StringParser.parse(im_s)
+                    return ParsedPayload(NumType.Unc, re_p.real,
+                                         imag=(im_p.real if sign == "+" else -im_p.real),
+                                         re_unc=re_p.re_unc, im_unc=im_p.re_unc, unit=final_unit)
+
+            # 6. Tier B: Standard Uncertainty 1.23(45)
+            if "(" in num_part and not num_part.startswith("("):
+                idx = num_part.find("(")
+                if idx > 0 and num_part[idx-1].isdigit():
+                    try:
+                        main_s, unc_s = num_part[:idx], num_part[idx+1:].rstrip(")")
+                        real_val = mpmath.mpf(main_s)
+                        dec_idx = main_s.find(".")
+                        prec = len(main_s) - dec_idx - 1 if dec_idx != -1 else 0
+                        re_unc = mpmath.mpf(unc_s)*mpmath.power(10, -prec)
+                        return ParsedPayload(NumType.Unc, real_val, re_unc=re_unc, unit=final_unit)
+                    except: pass
+
+            # 7. Tier D: Rational
+            if "/" in num_part:
+                try:
+                    f = fractions.Fraction(num_part)
+                    if f.denominator == 0: raise ValueError("Division by zero")
+                    return ParsedPayload(NumType.Rat, mpmath.mpf("0"),
+                                         numer=f.numerator, denom=f.denominator, unit=final_unit)
+                except (ZeroDivisionError, ValueError):
+                    raise ValueError("Invalid rational: " + num_part)
+
+            # 8. Tier E: Integer/Float
+            if re.fullmatch(r"[-+]?\d+", num_part):
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=int(num_part), unit=final_unit)
+            try:
+                return ParsedPayload(NumType.Flt, mpmath.mpf(num_part), unit=final_unit)
+            except:
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=1, unit=s)
+
+        @staticmethod
+        def _extract_unit(s: str) -> ty.Tuple[str, str]:
+            s = s.strip()
+            if " " not in s:
+                if any(c.isdigit() for c in s) or any(c.lower() in 'ji' for c in s) or "nan" in s.lower() or "inf" in s.lower():
+                    return s, ""
+                return "1", s
+            parts = s.rsplit(" ", 1)
+            left, right = parts[0].strip(), parts[1].strip()
+            if re.match(r'^[a-zA-Z(]', right) and right.lower() not in ('i', 'j', 'nan', 'inf'):
+                if not (right.lower().startswith('e') and any(c.isdigit() for c in right)):
+                    return left, right
+            return s, ""
+
+        @staticmethod
+        def _is_pure_unit(s: str) -> bool:
+            return not any(c.isdigit() for c in s) and not any(c.lower() in 'ij' for c in s) and "nan" not in s.lower() and "inf" not in s.lower()
 
 if 1:  # Functions
     def RegisterUnit(unit_name: str) -> None:
@@ -1986,14 +2103,13 @@ if 1:   # Self-tests
                 x = N("2 gallons")
                 a = N("2/3")
                 result = x**a
-                expected = Num("0.038556306368604 m^2")
+                expected = Num("0.0385563058736576 m^2")
                 if 0:
                     result.dump()
                     expected.dump()
-                    print("Equal = ", result == expected)
+                    print("Are they equal?  ", result == expected)
                     print(f"result.raw_value   = {result.raw_value} {type(result.raw_value)}")
                     print(f"expected.raw_value = {expected.raw_value} {type(expected.raw_value)}")
-                    result == expected
                 Assert(result == expected)
             if 1:   # In-place scaling    
                 a = Num("1 m")
