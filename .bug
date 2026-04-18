@@ -1,4 +1,9 @@
-14 Apr 2026 03:53:30 pm Tue
+17 Apr 2026 08:18:21 pm Fri
+
+Sat morning:  working on '(gallons)^(2/3)' hang in self tests.  Use the comments in the
+aa file (backed up to aa.bak), as I think the simplify() method isn't working right, as
+his interpretation of the '-q --compact -t' options may be wrong.  
+
 
 Next task
     - Recognize incoming number strings with uncertainty
