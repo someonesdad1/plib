@@ -1,3 +1,7 @@
+- Most important formatting instructions that the AI context quickly forgets:
+    - Put a newline after a ':' in a conditional, class, or function definition.
+    - No empty lines or lines with whitespace only except in docstrings
+    
 - Declaration of Interdependence:  mitigating AI context drift
     - To combat "Context Displacement"—the architectural tendency of the AI to omit
       "non-essential" methods or drift from formatting standards when handling large
@@ -47,8 +51,7 @@
         - One space on each side of +, -, %
         - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
         - No blank lines or whitespace-only lines except in docstrings
-    - Important: Please put a newline after a ':' in a conditional, class, or 
-      function definition.
+    - Put a newline after a ':' in a conditional, class, or function definition.
     - Triple quotes: Use ''' for all docstrings and multi-line strings.
     - Quotes: Use " for all string definitions (e.g., 'a = "string"').
     - Naming: CamelCase for classes/functions, snake_case for attributes/variables.

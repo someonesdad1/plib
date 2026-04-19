@@ -1,12 +1,27 @@
-17 Apr 2026 08:18:21 pm Fri
+18 Apr 2026 03:45:14 pm Sat
 
-Sat morning:  working on '(gallons)^(2/3)' hang in self tests.  Use the comments in the
-aa file (backed up to aa.bak), as I think the simplify() method isn't working right, as
-his interpretation of the '-q --compact -t' options may be wrong.  
+Stopped at working on the new ParseString and changing Num to use Fractions.  We're
+failing on the first arithmetic x + y.  The cause was the loss of the guts of
+UnitArbiter._register_unit(), which just returns the unit sent to it.  I don't know the
+root cause (it could have been either of us, but clearly Mike hallucinated the single 
+line "fix", as that's something a software engineer would have shouted about.
+
+I decided on no further work, as this is stuff shouldn't be worked on when tired.  The 
+next step would be to send Mike both new and old UnitArbiter code and have him inspect
+to see where things changed or lost.  He should be able to fix things quickly.  My hope 
+is this is the last architectural change -- and it's a big one:  new StringParser to
+recognize numbers and switching to fractions.Fraction instead of two integer components.
+But if we start with correct code, we should be able to recover quickly, as we've had
+working self tests before.
 
 
-Next task
-    - Recognize incoming number strings with uncertainty
+
+
+Next tasks
+    - GNU units can be started only using -t, as the manpage says it has the combined
+      effect of '--strict' '--quiet' '--one-line' '--compact'.
+    - Uncertainty
+        - How about "-1(10)-1(20)i<R=0.27>" to designate correlation?
     - Formatting uncertainty stuff idea
         - Can we use mpmath's string interpolation stuff to get accurate forms to the
           required number of digits.  This would probably short-circuit writing a lot of
@@ -20,14 +35,19 @@ Next task
 
 ---------------------------------------------------------------------------
 Other stuff
-    - Num.raw_value
-        - Doesn't handle Unc
-        - Note Rat returns a float; it should be mpf or Fraction, otherwise it loses
-          information
-    - SQLite persistence
-        - Add when it's time, keep the interface simple
-        - At some point a breadcrumb command would be useful (i.e., show me the history
-          of this calculation or dump it to a file.
+    - Persistence
+        - See logexample below
+        - SQLite persistence
+            - Add when it's time, keep the interface simple
+            - At some point a breadcrumb command would be useful (i.e., show me the history
+            of this calculation or dump it to a file.
+        - A middle ground would be an option to the REPL that lets you log to a file.
+          This would capture all input/output, but not like script, which captures all
+          keystrokes; you'd just want it to capture the finished line that's submitted
+          to the REPL.  Of course, for critical stuff, you could use script as needed.
+          I'm leaning towards the REPL log, as it should be straightforward to
+          implement, give you that critical history when needed, and doesn't require
+          lots of code.
     - REPL hacking
         - 'q' command:  single command to quit the REPL, just like the debugger
         - Once set up, can show user how to extend to their tastes
@@ -66,3 +86,49 @@ Other stuff
             available via readline.
 
     - Help documentation
+---------------------------------------------------------------------------
+logexample 
+
+"Cheap" persistence with GNU units:  '--log file' feature:  timestamps and then logs
+what you type in.  Start a line with '#' and it's a comment (logged but ignored).
+The GNU units manpage, however, says --log is ignored for non-interactive use.
+
+Input:
+    …/plib> u -q -L a.log
+    # This is a test of leaving a unit
+    # Comment, I mean.
+    ft
+    m
+            * 0.3048
+            / 3.28083989501312
+    # That's not right
+    cup
+    m3
+            * 0.0002365882365
+            / 4226.75283773037
+    q
+
+Log file content:
+    ### Log started Sun Apr 19 08:02:12 2026
+    
+    # This is a test of leaving a unit
+    # Comment, I mean.
+    From: ft
+    To:   m
+        * 0.3048
+        / 3.28083989501312
+    # That's not right
+    From: cup
+    To:   m3
+        * 0.0002365882365
+        / 4226.75283773037
+
+Another start with the same command appended to the file:
+    ### Log started Sun Apr 19 08:08:00 2026
+    
+    # A restarted example
+    From: mi
+    To:   league
+        * 0.333333333333333
+        / 3
+

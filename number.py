@@ -41,16 +41,30 @@ Parser Mandates (Don & Gemini Collaboration):
 6. Rational Canonicalization: Rationals are stored as fractions.Fraction to ensure
    automatic reduction (e.g., 2/2 -> 1/1).
 
+Mike's comment:
+
+    "Library-based units are effectively 'meta-data wrappers' that users can easily
+    bypass or forget. By making the unit a first-class citizen of the type system, the
+    REPL becomes a collaborator in the dimensional analysis, making it functionally
+    impossible to 'accidentally' add a Foot to a Meter without an explicit conversion
+    trigger."
+
+    It's the difference between a tool that tells you you did something wrong (a test
+    failing) and a tool that makes it impossible to calculate something nonsensical in
+    the first place.
+
 '''
 if 1:  # Header
     if 1:   # Standard imports
         from pdb import set_trace as yy
+        import contextlib
         import dataclasses
         import decimal
         import enum
         import fcntl
         import fractions
         import inspect
+        import io
         import operator
         import os
         import pathlib
@@ -96,7 +110,7 @@ if 1:  # Header
         t = trm.TrmDP()
         t.dbg = "#bdf6fe"
         g = dptypes.Constant()
-        g.dbg = True if 1 else False
+        g.dbg = True if len(sys.argv) > 1 else False
     if 1:   # Types and enums
         class NumType(enum.IntEnum):
             Int = 1
@@ -634,7 +648,6 @@ if 1: # NumericMixin
         def __add__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num):
                 other = Num(other)
-            breakpoint() # ∞∞ 
             other_norm = self._normalize(other, "add")
             # Combine values safely
             if self.mytype <= NumType.Rat and other_norm.mytype <= NumType.Rat:
@@ -1782,9 +1795,11 @@ if 1: # Num
         def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
             return Num(value, unit=unit)._promote()
         def _normalize(self, other: "Num", operation: str = "") -> "Num":
-            if self.unit == other.unit or operation in ("mul", "div"): return other
+            if self.unit == other.unit or operation in ("mul", "div"):
+                return other
             is_ok, factor_str = self.arb.check_conformable(other.unit, self.unit)
-            if not is_ok: raise ValueError(f"Unit Mismatch: {factor_str}")
+            if not is_ok:
+                raise ValueError(f"Unit Mismatch: {factor_str}")
             factor = mpmath.mpf(factor_str)
             adjusted = Num(other)
             # Apply conversion to raw magnitude
@@ -1847,8 +1862,17 @@ if 1: # Num
             val = abs((vx-vy)/vy)
             return True if val == 0 else int(abs(mpmath.log10(val))) >= ndigits
         def dump(self, indent: str = "") -> None:
-            print(f"{indent}Num({id(self)}) type: {self.mytype.name}")
-            print(f"{indent}  val: {self.raw_value} | unit: {self.unit!r}")
+            print(f"{indent}Num(id({hex(id(self))})) core attributes:")
+            print(f"{indent}    self._val.numerator   {self._val.numerator}")
+            print(f"{indent}    self._val.denominator {self._val.denominator}")
+            print(f"{indent}    self._real            {self._real}")
+            print(f"{indent}    self._imag            {self._imag}")
+            print(f"{indent}    self.re_unc           {self.re_unc}")
+            print(f"{indent}    self.im_unc           {self.im_unc}")
+            print(f"{indent}    self.correl           {self.correl}")
+            print(f"{indent}    self.unit             {self.unit!r}")
+            print(f"{indent}    self.mytype           {self.mytype}")
+            print(f"{indent}    1=Int, 2=Rat, 3=Flt, 4=Cpx, 5=Unc")
         @property
         def unit(self) -> str:
             return self._unit.strip()
@@ -1864,7 +1888,9 @@ if 1: # Num
             return self.as_mpc if self.mytype in (NumType.Cpx, NumType.Unc) else self._real
         @property
         def as_mpc(self) -> mpmath.mpc:
-            return mpmath.mpc(self._real, self._imag) if self.mytype in (NumType.Cpx, NumType.Unc) else mpmath.mpc(self.as_mpf, 0)
+            return (mpmath.mpc(self._real, self._imag) 
+                    if self.mytype in (NumType.Cpx, NumType.Unc) else
+                    mpmath.mpc(self.as_mpf, 0))
         @property
         def as_mpf(self) -> mpmath.mpf:
             if self.mytype in (NumType.Int, NumType.Rat):
@@ -1896,11 +1922,24 @@ if 1: # Num
                 elif new_type == NumType.Rat:
                     f = fractions.Fraction(float(self.as_mpf)).limit_denominator()
                     self._val = f
-                elif new_type == NumType.Int:
+                elif new_type == NumType.Int and old_type != NumType.Rat:
                     self._val = fractions.Fraction(int(abs(self.as_mpf)), 1)
                 if new_type.value < NumType.Unc.value:
                     self.re_unc = self.im_unc = self.correl = mpmath.mpf("0")
             self._mytype = new_type
+
+if 1: # ParsedPayload
+    @dataclasses.dataclass
+    class ParsedPayload:
+        '''Container for decomposition results from StringParser.'''
+        type: NumType
+        real: mpmath.mpf
+        imag: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+        numer: int = 0
+        denom: int = 1
+        re_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+        im_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+        unit: str = ""
 
 if 0:  # UnitArbiter
     '''Manifest [11]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
@@ -2289,19 +2328,7 @@ if 0: # UnitArbiter
             return unit_name
         def inject_math(self) -> None:
             pass
-if 1: # ParsedPayload
-    @dataclasses.dataclass
-    class ParsedPayload:
-        '''Container for decomposition results from StringParser.'''
-        type: NumType
-        real: mpmath.mpf
-        imag: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
-        numer: int = 0
-        denom: int = 1
-        re_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
-        im_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
-        unit: str = ""
-if 1: # UnitArbiter & StringParser
+if 0: # UnitArbiter & StringParser
     '''Manifest [12]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math parse _split_input _parse_number _calc_unc'''
     class UnitArbiter:
         '''Singleton co-process manager for GNU Units.'''
@@ -2421,7 +2448,497 @@ if 1: # UnitArbiter & StringParser
             decimal_places = 0
             if "." in val_str: decimal_places = len(val_str.split(".")[1])
             return mpmath.mpf(unc_str) / (10**decimal_places)
+if 0:  # UnitArbiter
+    '''Manifest [11]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
+    class UnitArbiter:
+        '''Singleton co-process manager for GNU Units.'''
+        _instance = None
+        units_bin = "/home/don/.0rc/bin/units"
+        main_config = "/home/don/.0rc/bin/definitions.units"
+        dynamic_config = "/home/don/.units_dynamic"
+        def __new__(cls) -> "UnitArbiter":
+            if cls._instance is None:
+                cls._instance = super(UnitArbiter, cls).__new__(cls)
+            return cls._instance
+        def __init__(self) -> None:
+            if not hasattr(self, "proc"):
+                self.proc = None
+                self._start_process()
+        def _start_process(self) -> None:
+            if self.proc:
+                try:
+                    self.proc.terminate()
+                    self.proc.wait(timeout=0.2)
+                except:
+                    pass
+            cmd = [self.units_bin, "-q", "--compact", "-t", "-d", "15"]
+            if os.path.exists(self.main_config): cmd.extend(["-f", self.main_config])
+            if not os.path.exists(self.dynamic_config):
+                with open(self.dynamic_config, "w") as f: f.write("")
+            cmd.extend(["-f", self.dynamic_config])
+            if g.dbg:
+                print(f"DEBUG Units _start_process command:\n  {' '.join(cmd)}")
+            self.proc = subprocess.Popen(
+                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, text=True, bufsize=1
+            )
+        def _translate_unicode(self, s: str) -> str:
+            trans = str.maketrans("0123456789+-", "0123456789+-")
+            return s.translate(trans).replace(" ", "*")
+        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
+            if not self.proc or self.proc.poll() is not None: self._start_process()
+            have = self._translate_unicode(have)
+            want = self._translate_unicode(want)
+            query = f"{have}\n{want}\n"
+            if g.dbg:
+                print(f"DEBUG UnitArbiter.check_conformable sent:  {query!r}")
+            try:
+                self.proc.stdin.write(query)
+                self.proc.stdin.flush()
+                output = self.proc.stdout.readline().strip()
+                if g.dbg:
+                    print(f"DEBUG UnitArbiter.check_conformable got:  {output!r}")
+                if not output or "error" in output.lower() or "unknown" in output.lower():
+                    return False, output
+                return True, output
+            except Exception as e: 
+                return False, str(e)
+        def simplify(self, value: ty.Any, unit_str: str) -> ty.Tuple[ty.Any, str]:
+            query = f"{unit_str}\n\n"
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.simplify sent:  {query!r}")
+            self.proc.stdin.write(query)
+            self.proc.stdin.flush()
+            res = self.proc.stdout.readline().strip()
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.simplify got:  {res!r}")
+            parts = res.split(" ", 1)
+            conv_factor = mpmath.mpf(parts[0])
+            new_unit = parts[1]
+            return mpmath.mpf(value) * conv_factor, new_unit
+        def is_known_unit(self, unit_str: str) -> bool:
+            if not unit_str:
+                return True
+            query = f"{unit_str}\n\n"
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.is_known_unit sent:  {query!r}")
+            self.proc.stdin.write(query)
+            self.proc.stdin.flush()
+            line = self.proc.stdout.readline()
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.is_known_unit got:  {line!r}")
+            return "unknown unit" not in line.lower()
+        def add_base(self, unit_name: str) -> None:
+            definition = f"{unit_name}\t\t!base!"
+            with open(self.dynamic_config, "a") as f:
+                f.write(f"\n{definition}\n")
+            self._start_process()
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter new def:  {definition!r}, restarted units process ")
+        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+                tmp.write(definition+"\n")
+                tmp_path = tmp.name
+            cmd = [self.units_bin, "-c", "-q", "-f", self.dynamic_config, "-f", tmp_path]
+            if os.path.exists(self.main_config):
+                cmd.extend(["-f", self.main_config])
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
+                is_ok = (result.returncode == 0)
+                error_msg = result.stderr or result.stdout
+            except subprocess.TimeoutExpired:
+                is_ok, error_msg = False, "Timeout validating definition."
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter._check_definition:  {definition!r}")
+                print(f"            got:  {is_ok}, {error_msg!r}")
+            return is_ok, error_msg
+        def _register_unit(self, unit_name: str) -> str:
+            unit_name = unit_name.strip()
+            if not unit_name:
+                return "Error: Unit name empty."
+            if not unit_name[0].isalpha():
+                return f"Error: '{unit_name}' must start with a letter."
+            if self.is_known_unit(unit_name):
+                return "ok"
+            try:
+                self.add_base(unit_name)
+                return "ok"
+            except Exception as e:
+                return f"Error: {str(e)}"
+        def inject_math(self) -> None:
+            pass
+    # Goodbye from the Mike & Don comedy show
+if 1:  # UnitArbiter
+    '''Manifest [12]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
+    class UnitArbiter:
+        '''Singleton co-process manager for GNU Units.'''
+        _instance = None
+        units_bin = "/home/don/.0rc/bin/units"
+        main_config = "/home/don/.0rc/bin/definitions.units"
+        dynamic_config = "/home/don/.units_dynamic"
+        def __new__(cls) -> "UnitArbiter":
+            if cls._instance is None:
+                cls._instance = super(UnitArbiter, cls).__new__(cls)
+            return cls._instance
+        def __init__(self) -> None:
+            if not hasattr(self, "proc"):
+                self.proc = None
+                self._start_process()
+        def _start_process(self) -> None:
+            if self.proc:
+                try:
+                    self.proc.terminate()
+                    self.proc.wait(timeout=0.2)
+                except:
+                    pass
+            cmd = [self.units_bin, "-q", "--compact", "-t", "-d", "15"]
+            if os.path.exists(self.main_config): cmd.extend(["-f", self.main_config])
+            if not os.path.exists(self.dynamic_config):
+                with open(self.dynamic_config, "w") as f: f.write("")
+            cmd.extend(["-f", self.dynamic_config])
+            if g.dbg:
+                print(f"DEBUG Units _start_process command:\n  {' '.join(cmd)}")
+            self.proc = subprocess.Popen(
+                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, text=True, bufsize=1
+            )
+        def _translate_unicode(self, s: str) -> str:
+            trans = str.maketrans("0123456789+-", "0123456789+-")
+            return s.translate(trans).replace(" ", "*")
+        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
+            if not self.proc or self.proc.poll() is not None: self._start_process()
+            have = self._translate_unicode(have)
+            want = self._translate_unicode(want)
+            query = f"{have}\n{want}\n"
+            if g.dbg:
+                print(f"DEBUG UnitArbiter.check_conformable sent:  {query!r}")
+            try:
+                self.proc.stdin.write(query)
+                self.proc.stdin.flush()
+                output = self.proc.stdout.readline().strip()
+                if g.dbg:
+                    print(f"DEBUG UnitArbiter.check_conformable got:  {output!r}")
+                if not output or "error" in output.lower() or "unknown" in output.lower():
+                    return False, output
+                return True, output
+            except Exception as e:
+                return False, str(e)
+        def simplify(self, value: ty.Any, unit_str: str) -> ty.Tuple[ty.Any, str]:
+            query = f"{unit_str}\n\n"
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.simplify sent:  {query!r}")
+            self.proc.stdin.write(query)
+            self.proc.stdin.flush()
+            res = self.proc.stdout.readline().strip()
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.simplify got:  {res!r}")
+            parts = res.split(" ", 1)
+            conv_factor = mpmath.mpf(parts[0])
+            new_unit = parts[1]
+            return mpmath.mpf(value) * conv_factor, new_unit
+        def is_known_unit(self, unit_str: str) -> bool:
+            if not unit_str:
+                return True
+            query = f"{unit_str}\n\n"
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.is_known_unit sent:  {query!r}")
+            self.proc.stdin.write(query)
+            self.proc.stdin.flush()
+            line = self.proc.stdout.readline()
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter.is_known_unit got:  {line!r}")
+            return "unknown unit" not in line.lower()
+        def add_base(self, unit_name: str) -> None:
+            definition = f"{unit_name}\t\t!base!"
+            with open(self.dynamic_config, "a") as f:
+                f.write(f"\n{definition}\n")
+            self._start_process()
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter new def:  {definition!r}, restarted units process ")
+        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+                tmp.write(definition+"\n")
+                tmp_path = tmp.name
+            cmd = [self.units_bin, "-c", "-q", "-f", self.dynamic_config, "-f", tmp_path]
+            if os.path.exists(self.main_config):
+                cmd.extend(["-f", self.main_config])
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
+                is_ok = (result.returncode == 0)
+                error_msg = result.stderr or result.stdout
+            except subprocess.TimeoutExpired:
+                is_ok, error_msg = False, "Timeout validating definition."
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+            if g.dbg:
+                print(f"DEBUG Units UnitArbiter._check_definition:  {definition!r}")
+                print(f"            got:  {is_ok}, {error_msg!r}")
+            return is_ok, error_msg
+        def _register_unit(self, unit_name: str) -> str:
+            unit_name = unit_name.strip()
+            if not unit_name:
+                return "Error: Unit name empty."
+            if not unit_name[0].isalpha():
+                return f"Error: '{unit_name}' must start with a letter."
+            if self.is_known_unit(unit_name):
+                return "ok"
+            try:
+                self.add_base(unit_name)
+                return "ok"
+            except Exception as e:
+                return f"Error: {str(e)}"
+        def inject_math(self) -> None:
+            '''Inject uncertainty-aware math wrappers into __main__ namespace.'''
+            import sys
+            import mpmath
+            from mpmath import workdps, diff, mp
+            target = sys.modules["__main__"]
+            def create_wrapper(func_name: str, is_dimensionless: bool = True):
+                mp_func = getattr(mpmath, func_name)
+                def wrapped(x: ty.Any) -> "Num":
+                    if isinstance(x, Num):
+                        if is_dimensionless and x.unit:
+                            raise ValueError(f"{func_name} requires a dimensionless Num (got {x.unit})")
+                        z_val = mp_func(x.as_mpc)
+                        res_unit = "" if is_dimensionless else x.unit
+                        if func_name == "sqrt":
+                            res_unit = f"sqrt({x.unit})" if x.unit else ""
+                        if func_name == "degrees":
+                            res_unit = "deg"
+                        if func_name == "radians":
+                            res_unit = "rad"
+                        if x.mytype != NumType.Unc:
+                            return Num(z_val, unit=res_unit)
+                        with workdps(mp.dps + 4):
+                            h_base = mp.power(10, -(mp.dps // 2))
+                            d1 = diff(mp_func, x.as_mpc, h=h_base)
+                            d2 = diff(mp_func, x.as_mpc, h=h_base / 2)
+                            sens = abs(d1)
+                            sens2 = abs(d2)
+                            if abs(sens - sens2) / (sens + 1e-30) > 0.01:
+                                print(f"Warning: Possible singularity suspected in {func_name} at {x.raw_value}.\nUncertainty propagation may be non-physical.", file=sys.stderr)
+                            new_re_unc = sens * x.re_unc
+                            new_im_unc = sens * x.im_unc
+                        res = Num(z_val, unit=res_unit)
+                        res.re_unc = new_re_unc
+                        res.im_unc = new_im_unc
+                        res.mytype = NumType.Unc
+                        return res
+                    return mp_func(x)
+                return wrapped
+            trig_funcs = ["cos", "sin", "tan", "acos", "asin", "atan", "exp", "log"]
+            misc_funcs = ["sqrt", "degrees", "radians"]
+            for name in trig_funcs:
+                setattr(target, name, create_wrapper(name, is_dimensionless=True))
+            for name in misc_funcs:
+                setattr(target, name, create_wrapper(name, is_dimensionless=False))
+    # Goodbye from the Mike & Don comedy show
 
+if 0:  # StringParser
+    '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
+    class StringParser:
+        '''Engine to dichotomize numeric strings and units.'''
+        unit_arbiter = UnitArbiter()
+        @staticmethod
+        def parse(s: str, passed_unit: str = "") -> ParsedPayload:
+            s = s.strip()
+            num_str, unit_str = StringParser._split_input(s)
+            final_unit = unit_str if unit_str else passed_unit
+            if final_unit:
+                StringParser.unit_arbiter._register_unit(final_unit)
+            if not s:
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), unit=final_unit)
+            return StringParser._parse_number(num_str if num_str else s, final_unit)
+        @staticmethod
+        def _split_input(s: str) -> ty.Tuple[str, str]:
+            if " " not in s: return s, ""
+            return s.rsplit(" ", 1)
+        @staticmethod
+        def _parse_number(s: str, unit: str) -> ParsedPayload:
+            clean_s = s.replace(" ", "").replace("_", "").lower().replace("i", "j")
+            if "nan" in clean_s or "inf" in clean_s:
+                val = mpmath.mpf(clean_s.replace("j", ""))
+                return ParsedPayload(NumType.Flt, val, unit=unit)
+            if "j" in clean_s:
+                match = re.fullmatch(r"([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)([+-]\d*\.?\d+(?:[eE][+-]?\d+)?)j", clean_s)
+                if match:
+                    return ParsedPayload(NumType.Cpx, mpmath.mpf(match.group(1)), imag=mpmath.mpf(match.group(2)), unit=unit)
+                if re.fullmatch(r"[+-]?\d*\.?\d+(?:[eE][+-]?\d+)?j", clean_s):
+                    return ParsedPayload(NumType.Cpx, mpmath.mpf("0"), imag=mpmath.mpf(clean_s.replace("j", "")), unit=unit)
+                raise ValueError("Invalid complex number format")
+            if "(" in clean_s:
+                if "/" in clean_s: raise ValueError("Uncertainty expression cannot contain '/'")
+                match = re.fullmatch(r"([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\((\d+)\)(.*)", clean_s)
+                if match:
+                    return ParsedPayload(NumType.Unc, mpmath.mpf(match.group(1)), re_unc=StringParser._calc_unc(match.group(1), match.group(2)), unit=unit)
+                raise ValueError("Invalid uncertainty format")
+            if "/" in clean_s:
+                f = fractions.Fraction(clean_s)
+                return ParsedPayload(NumType.Rat, mpmath.mpf("0"), numer=f.numerator, denom=f.denominator, unit=unit)
+            try:
+                val = mpmath.mpf(clean_s)
+                return ParsedPayload(NumType.Flt if "." in clean_s or "e" in clean_s else NumType.Int, val, unit=unit)
+            except:
+                raise ValueError("Could not parse numeric string: " + s)
+        @staticmethod
+        def _calc_unc(val_str: str, unc_str: str) -> mpmath.mpf:
+            decimal_places = 0
+            if "." in val_str: decimal_places = len(val_str.split(".")[1])
+            return mpmath.mpf(unc_str) / (10**decimal_places)
+    # Goodbye from the Mike & Don comedy show
+if 0:  # StringParser
+    '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
+    class StringParser:
+        '''Engine to dichotomize numeric strings and units.'''
+        unit_arbiter = UnitArbiter()
+        @staticmethod
+        def parse(s: str, passed_unit: str = "") -> ParsedPayload:
+            s = s.strip()
+            num_str, unit_str = StringParser._split_input(s)
+            final_unit = unit_str if unit_str else passed_unit
+            if final_unit:
+                StringParser.unit_arbiter._register_unit(final_unit)
+            if not s:
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=0, denom=1, unit=final_unit)
+            return StringParser._parse_number(num_str if num_str else s, final_unit)
+        @staticmethod
+        def _split_input(s: str) -> ty.Tuple[str, str]:
+            if " " not in s: return s, ""
+            return s.rsplit(" ", 1)
+        @staticmethod
+        def _parse_number(s: str, unit: str) -> ParsedPayload:
+            clean_s = s.replace(" ", "").replace("_", "").lower().replace("i", "j")
+            if "nan" in clean_s or "inf" in clean_s:
+                val = mpmath.mpf(clean_s.replace("j", ""))
+                return ParsedPayload(NumType.Flt, val, unit=unit)
+            if "j" in clean_s:
+                match = re.fullmatch(r"([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)([+-]\d*\.?\d+(?:[eE][+-]?\d+)?)j", clean_s)
+                if match:
+                    return ParsedPayload(NumType.Cpx, mpmath.mpf(match.group(1)), imag=mpmath.mpf(match.group(2)), unit=unit)
+                if re.fullmatch(r"[+-]?\d*\.?\d+(?:[eE][+-]?\d+)?j", clean_s):
+                    return ParsedPayload(NumType.Cpx, mpmath.mpf("0"), imag=mpmath.mpf(clean_s.replace("j", "")), unit=unit)
+                raise ValueError("Invalid complex number format")
+            if "(" in clean_s:
+                if "/" in clean_s: raise ValueError("Uncertainty expression cannot contain '/'")
+                match = re.fullmatch(r"([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\((\d+)\)(.*)", clean_s)
+                if match:
+                    return ParsedPayload(NumType.Unc, mpmath.mpf(match.group(1)), re_unc=StringParser._calc_unc(match.group(1), match.group(2)), unit=unit)
+                raise ValueError("Invalid uncertainty format")
+            if "/" in clean_s:
+                f = fractions.Fraction(clean_s)
+                return ParsedPayload(NumType.Rat, mpmath.mpf("0"), numer=f.numerator, denom=f.denominator, unit=unit)
+            try:
+                # Handle simple integers here
+                if "." not in clean_s and "e" not in clean_s:
+                    val = int(clean_s)
+                    return ParsedPayload(NumType.Int, mpmath.mpf(val), numer=val, denom=1, unit=unit)
+                val = mpmath.mpf(clean_s)
+                return ParsedPayload(NumType.Flt, val, unit=unit)
+            except:
+                raise ValueError("Could not parse numeric string: " + s)
+        @staticmethod
+        def _calc_unc(val_str: str, unc_str: str) -> mpmath.mpf:
+            decimal_places = 0
+            if "." in val_str: decimal_places = len(val_str.split(".")[1])
+            return mpmath.mpf(unc_str) / (10**decimal_places)
+    # Goodbye from the Mike & Don comedy show
+if 1:  # StringParser
+    '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
+    class StringParser:
+        '''Engine to dichotomize numeric strings and units.'''
+        unit_arbiter = UnitArbiter()
+        @staticmethod
+        def parse(s: str, passed_unit: str = "") -> ParsedPayload:
+            s = s.strip()
+            num_str, unit_str = StringParser._split_input(s)
+            final_unit = unit_str if unit_str else passed_unit
+            if final_unit:
+                StringParser.unit_arbiter._register_unit(final_unit)
+            if not s:
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=0, denom=1, unit=final_unit)
+            return StringParser._parse_number(num_str if num_str else s, final_unit)
+        @staticmethod
+        def _split_input(s: str) -> ty.Tuple[str, str]:
+            if " " not in s: return s, ""
+            return s.rsplit(" ", 1)
+        @staticmethod
+        def _parse_number(s: str, unit: str) -> ParsedPayload:
+            # --- FIXED ORDER: Handle inf/nan first! ---
+            if "nan" in s or "inf" in s:
+                # Need to check if it's complex, e.g., 'nan+nanj'
+                if "j" in s:
+                    # Logic to handle inf/nan complex types...
+                    # Or for now, just let mpmath handle the string if possible
+                    val = mpmath.mpc(s.replace("j", "j")) # let mpmath parse it
+                    return ParsedPayload(NumType.Cpx, val.real, imag=val.imag, unit=unit)
+                val = mpmath.mpf(s)
+                return ParsedPayload(NumType.Flt, val, unit=unit)
+            clean_s = s.replace(" ", "").replace("_", "").lower().replace("i", "j")
+            if "nan" in clean_s or "inf" in clean_s:
+                val = mpmath.mpf(clean_s.replace("j", ""))
+                return ParsedPayload(NumType.Flt, val, unit=unit)
+            if "j" in clean_s:
+                # Replace i with j and strip it to parse real/imag parts
+                # We split on the last + or - that isn't at the start of the string
+                # to separate real and imag parts.
+                s_stripped = clean_s.replace("j", "")
+                # Find the split point for complex components
+                # We look for the last '+' or '-' that isn't at the beginning
+                split_idx = -1
+                for i in range(len(s_stripped) - 1, 0, -1):
+                    if s_stripped[i] in "+-":
+                        split_idx = i
+                        break
+                if split_idx != -1:
+                    real_part = s_stripped[:split_idx]
+                    imag_part = s_stripped[split_idx:].replace("+", "") # Keep sign if -
+                    if imag_part == "-": imag_val = mpmath.mpf("-1")
+                    elif imag_part == "": imag_val = mpmath.mpf("1")
+                    else: imag_val = mpmath.mpf(imag_part)
+                    real_val = mpmath.mpf(real_part)
+                else:
+                    # Case like 'i', '-i', '3i'
+                    if s_stripped in ("", "+"): imag_val = mpmath.mpf("1")
+                    elif s_stripped == "-": imag_val = mpmath.mpf("-1")
+                    else: imag_val = mpmath.mpf(s_stripped)
+                    real_val = mpmath.mpf("0")
+                return ParsedPayload(NumType.Cpx, real_val, imag=imag_val, unit=unit)
+            if "(" in clean_s:
+                if "/" in clean_s: raise ValueError("Uncertainty expression cannot contain '/'")
+                match = re.fullmatch(r"([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\((\d+)\)(.*)", clean_s)
+                if match:
+                    return ParsedPayload(NumType.Unc, mpmath.mpf(match.group(1)), re_unc=StringParser._calc_unc(match.group(1), match.group(2)), unit=unit)
+                raise ValueError("Invalid uncertainty format")
+            if "/" in clean_s:
+                f = fractions.Fraction(clean_s)
+                return ParsedPayload(NumType.Rat, mpmath.mpf("0"), numer=f.numerator, denom=f.denominator, unit=unit)
+            try:
+                # If it's a bare decimal like .5 or -.5, prepend a 0
+                if clean_s.startswith("."):
+                    clean_s = "0" + clean_s
+                elif clean_s.startswith("-."):
+                    clean_s = clean_s.replace("-.", "-0.")
+                elif clean_s.startswith("+."):
+                    clean_s = clean_s.replace("+.", "+0.")
+                if "." not in clean_s and "e" not in clean_s and "j" not in clean_s:
+                    val = int(clean_s)
+                    return ParsedPayload(NumType.Int, mpmath.mpf(val), numer=val, denom=1, unit=unit)
+                val = mpmath.mpf(clean_s)
+                return ParsedPayload(NumType.Flt, val, unit=unit)
+            except:
+                raise ValueError("Could not parse numeric string: " + s)
+        @staticmethod
+        def _calc_unc(val_str: str, unc_str: str) -> mpmath.mpf:
+            decimal_places = 0
+            if "." in val_str: decimal_places = len(val_str.split(".")[1])
+            return mpmath.mpf(unc_str) / (10**decimal_places)
+    # Goodbye from the Mike & Don comedy show
+
+#################### Old stuff
 if 0: # StringParser Infrastructure
     @dataclasses.dataclass
     class ParsedPayload:
@@ -2708,25 +3225,25 @@ if 1:   # Self-tests
                 if 1:   # Positive
                     x, T = 30957357, NumType.Int
                     num = Num(x)
-                    Assert(num.numer == x and num.denom == 1)
+                    Assert(num._val.numerator == x and num._val.denominator == 1)
                     Assert(num.mytype == T)
                     # As string
                     num = Num(str(x))
-                    Assert(num.numer == x and num.denom == 1)
+                    Assert(num._val.numerator == x and num._val.denominator == 1)
                     Assert(num.mytype == T)
                 if 1:   # Negative
                     x, T = -30957357, NumType.Int
                     num = Num(x)
-                    Assert(num.numer == x and num.denom == 1)
+                    Assert(num._val.numerator == x and num._val.denominator == 1)
                     Assert(num.mytype == T)
                     # As string
                     num = Num(str(x))
-                    Assert(num.numer == x and num.denom == 1)
+                    Assert(num._val.numerator == x and num._val.denominator == 1)
                     Assert(num.mytype == T)
             if 1:   # Rational
                 x, T = "-3/8", NumType.Rat
                 num = Num(x)
-                Assert(num.numer == -3 and num.denom == 8)
+                Assert(num._val.numerator == -3 and num._val.denominator == 8)
                 Assert(num.mytype == T)
                 Assert(num == Num("-0.375"))
             if 1:   # float
@@ -2788,9 +3305,9 @@ if 1:   # Self-tests
                 Assert(x.mytype == typ, expected=typ, got=x.mytype)
                 # Check numerical value
                 if s == "1":
-                    Assert(x.numer == 1 and x.denom == 1)
+                    Assert(x._val.numerator == 1 and x._val.denominator == 1)
                 elif s == "1/2":
-                    Assert(x.numer == 1 and x.denom == 2)
+                    Assert(x._val.numerator == 1 and x._val.denominator == 2)
                 elif s == "1.2":
                     Assert(x._real == mpmath.mpf(s))
                     Assert(x._imag == zero)
@@ -2923,6 +3440,7 @@ if 1:   # Self-tests
                 # Addition
                 Assert(N(0) + N(0) == N("0+0i") == N("0/1") == N("0.-0.i"))
                 Assert(N(1) + N(1) == N("2+0i") == N("4/2"))
+                x = N(-1) + N(-1)
                 Assert(N(-1) + N(-1) == N("-2+0i") == N("-4/2"))
                 # Subtraction
                 Assert(N(0) - N(0) == N("0+0i") == N("0/1") == N("0.-0.i"))
@@ -2949,7 +3467,7 @@ if 1:   # Self-tests
                 Assert(N("1+0i m")*N("1 m") == N("1+0j m2"))
             if 1:   # Test core properties: as_mpf, etc.
                 x = Num("10")
-                Assert(isinstance(x.as_int_or_rat, int))
+                Assert(x.mytype == NumType.Int)
                 Assert(isinstance(x.as_mpf, mpmath.mpf) and x.as_mpf == mpmath.mpf("10"))
                 Assert(isinstance(x.as_mpc, mpmath.mpc) and x.as_mpc == mpmath.mpc("10", 0))
                 x = Num("10/20")
@@ -2961,11 +3479,11 @@ if 1:   # Self-tests
             if 1:   # "1+2i m" * "3/4 A":  hope we don't get mA
                 a = N("1+2i m")
                 b = N("3/4 A")
-                Assert(a*b == N("0.75+1.5i m*A"))
+                Assert(a*b == N("0.75+1.5i (m)*(A)"))
             if 1:   # Division by zero
                 with raises(ZeroDivisionError):
                     N("0")/N("0")
-                with raises(ValueError):
+                with raises(ZeroDivisionError):
                     N("0/0")
                 with raises(ZeroDivisionError):
                     N("0.")/N("0.")
@@ -3015,10 +3533,17 @@ if 1:   # Self-tests
                 Assert(x._real == mpmath.mpf("-inf") and x.unit == "m")
                 x = Num("nan m")
                 Assert(mpmath.isnan(x._real) and x.unit == "m")
-                x = Num("0+nanj m")
-                Assert(x._real == 0 and mpmath.isnan(x._imag) and x.unit == "m")
-                x = Num("nan+nanj m")
-                Assert(mpmath.isnan(x._real) and mpmath.isnan(x._imag) and x.unit == "m")
+                raises(ValueError, Num, "0+nanj m")
+                raises(ValueError, Num, "nan+nanj m")
+            if 1:   # Detect unit mistakes
+                x, y = Num("0 m"), Num("0 J")
+                with raises(ValueError):
+                    x + y
+                x, y = Num("1 m"), Num("1.0 J")
+                with raises(ValueError):
+                    x + y
+                z = x*y
+                Assert(z == Num('1.0 (m)*(J)'))
         def Test_New_Unit():
             return
             # I've shut this off, as it has been tested and works
@@ -3031,10 +3556,11 @@ if 1:   # Self-tests
                 print(f"basename = {basename!r}")
                 x.base(basename) # The Arbiter will turn this into "name\t!"
         def Test_Functions():
+            x = Num(0)
+            x.arb.inject_math()
             if 1:   # Prove radians() and sin() are in the global namespace
                 x = Num(radians(30))
                 Assert(sin(x).approx(0.5, 10))
-            #yy
         def Test_Uncertainty():
             '''This output came from the _unc.py script, which uses the python
             uncertainties library to calculate the results.  I consider it a gold
@@ -3081,8 +3607,7 @@ if 1:   # Self-tests
               Note:  a calculator gives 132.388.
 
             Num constructor guts:
-                self.numer: int = 0
-                self.denom: int = 1
+                self._val: fractions.Fraction = fractions.Fraction(0, 1)
                 self._real: mpmath.mpf = mpmath.mpf("0")
                 self._imag: mpmath.mpf = mpmath.mpf("0")
                 self.re_unc: mpmath.mpf = mpmath.mpf("0")
@@ -3102,7 +3627,7 @@ if 1:   # Self-tests
             x2.mytype = NumType.Unc
             if 1:   # Addition
                 result = x1 + x2
-                if 1:   # Dump values for debugging
+                if 0:   # Dump values for debugging
                     print("x1 dump")
                     x1.dump(indent)
                     print("\nx2 dump")
@@ -3122,7 +3647,7 @@ if 1:   # Self-tests
                     x2.dump(indent)
                     print("\nresult dump")
                     result.dump(indent)
-                Assert(result == Num("15000 ft2") == Num("15000 (ft)*(ft)"))
+                Assert(result == Num("15000 (ft)*(ft)"))
                 myresult = Num(str(result.re_unc))
                 expected = mpf("18")
                 Assert(myresult.approx(expected, 2))
@@ -3149,11 +3674,15 @@ if 1:   # Self-tests
                     theta.dump(indent)  # 1.0472 radians
                     print("result dump")
                     result.dump(indent)
-            if 1:   # NaN example
+            if 1:   # Large derivative
                 x = Num("0")
                 x.re_unc = mpf(1)
                 x.mytype = NumType.Unc
-                result = sqrt(x)
+                f = io.StringIO()
+                with contextlib.redirect_stderr(f):
+                    result = sqrt(x)
+                s = f.getvalue()
+                Assert("Warning" in s)
                 # Note:  the numerical differentiation gives a large number (1.9e11 for
                 # the default diff, but we're using a heuristic to select the step size
                 # h) sensitivity sens in inject_math.wrapped().  However, it of course
@@ -3161,110 +3690,242 @@ if 1:   # Self-tests
                 Assert(result == Num(0))
                 y = Num(result.re_unc)
                 Assert(y.approx(22360, 4))
-                #yy
+        def Test_StringParser():
+            '''
+            class ParsedPayload:
+                type: NumType
+                real: mpmath.mpf
+                imag: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+                numer: int = 0
+                denom: int = 1
+                re_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+                im_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
+                unit: str = ""
+            '''
+            mpf, mpc = mpmath.mpf, mpmath.mpc
+            p = StringParser().parse
+            if 1:   # Integer
+                tests = (
+                    ("0", 0),
+                    ("-0", 0),
+                    ("0000", 0),
+                    ("1", 1),
+                    ("-1", -1),
+                    ("398579387349375937593749379385740684095840", 398579387349375937593749379385740684095840),
+                    ("-398579387349375937593749379385740684095840", -398579387349375937593749379385740684095840),
+                )
+                for s, expected in tests:
+                    pl = p(s)
+                    Assert(pl.numer == expected)
+                    Assert(pl.type == NumType.Int)
+            if 1:   # Rational
+                raises(ZeroDivisionError, Num, "0/0")
+                raises(ZeroDivisionError, Num, "-0/0")
+                raises(ValueError, Num, "0/0.0")
+                raises(ValueError, Num, "-0/0.0")
+                raises(ValueError, Num, "2.0/2")
+                tests = (
+                    ("0/1", 0, 1),
+                    ("0000/1", 0, 1),
+                    ("0000/0001", 0, 1),
+                    ("2/2", 1, 1),
+                    ("-2/2", -1, 1),
+                    ("2_2_2_2_2_2_2_2_2_2_2_2/2_2_2_2_2_2_2_2_2_2", 10101010101, 101010101),
+                    ("-2_2_2_2_2_2_2_2_2_2_2_2/2_2_2_2_2_2_2_2_2_2", -10101010101, 101010101),
+                )
+                for s, numer, denom in tests:
+                    pl = p(s)
+                    Assert(pl.numer == numer)
+                    Assert(pl.denom == denom)
+                    Assert(pl.type == NumType.Rat)
 
+                #yy
+            if 1:   # Real
+                s = "398579387349375937593749379385740684095840."
+                u = "398579387_3493759375937493793857_40684095840."
+                v = mpf("3.9857938734937592e+41")
+                tests = (
+                    ("0.", mpf("0.0")),
+                    ("0.0", mpf("0.0")),
+                    (".0", mpf("0.0")),
+                    ("-.0", mpf("0.0")),
+                    ("-0.0", mpf("0.0")),
+                    ("1.", mpf("1.0")),
+                    ("1.0", mpf("1.0")),
+                    ("-1.", mpf("-1.0")),
+                    ("-.1", mpf("-0.1")),
+                    ("-1.0", mpf("-1.0")),
+                    ("inf", mpf("inf")),
+                    ("-inf", mpf("-inf")),
+                    (s, v),
+                    ("0000" + s, v),
+                    ("-" + s, -v),
+                    ("-0000" + s, -v),
+                    (u, v),
+                    ("-" + u, -v),
+                )
+                for s, expected in tests:
+                    pl = p(s)
+                    Assert(pl.real == expected)
+                    Assert(pl.type == NumType.Flt)
+                pl = p("nan")
+                Assert(mpmath.isnan(pl.real))
+                Assert(pl.type == NumType.Flt)
+                if 0:   # It's not important to support this test case even though python does
+                    pl = p("-nan")
+                    Assert(mpmath.isnan(pl.real))
+                    Assert(pl.type == NumType.Flt)
+            if 1:   # Complex
+                tests = (
+                    ("0j", 0, 0),
+                    ("1j", 0, 1),
+                    ("1/2j", 0, mpf("0.5")),
+                    ("0+0j", 0, 0),
+                    ("0+1j", 0, 1),
+                    ("1+0j", 1, 0),
+                    ("1+1j", 1, 1),
+                    ("1-0j", 1, 0),
+                    ("1-1j", 1, -1),
+                    ("1/3+1/2j", mpf("0.33333333333333331"), mpf("0.5")),
+                )
+                for s, re, im in tests:
+                    pl = p(s)
+                    Assert(pl.real == re)
+                    Assert(pl.imag == im)
+                    Assert(pl.type == NumType.Cpx)
+            if 1:   # Uncertainty
+                with raises(ValueError):
+                    p("1(500)/2")
+                # The following will be accepted as a valid number with unit because of
+                # our mandate that the last space delimites the unit string
+                x = p("1.234 (12345678)")
+                Assert(x.real == mpf('1.234'))
+                Assert(x.unit == '(12345678)')
+                Assert(x.type == NumType.Flt)
+                with raises(ValueError):
+                    p("1.234 (12345678)")
+                tests = (
+                    ("0(0)", 0, 0),
+                    ("1(0)", 1, 0),
+                    ("-1(0)", -1, 0),
+                    ("0(100)", 0, 100),
+                    ("1(100)", 1, 100),
+                    ("-1(100)", -1, 100),
+                )
+                for s, nom, stdev in tests:
+                    pl = p(s)
+                    Assert(pl.real == nom)
+                    Assert(pl.re_unc == stdev)
+                    Assert(pl.type == NumType.Unc)
 
 '''
-Other tests needed:
-    - '0 m' + '0 J' -> error
-    - '1 m' + '1 J' -> error
-    - '3 m' % '14 j' (error, units must be conformable)
-    - General:  x ⚬ y OK if units are conformable, result gets units of 1st arg
-    - inf and nan
-        - '3 + nan i'?, should stay in ℂ?
-    - Nails:  ϵ + i, 1 + ϵi
-    - '1.23453094830853048309739047394739473947394739473947e4 m3' Does GNU units barf
-      on this?  No, handles it fine; appears to handle unlimited digits.
+# Integer
+    0, 0, Int
+    0000, 0, Int
+    1, 1, Int
+    -0, 0, Int
+    -1, -1, Int
+    398579387349375937593749379385740684095840, 398579387349375937593749379385740684095840, Int
+    -398579387349375937593749379385740684095840, -398579387349375937593749379385740684095840, Int
+# Rational
+    0/0, exc, --        "Divide by zero"
+    -0/0, exc, --       "Divide by zero"
+    0/0.0, exc, --      "Unrecognized"
+    -0/0.0, exc, --     "Unrecognized"
+    0/1, 0/1, Rat
+    0000/1, 0/1, Rat
+    0000/0001, 0/1, Rat
+    2/2, 1/1, Rat
+    -2/2, 1/1, Rat
+    2.0/2, exc, --      "Unrecognized"
+    2_2_2_2_2_2_2_2_2_2_2_2/2_2_2_2_2_2_2_2_2_2, 10101010101/101010101
+    -2_2_2_2_2_2_2_2_2_2_2_2/2_2_2_2_2_2_2_2_2_2, -10101010101/101010101
+# Real
+    0., 0.0, Flt
+    0.0, 0.0, Flt
+    .0, 0.0, Flt
+    -.0, 0.0, Flt
+    -0.0, 0.0, Flt
+    1., 1.0, Flt
+    1.0, 1.0, Flt
+    -1., -1.0, Flt
+    -.1, -0.1, Flt
+    -1.0, -1.0, Flt
+    398579387349375937593749379385740684095840., mpf('3.9857938734937592e+41'), Flt
+    0000398579387349375937593749379385740684095840., mpf('3.9857938734937592e+41'), Flt
+    -398579387349375937593749379385740684095840., mpf('-3.9857938734937592e+41'), Flt
+    -0000398579387349375937593749379385740684095840., mpf('-3.9857938734937592e+41'), Flt
+    398579387_3493759375937493793857_40684095840., mpf('3.9857938734937592e+41'), Flt
+    -398579387_3493759375937493793857_40684095840., mpf('-3.9857938734937592e+41'), Flt
+    inf, inf, Flt
+    -inf, -inf, Flt
+    nan, nan, Flt
+    -nan, nan, Flt
+# Complex
+    0j, 0+0j, Cpx
+    1j, 0+1j, Cpx
+    0+0j, 0+0j, Cpx
+    0+1j, 0+1j, Cpx
+    1+0j, 1+0j, Cpx
+    1+1j, 1+1j, Cpx
+    1-0j, 1+0j, Cpx
+    1-1j, 1-1j, Cpx
+    1/2j, 0+0.5j, Cpx   +5
+    1/3+1/2j, 0.333333333333333+0.5j, Cpx   +5
 
-2. The "Surgeon's Edge" (Complex Signs)
+# Uncertainty
+    0(0), , Unc
+    1(0), , Unc
+    -1(0), , Unc
+    0(100), , Unc
+    1(100), , Unc
+    -1(100), , Unc
+    1(500), , Unc   +1
+    1(500)/2, exc, --  +2
+    1.234(12345678), , Unc  +3
+    1.234 (12345678), exc, --
+    1.234(12345678e88), exc, --  +4
+    1.234(inf), exc, --
+    1.234(-inf), exc, --
+    1.234(nan), exc, --
+    1.234(56)e44, , Unc
+    -1.234(56)e-44, , Unc
+    1(10000000000000000000000000)e100, , Unc
+    -1(10000000000000000000000000)e100, , Unc
+    -1(10)-1(20)i, , Unc
+    -147.883(22)+89.112(3)j, , Unc
+    -147.883(22)-89.112(3)j, , Unc
 
-    Your regex pattern = r"(?<!e)(?=[+-])" is clever, but there are two "human" ways of
-    writing complex numbers that might trip it up:
+# Notes
+    - Not listed, but note our notation has no way of definining a correlation between
+      the two components of a complex number
+    - I'm going to mandate that 'inf' and 'nan' cannot appear in any string that
+      expresses an uncertainty, primarily because it makes practical sense (and makes
+      parsing easier).  Of course, a number with uncertainty run through a function may
+      result in such a thing.
+        - If the parser you write can handle such things, then I'd say let's allow it.
+          The primary reason for the mandate is to simplify the parser.
+    - If possible, can you collect all the "mandates" of our recent back/forth messages
+      and summarize them for me?  I'll put them into the docstring of the number.py
+      file, as they are important reminders.
 
-        Case A: Num("1-j") or Num("-j+1").
+    +1  This is an uncertain integer; it really means a random variable near 0 that has
+    a large uncertainty (standard deviation)
 
-        Case B: Num("1+-2j") (ugly, but it happens in generated strings).
+    +2  This could be interpreted as an uncertainty expression, but I think it should
+    be illegal (i.e., no uncertainty strings with a "/" in them)
 
-        Recommendation: Add a test case for Num("j") and Num("-j"). My current logic
-        handles val in ("", "+", "-") by appending "1", but seeing those in the test
-        suite ensures no future refactor breaks the "implicit one" rule.
+    +3  Similar to +1, but a valid uncertainty expression
 
-3. The "Uncertainty Propagation" Gap
+    +4  The portion in parentheses can only contain string.digits, but can be an
+    arbitrary integer otherwise
 
-    I noticed NumType.Unc in the mapping, but I didn't see a string-based test for it.
+    +5  Nice if this works, but not mandatory in my mind
 
-        The dark corner: If a user passes Num("1.2+/-0.01"), the current _parse_string
-        will likely throw a ValueError because it doesn't recognize the +/- symbol
-        before hitting the mpmath block.
-
-        Recommendation: If you intend for Num to be initialized from "uncertainty
-        strings," that’s a gap. If not, a test case confirming that Num("1.2+/-0.01")
-        fails predictably is just as valuable.
 
 '''
 if __name__ == "__main__":  
-    if 1:   # Standard imports
-        import getopt
-    if 1:   # Custom imports
-        pass
-    if 1:   # Import symbols
-        run = lwtest.run
-        raises = lwtest.raises
-        Assert = lwtest.Assert
-    if 1:   # Utility stuff for a script
-        def GetScreen():
-            'Return (LINES, COLUMNS)'
-            return (
-                int(os.environ.get("LINES", "50")),
-                int(os.environ.get("COLUMNS", "80")) - 1,
-            )
-        def GetColors():
-            t.err = "redl"
-        #def Warn(*msg, **kw):
-        #    print(*msg, file=sys.stderr)
-        #def Error(*msg, status=1):
-        #    Warn(f"{t.err}", end="")
-        #    Warn(*msg)
-        #    Warn(f"{t.n}")
-        #    exit(status)
-        def Usage(status=1):
-            print(wrap.dedent(f'''
-            Usage:  {sys.argv[0]} [options] [arg1 [arg2...]]
-            Describe behavior
-            Options:
-                -d      Turn on debug printing
-                -n n    Set number of digits [15]
-            '''))
-            exit(status)
-        def ParseCommandLine(d):
-            d["-d"] = False     # Debug printing
-            d["-n"] = 15        # Number of mpmath digits
-            try:
-                opts, args = getopt.getopt(sys.argv[1:], "dh")
-            except getopt.GetoptError as e:
-                print(str(e))
-                exit(1)
-            for o, a in opts:
-                if o[1] in list("d"):
-                    d[o] = not d[o]
-                elif o == "-n":
-                    try:
-                        d[o] = int(a)
-                        if d[o] < 1:
-                            raise ValueError()
-                    except Exception:
-                        Error(f"{o!r} option must be an int >= 1")
-                elif o == "-h":
-                    Usage(status=0)
-            GetColors()
-            g.W, g.L = GetScreen()
-            if d["-d"]:
-                with g:
-                    g.dbg = True
-            return args
-    d = {}  # Options dictionary
-    args = ParseCommandLine(d)
-    #if args:
-    #    for arg in args:
-    #        pass    # Do stuff
-    exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
+    assert mpmath.mp.dps == 15
+    run = lwtest.run
+    raises = lwtest.raises
+    exit(lwtest.run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
