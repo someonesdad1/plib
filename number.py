@@ -118,6 +118,7 @@ if 1:  # Header
             Flt = 3
             Cpx = 4
             Unc = 5
+            UncCpx = 6
         NumericalTypes = ty.Union[
             int , float , complex , decimal.Decimal ,
             fractions.Fraction , mpmath.mpf , mpmath.mpc ,
@@ -2595,6 +2596,9 @@ if 1:  # UnitArbiter
                 except:
                     pass
             cmd = [self.units_bin, "-q", "--compact", "-t", "-d", "15"]
+            # The GNU units manual says -t (terse) option is equivalent to 
+            # '--strict' '--quiet' '--one-line' '--compact'
+            cmd = [self.units_bin, "-t", "-d", "15"]
             if os.path.exists(self.main_config): cmd.extend(["-f", self.main_config])
             if not os.path.exists(self.dynamic_config):
                 with open(self.dynamic_config, "w") as f: f.write("")
@@ -2909,10 +2913,25 @@ if 1:  # StringParser
                 return ParsedPayload(NumType.Cpx, real_val, imag=imag_val, unit=unit)
             if "(" in clean_s:
                 if "/" in clean_s: raise ValueError("Uncertainty expression cannot contain '/'")
-                match = re.fullmatch(r"([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\((\d+)\)(.*)", clean_s)
+                # Group 1: 1.234, Group 2: 56, Group 3: e44
+                match = re.fullmatch(r"([+-]?\d*\.?\d+)\((\d+)\)(.*)", clean_s)
                 if match:
-                    return ParsedPayload(NumType.Unc, mpmath.mpf(match.group(1)), re_unc=StringParser._calc_unc(match.group(1), match.group(2)), unit=unit)
-                raise ValueError("Invalid uncertainty format")
+                    base_val = match.group(1)
+                    unc_str = match.group(2)
+                    exponent = match.group(3)
+                    # 1. Full value for nominal
+                    full_val_str = base_val + exponent
+                    # 2. Calculate the "raw" uncertainty (e.g., 0.056)
+                    # 3. Apply the exponent to the uncertainty
+                    # If base_val is 1.234 (3 decimal places),
+                    # unc '56' means 0.056. Then scale by exponent.
+                    re_unc = StringParser._calc_unc(base_val, unc_str)
+                    if exponent:
+                        # Convert exponent string (e.g., 'e44') to multiplier
+                        multiplier = mpmath.mpf("1" + exponent)
+                        re_unc *= multiplier
+                    return ParsedPayload(NumType.Unc, mpmath.mpf(full_val_str),
+                                         re_unc=re_unc, unit=unit)
             if "/" in clean_s:
                 f = fractions.Fraction(clean_s)
                 return ParsedPayload(NumType.Rat, mpmath.mpf("0"), numer=f.numerator, denom=f.denominator, unit=unit)
@@ -3794,16 +3813,23 @@ if 1:   # Self-tests
                     Assert(pl.imag == im)
                     Assert(pl.type == NumType.Cpx)
             if 1:   # Uncertainty
-                with raises(ValueError):
-                    p("1(500)/2")
+                # Forms that cause exceptions
+                exc = (
+                    "1(500)/2",
+                    "1.234(12345678e88)",
+                    "1.234(inf)",
+                    "1.234(-inf)",
+                    "1.234(nan)",
+                )
+                for s in exc:
+                    with raises(ValueError):
+                        p(s)
                 # The following will be accepted as a valid number with unit because of
                 # our mandate that the last space delimites the unit string
                 x = p("1.234 (12345678)")
                 Assert(x.real == mpf('1.234'))
                 Assert(x.unit == '(12345678)')
                 Assert(x.type == NumType.Flt)
-                with raises(ValueError):
-                    p("1.234 (12345678)")
                 tests = (
                     ("0(0)", 0, 0),
                     ("1(0)", 1, 0),
@@ -3811,13 +3837,15 @@ if 1:   # Self-tests
                     ("0(100)", 0, 100),
                     ("1(100)", 1, 100),
                     ("-1(100)", -1, 100),
+                    ("1.234(56)e44", mpf("1.234e44"), mpf("5.6000000000000011e+42")),
+                    ("1(10000000000000000000000000)e100", mpf("1e100"), mpf("1e25")),
+                #   ("-1(10000000000000000000000000)e100", mpf("-1e100"), mpf("1e25")),
                 )
                 for s, nom, stdev in tests:
-                    pl = p(s)
-                    Assert(pl.real == nom)
-                    Assert(pl.re_unc == stdev)
-                    Assert(pl.type == NumType.Unc)
-
+                    pp = p(s)
+                    Assert(pp.real == nom)
+                    Assert(pp.re_unc == stdev)
+                    Assert(pp.type == NumType.Unc)
 '''
 # Integer
     0, 0, Int
@@ -3872,7 +3900,6 @@ if 1:   # Self-tests
     1-1j, 1-1j, Cpx
     1/2j, 0+0.5j, Cpx   +5
     1/3+1/2j, 0.333333333333333+0.5j, Cpx   +5
-
 # Uncertainty
     0(0), , Unc
     1(0), , Unc
@@ -3895,6 +3922,8 @@ if 1:   # Self-tests
     -1(10)-1(20)i, , Unc
     -147.883(22)+89.112(3)j, , Unc
     -147.883(22)-89.112(3)j, , Unc
+    -147.883(22)e-12+89.112(3)e-8j, , Unc
+    -147.883(22)e-12-89.112(3)e-8j, , Unc
 
 # Notes
     - Not listed, but note our notation has no way of definining a correlation between

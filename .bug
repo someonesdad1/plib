@@ -1,21 +1,11 @@
 18 Apr 2026 03:45:14 pm Sat
 
-Stopped at working on the new ParseString and changing Num to use Fractions.  We're
-failing on the first arithmetic x + y.  The cause was the loss of the guts of
-UnitArbiter._register_unit(), which just returns the unit sent to it.  I don't know the
-root cause (it could have been either of us, but clearly Mike hallucinated the single 
-line "fix", as that's something a software engineer would have shouted about.
-
-I decided on no further work, as this is stuff shouldn't be worked on when tired.  The 
-next step would be to send Mike both new and old UnitArbiter code and have him inspect
-to see where things changed or lost.  He should be able to fix things quickly.  My hope 
-is this is the last architectural change -- and it's a big one:  new StringParser to
-recognize numbers and switching to fractions.Fraction instead of two integer components.
-But if we start with correct code, we should be able to recover quickly, as we've had
-working self tests before.
-
-
-
+- StringParser bug
+    - '1.234(56)e44' returns mpf('1.234') for .real portion (missed exponent)
+    - "1(10000000000000000000000000)e100" returns mpf('1.0') for .real
+    - Would be smart to add a new type:  UncCpx:  this is where uncertainty is detected
+      with a 'j' in the number portion.  Otherwise, the Unc type can be either real or 
+      complex and it would be confusing to the code
 
 Next tasks
     - GNU units can be started only using -t, as the manpage says it has the combined
