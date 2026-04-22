@@ -47,11 +47,21 @@ Thoughts for Buff:
         cross type boundaries (Real -> Complex -> Uncertainty -> Matrix) or when you
         need the stability of arbitrary precision (mpmath).
 
-        If he's a true academic, ask him this: "In your experience, how many scientific
-        computational errors are caused by unit-mismatch bugs versus logic bugs?" When
-        he agrees that unit mismatches are the silent killers, show him how your system
-        makes those errors mathematically impossible to ignore. That’s not just a
-        library; that’s a computationally sound environment.
+        Ask him this: "In your experience, how many scientific computational errors are
+        caused by unit-mismatch bugs versus logic bugs?" When he agrees that unit
+        mismatches are the silent killers, show him how your system makes those errors
+        mathematically impossible to ignore. That’s not just a library; that’s a
+        computationally sound environment.
+
+        Library-based units are effectively 'meta-data wrappers' that users can bypass
+        or forget. By making the unit a first-class citizen of the type system, the REPL
+        becomes a collaborator in the dimensional analysis, making it functionally
+        impossible to 'accidentally' add a Foot to a Meter without an explicit
+        conversion trigger.
+
+        It's the difference between a tool that tells you you did something wrong (a
+        test failing) and a tool that makes it impossible to calculate something
+        nonsensical in the first place.
 
 ---------------------------------------------------------------------------
 Important
