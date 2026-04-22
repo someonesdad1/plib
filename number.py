@@ -200,7 +200,7 @@ if 0:   # Documentation
         expression's result.
         '''
 
-if 1: # NumericMixin
+if 0: # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
     class NumericMixin:
         '''Operator overloading for the Num class, leveraging Fraction arithmetic where appropriate.'''
@@ -275,6 +275,152 @@ if 1: # NumericMixin
             if self.mytype == NumType.UncCpx or other.mytype == NumType.UncCpx:
                 z_val = op_func(self.as_mpc, other.as_mpc)
                 # Complex correlated propagation: simplified placeholder logic for complex structure
+                new_re_unc = mp_sqrt((self.re_unc**2) + (other.re_unc**2))
+                new_im_unc = mp_sqrt((self.im_unc**2) + (other.im_unc**2))
+                res = self._make_result(z_val, unit=self.unit)
+                res.re_unc = new_re_unc
+                res.im_unc = new_im_unc
+                res.mytype = NumType.UncCpx
+                return res
+            z_val = op_func(self.as_mpc, other.as_mpc)
+            with workdps(mpmath.mp.dps+4):
+                df_dself = diff(lambda x: op_func(x, other.as_mpc), self.as_mpc)
+                df_dother = diff(lambda y: op_func(self.as_mpc, y), other.as_mpc)
+                s_sens = abs(df_dself)
+                o_sens = abs(df_dother)
+                new_re_unc = mp_sqrt((s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2)
+                new_im_unc = mp_sqrt((s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2)
+            res = self._make_result(z_val, unit=self.unit)
+            res.re_unc = new_re_unc
+            res.im_unc = new_im_unc
+            res.mytype = NumType.Unc
+            return res
+        def _check_ordering(self, other: ty.Any, op: str):
+            other_num = other if isinstance(other, Num) else Num(other)
+            if self.mytype in (NumType.Cpx, NumType.UncCpx) or other_num.mytype in (NumType.Cpx, NumType.UncCpx):
+                raise TypeError(f"'{op}' not supported between complex numbers.")
+            if self.mytype in (NumType.Unc, NumType.UncCpx) or other_num.mytype in (NumType.Unc, NumType.UncCpx):
+                raise TypeError(f"'{op}' not supported for numbers with uncertainty.")
+        def __lt__(self, other):
+            self._check_ordering(other, "<")
+            return self.raw_value < (other.raw_value if isinstance(other, Num) else other)
+        def __le__(self, other):
+            self._check_ordering(other, "<=")
+            return self.raw_value <= (other.raw_value if isinstance(other, Num) else other)
+        def __gt__(self, other):
+            self._check_ordering(other, ">")
+            return self.raw_value > (other.raw_value if isinstance(other, Num) else other)
+        def __ge__(self, other):
+            self._check_ordering(other, ">=")
+            return self.raw_value >= (other.raw_value if isinstance(other, Num) else other)
+        def __eq__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                try:
+                    other = Num(other)
+                except:
+                    return False
+            if self.unit != other.unit:
+                try:
+                    other = self._normalize(other, "cmp")
+                except (ValueError, TypeError):
+                    return False
+            v1, v2 = self.raw_value, other.raw_value
+            try:
+                if hasattr(v1, "real") or hasattr(v2, "real"):
+                    res = mpmath.mpc(v1) == mpmath.mpc(v2)
+                else:
+                    res = mpmath.mpf(v1) == mpmath.mpf(v2)
+                if res:
+                    return True
+                return str(v1) == str(v2)
+            except:
+                return v1 == v2
+        def __abs__(self) -> "Num":
+            return self._make_result(abs(self.raw_value), unit=self.unit)
+        def __neg__(self) -> "Num":
+            return self._make_result(-self.raw_value, unit=self.unit)
+        def __radd__(self, other: ty.Any) -> "Num":
+            return Num(other)+self
+        def __rsub__(self, other: ty.Any) -> "Num":
+            return Num(other)-self
+        def __rmul__(self, other: ty.Any) -> "Num":
+            return Num(other)*self
+        def __rtruediv__(self, other: ty.Any) -> "Num":
+            return Num(other)/self
+    # Goodbye from the Mike & Don comedy show
+if 1: # NumericMixin
+    '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__'''
+    class NumericMixin:
+        '''Operator overloading for the Num class, leveraging Fraction arithmetic where appropriate.'''
+        def __add__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            other_norm = self._normalize(other, "add")
+            if self.mytype <= NumType.Rat and other_norm.mytype <= NumType.Rat:
+                res_val = self.as_int_or_rat + other_norm.as_int_or_rat
+                return self._make_result(res_val, unit=self.unit)
+            return self._binary_op(other_norm, lambda a, b: a+b)
+        def __sub__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            other = self._normalize(other, "sub")
+            if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
+                return self._make_result(self.as_int_or_rat - other.as_int_or_rat, unit=self.unit)
+            return self._binary_op(other, lambda a, b: a-b)
+        def __mul__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self.unit and other.unit:
+                res_unit = f"({self.unit})*({other.unit})"
+            elif self.unit or other.unit:
+                res_unit = self.unit or other.unit
+            if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
+                res = self._make_result(self.as_int_or_rat * other.as_int_or_rat, unit=res_unit)
+                return res
+            res = self._binary_op(other, lambda a, b: a*b)
+            res.unit = res_unit
+            return res
+        def __truediv__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self.unit and other.unit:
+                res_unit = f"({self.unit})/({other.unit})"
+            elif self.unit:
+                res_unit = self.unit
+            elif other.unit:
+                res_unit = f"1/({other.unit})"
+            if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
+                res = self._make_result(self.as_int_or_rat / other.as_int_or_rat, unit=res_unit)
+                return res
+            res = self._binary_op(other, lambda a, b: a/b)
+            res.unit = res_unit
+            return res
+        def __pow__(self, other: ty.Any) -> "Num":
+            '''Exponentiation with safe unit propagation.'''
+            if not isinstance(other, Num):
+                other = Num(str(other))
+            if self.unit and other.mytype == NumType.Cpx:
+                raise TypeError(f"Cannot raise unit-bearing quantity ({self.unit}) to a complex power")
+            res = self._binary_op(other, lambda a, b: a**b)
+            if self.unit:
+                if other.mytype == NumType.Rat:
+                    exp_str = f"({other.as_int_or_rat.numerator}/{other.as_int_or_rat.denominator})"
+                else:
+                    try:
+                        exp_f = float(other.as_mpf)
+                        exp_str = str(int(exp_f)) if exp_f.is_integer() else str(exp_f)
+                    except:
+                        exp_str = str(other.raw_value)
+                raw_unit = f"({self.unit})^{exp_str}"
+                new_val, simplified_unit = self.arb.simplify(res.raw_value, raw_unit)
+                return Num(new_val, unit=simplified_unit)
+            return res
+        def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
+            from mpmath import workdps, diff, sqrt as mp_sqrt
+            if self.mytype == NumType.UncCpx or other.mytype == NumType.UncCpx:
+                z_val = op_func(self.as_mpc, other.as_mpc)
                 new_re_unc = mp_sqrt((self.re_unc**2) + (other.re_unc**2))
                 new_im_unc = mp_sqrt((self.im_unc**2) + (other.im_unc**2))
                 res = self._make_result(z_val, unit=self.unit)
@@ -1019,4 +1165,3 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
-
