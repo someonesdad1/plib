@@ -3827,12 +3827,48 @@ if 1:  # Functions
         # ... logic to read the file back and update n.d ...
         print(f"Updated {n.unit} metadata.")
 
-if 0:   # Global namespace function population
+if 1:   # Global namespace function population
+    unit_arbiter = UnitArbiter() # Singleton initialization
+    def NoetherWrap(func_name: str, logic: str = "dimensionless"):
+        '''
+        Closure factory to bridge mpmath functions to Num containers.
+        '''
+        mp_func = getattr(mpmath, func_name)
+        def wrapped(*args, **kwargs) -> "Num":
+            # 1. Standardize inputs (ensuring __init__ is idempotent)
+            n_args = [arg if isinstance(arg, Num) else Num(arg) for arg in args]
+            # 2. Updated Uncertainty/Correlation Alert
+            for i, a in enumerate(n_args):
+                if a.mytype in (NumType.Unc, NumType.UncCpx):
+                    print(f"DEBUG: {func_name} received uncertainty for arg {i}. "
+                          f"Propagation not yet implemented. Uncertainty will be lost.",
+                          file=sys.stderr)
+            # 3. Apply Unit Logic Gates
+            res_unit = ""
+            if logic == "dimensionless":
+                for i, a in enumerate(n_args):
+                    if a.unit:
+                        raise ValueError(f"{func_name} argument {i} must be dimensionless, got {a.unit}")
+            elif logic == "conformable":
+                if len(n_args) >= 2:
+                    have, want = n_args[0].unit, n_args[1].unit
+                    is_ok, _ = unit_arbiter.check_conformable(have, want)
+                    if not is_ok:
+                        raise ValueError(f"{func_name} arguments must be conformable: {have!r} vs {want}")
+            elif logic == "sqrt":
+                if n_args[0].unit:
+                    res_unit = f"sqrt({n_args[0].unit})"
+            # 4. Execute using raw values
+            result_val = mp_func(*[a.raw_value for a in n_args], **kwargs)
+            # 5. Return and Promote
+            return Num(result_val, unit=res_unit)._promote()
+        return wrapped
     # Trigonometric, Exponential, and Scaling
     for name in ["sin", "cos", "tan", "exp", "log", "log10", "asin", "acos", "atan",
                 "asinh", "acosh", "atanh", "erf", "erfc", "gamma", "degrees", "radians"]:
         if hasattr(mpmath, name):
             globals()[name] = NoetherWrap(name, logic="dimensionless")
+    acos(Num(2)) #∞∞ 
     # Conformable Pairs
     # Note: mpmath uses 'fmod' for remainder operations.
     for name in ["atan2", "fmod"]:

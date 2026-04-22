@@ -4,16 +4,15 @@ Important
     - Tests to get ready for the "Mike & Don version 1.0" git annotated label
         - Test UncCpx forms
         - Test new "-1(10)-1(20)i<R=0.27>" to designate correlation
-    - Num("1.234 (12345678)") works.  Should the parser do a preliminary check on the
-      unit portion and disallow such things?
     - Formatting
         - Add native Num formatting to fmt.py
         - Should the parser store the original string in the Num instance?  This might
-          be the most user-friendly way to display the string to the user.
+          be the most user-friendly way to display the string to the user.  See
+          orig_string below.
 
 When have time
     - Preferred units:  num.preferred(x) where x is a space-separated string.  None gets
-      rid of this set.
+      rid of this set.  Lets the user set up an environment for computation.
     - GNU units can be started only using -t, as the manpage says it has the combined
       effect of '--strict' '--quiet' '--one-line' '--compact'.
     - Need to add uncertainty formatting to fmt.py
@@ -123,3 +122,68 @@ Another start with the same command appended to the file:
         * 0.333333333333333
         / 3
 
+Mike's comments on the logger idea:
+
+The Trade-off
+
+    The "Hack" approach: If we just want a "Command Journal," we don't even need to
+    touch the units C source code. We can simply wrap our subprocess call to units in
+    our own Logger class. Every time we send a string to the UnitArbiter, we write to
+    our own audit log file with a timestamp. This avoids the "friction" of modifying the
+    units binary, keeps the project portable, and works regardless of what the units
+    manpage says about interactivity.
+
+    The "Integrity" approach: If you really want the log to be the source of truth, you
+    can use a named pipe (FIFO) or a PTY wrapper to trick units into thinking it's
+    interactive, forcing it to write the log as it would in a real shell.
+
+Why I lean toward the Wrapper (Logging at the Num level)
+
+Since you are already building a Num class that is orchestrating this, logging at the
+Python side gives you much better structure:
+
+    Context-Aware Logging: You can log the Python call stack, the Num object's state
+    (including its mytype and raw_value), and the unit result simultaneously.
+
+    Persistence agnostic: You can log to a simple text file, a SQLite DB, or both,
+    without worrying about how units handles its own internal file descriptors.
+
+Like Mike, I lean towards the python level logging, as the REPL can also log the things
+the user does there.
+
+---------------------------------------------------------------------------
+orig_string Retain original string for user
+
+    def __init__(self, val, unit="", origin=None):
+        # ... your existing setup ...
+        self._origin = origin if origin else str(val)
+        # ...
+
+    @property
+    def display(self) -> str:
+        '''Formatted representation for human readability.'''
+        # This could eventually hold your "prettify" logic
+        return f"{self._origin} -> {self}"
+
+Keep it simple; just the information the user type in; do not try to capture all the
+later operations, as that can be done by the persistence engine.
+
+Mike's comments:
+
+    Why this is the "Right" Approach:
+
+        Debugging Traceability: When you look at an error log, seeing
+        Num('0.0(2)-0.0(2)j') is infinitely more helpful than seeing the evaluated mpc
+        object.
+
+        The "Prettify" Property: You mentioned changing dump() to a property. By having
+        _origin stored, you can make dump or display intelligently switch contexts.
+
+            Verbose mode: Show the origin + evaluated value + unit.
+
+            Concise mode: Show just the evaluated value.
+
+        User-Defined Logic: You can decide on the fly if the origin is what the user
+        typed or a derived expression. If a Num is created via an operation, the
+        "origin" could be the expression f"{a} + {b}", effectively giving you a free,
+        lightweight expression tree for free.
