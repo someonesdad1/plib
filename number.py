@@ -2138,7 +2138,10 @@ if 1: # Num
                 self.mytype = NumType.Cpx
             else:
                 raise TypeError(f"Type {type(value)} not supported")
-            if unit: self.unit = unit
+            if unit: 
+                self.unit = unit
+            if not (-1 <= self.correl <= 1):
+                raise ValueError("Correlation coefficient must be on [-1, 1]")
         def _promote(self) -> "Num":
             '''Aggressively collapse Flt back to Rat or Int if precision allows.'''
             # 1. If Flt, try to convert to Rat (Fraction)
@@ -3570,16 +3573,22 @@ if 1:  # StringParser
                 def _parse_part(part: str) -> tuple[mpmath.mpf, mpmath.mpf]:
                     if "(" in part:
                         if "/" in part: raise ValueError("Uncertainty expression cannot contain '/'")
+                        # Capture optional exponent group(3)
                         match = re.fullmatch(r"([+-]?\d*\.?\d+)\(([\d\.]+)\)(.*)", part)
                         if not match: raise ValueError("Invalid uncertainty format")
-                        unc = StringParser._calc_unc(match.group(1), match.group(2))
-                        val = mpmath.mpf(match.group(1) + match.group(3))
+                        base_val = match.group(1)
+                        unc = StringParser._calc_unc(base_val, match.group(2))
+                        exponent = match.group(3)
+                        if exponent: 
+                            unc *= mpmath.mpf("1" + exponent)
+                        val = mpmath.mpf(base_val + exponent)
                         return val, unc
                     return mpmath.mpf(part), mpmath.mpf("0")
 
                 split_idx = -1
                 for i in range(len(s_stripped) - 1, 0, -1):
-                    if s_stripped[i] in "+-":
+                    # Check if character is a sign and not part of scientific notation (e.g., e-12)
+                    if s_stripped[i] in "+-" and s_stripped[i-1] != "e":
                         split_idx = i
                         break
 
@@ -4565,8 +4574,6 @@ if 1:   # Self-tests
                     Assert(pl.numer == numer)
                     Assert(pl.denom == denom)
                     Assert(pl.type == NumType.Rat)
-
-                #yy
             if 1:   # Real
                 s = "398579387349375937593749379385740684095840."
                 u = "398579387_3493759375937493793857_40684095840."
@@ -4693,124 +4700,34 @@ if 1:   # Self-tests
                         p(s)
                 # Valid forms
                 tests = (
-                    ("0.0(2)-0.0(2)j", 0, 0, mpf("0.2"), mpf("0.2")),
+                    ("0.0(2)-0.0(2)j", 0, 0, mpf("0.2"), mpf("0.2"), 0),
+                    ("1.0(2)-1.0(2)j", 1, -1, mpf("0.2"), mpf("0.2"), 0),
+                    ("-1.0(2)-1.0(2)j", -1, -1, mpf("0.2"), mpf("0.2"), 0),
+                    ("1.0(2)j", 0, 1, mpf("0.0"), mpf("0.2"), 0),
+                    ("-1.0(2)j", 0, -1, mpf("0.0"), mpf("0.2"), 0),
+                    # Correlation coefficient
+                    ("-1.0(2)-1.0(2)j<R=1>", -1, -1, mpf("0.2"), mpf("0.2"), 1),
+                    ("-1.0(2)-1.0(2)j<R=-1>", -1, -1, mpf("0.2"), mpf("0.2"), -1),
+                    ("-1.0(2)-1.0(2)j<R=2>", -1, -1, mpf("0.2"), mpf("0.2"), 2),
+                    ("-1.0(2)-1.0(2)j<R=-0.327>", -1, -1, mpf("0.2"), mpf("0.2"), mpf("-0.327")),
+                    # Hairy
+                    ("-147.883(22)e-12+89.112(3)e-8j", mpf("-147.883e-12"), mpf("89.112e-8"),
+                        mpf('2.1999999999999998e-14'), mpf("0.003e-8"), 0),
+                    ("-147.883(22)e-12+89.112(3)e-8j<R=0.283>", mpf("-147.883e-12"), mpf("89.112e-8"),
+                        mpf('2.1999999999999998e-14'), mpf("0.003e-8"), mpf("0.283")),
                 )
-                for s, re, im, re_unc, im_unc in tests:
+                for s, re, im, re_unc, im_unc, correl in tests:
                     #print(f"Test case:  {s!r}")
                     pp = p(s)
                     Assert(pp.real == re)
                     Assert(pp.imag == im)
                     Assert(pp.re_unc == re_unc)
                     Assert(pp.im_unc == im_unc)
+                    Assert(pp.correl == correl)
                     Assert(pp.type == NumType.UncCpx)
-                #yy
-'''
-# Integer
-    0, 0, Int
-    0000, 0, Int
-    1, 1, Int
-    -0, 0, Int
-    -1, -1, Int
-    398579387349375937593749379385740684095840, 398579387349375937593749379385740684095840, Int
-    -398579387349375937593749379385740684095840, -398579387349375937593749379385740684095840, Int
-# Rational
-    0/0, exc, --        "Divide by zero"
-    -0/0, exc, --       "Divide by zero"
-    0/0.0, exc, --      "Unrecognized"
-    -0/0.0, exc, --     "Unrecognized"
-    0/1, 0/1, Rat
-    0000/1, 0/1, Rat
-    0000/0001, 0/1, Rat
-    2/2, 1/1, Rat
-    -2/2, 1/1, Rat
-    2.0/2, exc, --      "Unrecognized"
-    2_2_2_2_2_2_2_2_2_2_2_2/2_2_2_2_2_2_2_2_2_2, 10101010101/101010101
-    -2_2_2_2_2_2_2_2_2_2_2_2/2_2_2_2_2_2_2_2_2_2, -10101010101/101010101
-# Real
-    0., 0.0, Flt
-    0.0, 0.0, Flt
-    .0, 0.0, Flt
-    -.0, 0.0, Flt
-    -0.0, 0.0, Flt
-    1., 1.0, Flt
-    1.0, 1.0, Flt
-    -1., -1.0, Flt
-    -.1, -0.1, Flt
-    -1.0, -1.0, Flt
-    398579387349375937593749379385740684095840., mpf('3.9857938734937592e+41'), Flt
-    0000398579387349375937593749379385740684095840., mpf('3.9857938734937592e+41'), Flt
-    -398579387349375937593749379385740684095840., mpf('-3.9857938734937592e+41'), Flt
-    -0000398579387349375937593749379385740684095840., mpf('-3.9857938734937592e+41'), Flt
-    398579387_3493759375937493793857_40684095840., mpf('3.9857938734937592e+41'), Flt
-    -398579387_3493759375937493793857_40684095840., mpf('-3.9857938734937592e+41'), Flt
-    inf, inf, Flt
-    -inf, -inf, Flt
-    nan, nan, Flt
-    -nan, nan, Flt
-# Complex
-    0j, 0+0j, Cpx
-    1j, 0+1j, Cpx
-    0+0j, 0+0j, Cpx
-    0+1j, 0+1j, Cpx
-    1+0j, 1+0j, Cpx
-    1+1j, 1+1j, Cpx
-    1-0j, 1+0j, Cpx
-    1-1j, 1-1j, Cpx
-    1/2j, 0+0.5j, Cpx   +5
-    1/3+1/2j, 0.333333333333333+0.5j, Cpx   +5
-# Uncertainty
-    0(0), , Unc
-    1(0), , Unc
-    -1(0), , Unc
-    0(100), , Unc
-    1(100), , Unc
-    -1(100), , Unc
-    1(500), , Unc   +1
-    1(500)/2, exc, --  +2
-    1.234(12345678), , Unc  +3
-    1.234 (12345678), exc, --
-    1.234(12345678e88), exc, --  +4
-    1.234(inf), exc, --
-    1.234(-inf), exc, --
-    1.234(nan), exc, --
-    1.234(56)e44, , Unc
-    -1.234(56)e-44, , Unc
-    1(10000000000000000000000000)e100, , Unc
-    -1(10000000000000000000000000)e100, , Unc
-    -1(10)-1(20)i, , Unc
-    -147.883(22)+89.112(3)j, , Unc
-    -147.883(22)-89.112(3)j, , Unc
-    -147.883(22)e-12+89.112(3)e-8j, , Unc
-    -147.883(22)e-12-89.112(3)e-8j, , Unc
+                # Correlation coefficient outside of [-1, 1] is error
+                raises(ValueError, Num, "-1.0(2)-1.0(2)j<R=2>")
 
-# Notes
-    - Not listed, but note our notation has no way of definining a correlation between
-      the two components of a complex number
-    - I'm going to mandate that 'inf' and 'nan' cannot appear in any string that
-      expresses an uncertainty, primarily because it makes practical sense (and makes
-      parsing easier).  Of course, a number with uncertainty run through a function may
-      result in such a thing.
-        - If the parser you write can handle such things, then I'd say let's allow it.
-          The primary reason for the mandate is to simplify the parser.
-    - If possible, can you collect all the "mandates" of our recent back/forth messages
-      and summarize them for me?  I'll put them into the docstring of the number.py
-      file, as they are important reminders.
-
-    +1  This is an uncertain integer; it really means a random variable near 0 that has
-    a large uncertainty (standard deviation)
-
-    +2  This could be interpreted as an uncertainty expression, but I think it should
-    be illegal (i.e., no uncertainty strings with a "/" in them)
-
-    +3  Similar to +1, but a valid uncertainty expression
-
-    +4  The portion in parentheses can only contain string.digits, but can be an
-    arbitrary integer otherwise
-
-    +5  Nice if this works, but not mandatory in my mind
-
-
-'''
 if __name__ == "__main__":  
     assert mpmath.mp.dps == 15
     run = lwtest.run

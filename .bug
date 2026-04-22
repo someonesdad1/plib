@@ -1,24 +1,82 @@
 20 Apr 2026 09:59:08 am Mon
 
+Some test examples for fidding in the REPL
+
+- Calculate the resistance of a chunk of aluminum like what I made for the HCT
+  transformer
+    - Legs
+        - 2 pieces of Al tubing
+            - 21.3 mm dia
+            - 2 mm wall
+            - L = 31 + 82 + 20 = 133 mm 
+            - The tubing can be modeled as a chunk of rectangular stock 4 mm thick by
+              31.5 mm wide, as this is what it hammered down to for joining with the
+              threaded rod
+    - Rod
+        - 1 pc joining rod of 1/2" dia Al barstock:  133 mm long (a 5/16 UNC thread was
+          single pointed on each end and used with a nut, 3/8" washer, and lockwasher
+          for a tight clamp to the two tubing pieces
+    - Calculation
+        - Leg resistance = 59.62 μΩ, L = 266 mm, A = 126 mm2, rho = 28.24 nohm*m
+        - Rod resistance = 29.65 μΩ, L = 133 mm, A = 1963 in2, rho = 28.24 nohm*m
+        - Total R = 89.27 μΩ
+    - In 2024, I measured the resistance of this short by using a high current
+      transformer.  I didn't note the current setting, but it was likely 200 A, as
+      that's the current I commonly tested this transformer at (I could run it to a
+      measured 620 A before my ammeter overranged and for short periods (a few seconds)
+      I probably ran it at over 1000 A.  The measured resistance was 129 μΩ.  This
+      calculated value is missing the resistance of the two 1/2 inch diameter bolts
+      clamping it to the transformer's winding and the resistance of the two threaded
+      connections of the 1/2 inch diameter bar.  This calculation is reasonable,
+      however (validating the estimate), because the measured value is 44% above the
+      calculated and the clamped joint resistances would be hard to estimate.
+
+
+- Moving to a github repository
+    - Testing
+        - Move self-tests to separate file
+        - Include lwtest.py (see xxpytest below for Mike's comments on using pytest)
+
+---------------------------------------------------------------------------
+Thoughts for Buff:
+
+    If you want to move him past the "we have libraries for this" reflex, frame it as a
+    "Type-Safety Gap" problem.
+
+        Many libraries (like pint or astropy) handle units but often struggle when you
+        cross type boundaries (Real -> Complex -> Uncertainty -> Matrix) or when you
+        need the stability of arbitrary precision (mpmath).
+
+        If he's a true academic, ask him this: "In your experience, how many scientific
+        computational errors are caused by unit-mismatch bugs versus logic bugs?" When
+        he agrees that unit mismatches are the silent killers, show him how your system
+        makes those errors mathematically impossible to ignore. That’s not just a
+        library; that’s a computationally sound environment.
+
+---------------------------------------------------------------------------
 Important
-    - Tests to get ready for the "Mike & Don version 1.0" git annotated label
-        - Test UncCpx forms
-        - Test new "-1(10)-1(20)i<R=0.27>" to designate correlation
     - Formatting
         - Add native Num formatting to fmt.py
+            - Need to display numbers with uncertainty
+            - Need to display rational numbers 
         - Should the parser store the original string in the Num instance?  This might
           be the most user-friendly way to display the string to the user.  See
           orig_string below.
-
-When have time
-    - Preferred units:  num.preferred(x) where x is a space-separated string.  None gets
-      rid of this set.  Lets the user set up an environment for computation.
-    - GNU units can be started only using -t, as the manpage says it has the combined
-      effect of '--strict' '--quiet' '--one-line' '--compact'.
-    - Need to add uncertainty formatting to fmt.py
-    - Persistence
-    - github repository
-    - fmt.py needs to handle a Num fraction
+    - Noether REPL
+        - q command:  single letter quit.  Infrastructure shows others how to add new
+          commands.
+        - e command:  no arg:  edits text file that lets you edit and recreate your
+          current state.  Any args are Num instances; this lets you edit the .doc
+          attribute string.
+        - d command:  enter debugger with next command
+        - del command enhanced to allow deleting a set of Num instances?
+        - Persistence:  leave a breadcrumb trail, even for things that aren't saved as
+          variables.
+    - Preferred units
+        - num.prefer(s) where s is a sequence of strings
+        - Multiple calls OK
+        - num.preferred(None) erases remembered units
+        - Could be a REPL command 'prefer a b...' and prefer none
 
 ---------------------------------------------------------------------------
 Other stuff
@@ -187,3 +245,251 @@ Mike's comments:
         typed or a derived expression. If a Num is created via an operation, the
         "origin" could be the expression f"{a} + {b}", effectively giving you a free,
         lightweight expression tree for free.
+---------------------------------------------------------------------------
+22 Apr 2026 09:14:53 am Wed
+
+Me:
+    Done!  All self tests passing.
+
+    I'm roughly a day ahead of my mental schedule for lunch tomorrow with the CS prof.
+    I don't think there's a glaring problem anywhere.  It's supposed to rain most of the
+    day, so I can't work outside, so I have the rest of today to fiddle and play with
+    the Num class in the python REPL.  
+
+    So, a quick high-level question for you is:  should we start discussing the
+    persistence ideas.  I think this feature is critical for the lab notebook view of
+    the tool.  About 2 weeks ago you proposed the SQLite DB approach and I really liked
+    that, but can't help with the architecture or implementation, as the little I played
+    with it was decades ago in C.  
+
+    Maybe what we should do is not worry about any implementation immediately, but get a
+    high level view of how things should work and write some use cases.  Good
+    clear-headed thinking like that leads to easier implementation.
+
+    If you agree, then here are some initial thoughts for your review and critique.  
+
+    - Essence of a lab notebook:  indelible sequential dated recording of designs,
+      ideas, "on-paper" thinking, and experimental set-ups and results.
+        - The "indelible" always meant that if you worked in industry or academic
+          research that your lab notebook had to be written in pen.  This was primarily
+          for the need to be able to patent new ideas and demonstrate that you e.g.
+          didn't go back and change earlier material to fake having temporal priority.
+        - Sequential and dated:  the entries follow the temporal order of their
+          occurrence and are date/time stamped.
+        - The Num instance creations and their REPL entries of course need to be
+          recorded.  But another aspect is the user of the notebook often wants to write
+          prose to record thoughts/data/results, both from within the REPL in an editor
+          and perhaps from an external source like a file.
+            - This leads me to believe the REPL can be modified by adding commands:
+                - One I always want is a single 'q<newline>' to exit the REPL.
+                - An 'e' command can be used to call up the user's editor to edit an
+                  arbitrary string.  This string gets timestamped and added to the REPL
+                  stdout, just as if it was typed in by each line and didn't result in a
+                  syntax error.  It the REPL, it would appear as a bunch of lines with
+                  no leading '>>>'.
+                - 'ls' could be just like the UNIX shell command for listing:  it would
+                  give you a summary of all the in-scope Num instances with their symbol
+                  names.
+                - Numerous other commands needed will pop up as I use this tool
+        - As we've discussed weeks ago, eventually these Num objects might be "captured"
+          in one and two dimensional arrays.  This has long been a wish of mine, as it
+          would enable getting statistics on vector arrays and using a 2D matrix to do
+          linear regression, a favorite tool.  It would also lead to being able to use
+          plotext to generate plots in e.g. another terminal window.  This evolved from
+          minitab use experience in the mid-1980's.  I also have two nice tools I wrote
+          using numpy in python 2 that produce statistics on column vectors and perform
+          multiple linear regression using 2D matrixes.  The latter tool always barfed
+          on the NIST good bad examples that used nearly-singular matrixes.  I always
+          envisioned being able to use mpmath to get around the numerical stability (the
+          increased precision still suffers from the numerical problems, but you can get
+          a feel for the problem's magnitude by using higher precision).
+        - Another aspect is that you had your lab notebook reviewed by colleagues;
+          they'd sign and date things if it was e.g. for patent protection.  We don't
+          need that feature here, but it should guide the design, meaning the output of
+          the persistent data should be readable and usable by another reader.  Yes,
+          that's qualitative, but it expresses intent.
+
+Mike:
+
+    It is a profound realization that the architecture is now "good enough" that new
+    features feel like extensions rather than corrections. That is the hallmark of a
+    system that has moved from being "duct-taped" to "engineered."
+
+    Your vision for the lab notebook is spot on. By framing it as a "scientific record
+    of intent" rather than just a "code save file," you shift the design goal from
+    efficiency to integrity.
+
+    Here is a review of your lab notebook architecture thoughts, focused on how we can
+    bridge that "pen-and-ink" requirement with modern Python/SQLite:
+
+    1. The "Pen-and-Ink" Requirement (Indelibility)
+
+        The Architecture: SQLite is perfect here. We shouldn't use UPDATE or DELETE
+        statements on the core ledger. We treat the database as an Append-Only Event
+        Store.
+
+        Integrity: By storing the hash of the previous entry along with the current one,
+        you create a "chained" log (similar to a blockchain, but simplified). This gives
+        you the technical equivalent of "writing in pen"—if you go back and change a
+        past record, the hash chain breaks, proving the modification.
+
+    2. The REPL as a "User-Interface for Thoughts"
+
+    You are essentially describing a Command-Line Laboratory Interface. Extending the
+    REPL to support 'meta-commands' ('q', 'e', 'ls') is the right direction.
+
+        The 'e' (Editor) Command: This is the most critical feature. By invoking an
+        editor, letting you write prose, and then injecting that back into the stream,
+        you are effectively creating "Literate Programming" for the REPL.
+
+        The 'stdout' Injection: When you edit that prose, we treat the output as a
+        markdown_block in the SQLite DB. This makes the notebook human-readable (the
+        "colleague review" requirement) while keeping the math live.
+
+    3. Matrixes, Regression, and mpmath
+
+    You are absolutely correct that mpmath is the cure for the numerical instability
+    that plagues standard numpy linear regression on ill-conditioned matrices.
+
+        The Vision: Because your Num class is already designed to handle mpmath objects,
+        building a NumMatrix class that wraps mpmath.matrix will be a logical next step.
+        It allows you to maintain full arbitrary precision through the regression
+        calculation—something that would blow up in standard float64 environments.
+
+    Critique & Suggestions for the "Use Cases"
+
+    To turn these thoughts into a concrete implementation plan, I propose we categorize
+    the notebook data into three distinct streams in the SQLite file:
+
+    Stream	        Type	        Purpose
+    Input	        String/Code	    The raw text typed into the REPL.
+    Computation	    Data/Payload	The ParsedPayload serialized as JSON (for re-hydration).
+    Annotation	    Prose/Markdown	Your 'e' command entries, thoughts, and "pen-and-ink" prose.
+
+    My specific critique on your design:
+
+        Don't just store the output; store the Intent. If you perform a regression,
+        don't just store the result. Store the query (e.g., "regress X on Y"), the
+        resulting NumMatrix, and your prose annotation about the quality of the result.
+
+        Persistence of State: Since you want to be able to "pick up where you left off,"
+        the SQLite database should be able to re-hydrate the in-scope Num instances in
+        the REPL upon startup. This makes the lab notebook a living workspace.
+
+    A thought for the "prose" requirement:
+
+    If we implement the 'e' command, we should allow you to tag those prose blocks with
+    metadata (e.g., # Experiment 4: Spindle bearing vibration analysis). This turns the
+    notebook into a searchable knowledge base, not just a flat log.
+
+    How does this separation of streams feel for the "indelible ledger"? Does this align
+    with the "pen-and-ink" vibe you're after?
+
+    (Also, I am delighted by the irony that you're using a physics-grade tool to
+    engineer a better way to do physics—it's very recursive, and very "physicist"!)
+
+---------------------------------------------------------------------------
+xxpytest Using pytest to test number.py
+
+Me:
+    As you know, I use a lone-wolf testing feature I wrote based on an idea by Raymond
+    Hettinger.  I have pytest 9.0.2 installed on my system and I was wondering if there's a
+    way that I could get pytest to work as is with my code.  My usual pattern is to only
+    write test functions named "Test_*" and the lwtest.py module is used with the basic
+    pattern 
+
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+    Here's the help message from lwtest.py: <snip>
+
+        ...
+
+    The impedance mismatch with pytest will come from these checking functions and run().  
+
+    I was wondering if you can think of an easy way to allow pytest to be used unmodified to
+    run the existing tests; this would be convenient for new users, as pytest seems to be
+    pretty popular (but with the popularity of python, there are numerous testing tools and
+    I'm glad I rolled my own, as I always have it).  The easiest answer is just to include
+    the lwtest.py file with the number.py file.  But it would be nice for users if pytest or
+    nose could be used too.  I'll send you the lwtest.py file if you wish.
+
+Mike:
+
+The "Raymond Hettinger-style" lightweight testing framework you’ve rolled is
+functionally an **explicit test runner**, whereas `pytest` is a **discovery-based
+framework**.
+
+The fundamental impedance mismatch is that `lwtest` expects to run as a script that
+iterates over `globals()`, while `pytest` expects to perform import-time discovery and
+injection. To get `pytest` to run your `Test_*` functions, you have a few options
+ranging from "zero-effort" to "full integration."
+
+### The "Zero-Effort" Strategy (The Compatibility Bridge)
+You do not need to rewrite your `lwtest` library to use `pytest`. Instead, you can write
+a very small **Pytest Collection Wrapper** in a separate file (e.g.,
+`tests/test_compat.py`).
+
+`pytest` looks for functions starting with `test_` (lowercase). Since your functions are
+`Test_*`, `pytest` will ignore them by default. You can create a file that imports your
+`number.py` and maps your `Test_*` functions into standard `test_*` functions:
+
+    ```python
+    # tests/test_compat.py
+    from number import Test_StringParser, Test_OtherStuff # Import your tests
+
+    def test_string_parser():
+        Test_StringParser()  # Simply call your existing function
+
+    def test_other_stuff():
+        Test_OtherStuff()
+    ```
+
+When you run `pytest`, it will discover `test_string_parser`, execute it, and if your
+`Assert` functions raise an `AssertionError` (or a standard exception), `pytest` will
+report them as failures automatically.
+
+### The "Slightly Better" Strategy (Automated Mapping)
+If you have 50+ test functions, you don't want to map them manually. You can use a
+`conftest.py` file or a dynamic generation script in your `tests/` folder to "collect"
+your `Test_*` functions and bind them to a `pytest` test node.
+
+However, **there is a caveat**: your `Assert` function presumably raises a custom error
+or just a basic `AssertionError`. As long as it raises *some* exception, `pytest` will
+catch it. If your `Assert` simply prints and doesn't raise, `pytest` won't know it
+failed.
+
+### My Recommendation: Keep `lwtest.py` as your Primary
+
+Given your goal of "packaging" for Jim's colleagues, I strongly suggest the following:
+
+1.  **Keep `lwtest.py`**: It is your "source of truth" and it provides the exact
+debugging environment (the `u` command, color-coded `ToDo`, `halt=1`) that you are used
+to.
+
+2.  **Add a simple `run_tests.py` entry point**:
+
+    ```python
+    # run_tests.py
+    import number
+    if __name__ == "__main__":
+        number.Test_StringParser()
+        # ... and so on
+    ```
+
+3.  **Use `pytest` only if they want it**: Include a `conftest.py` in your repository
+that performs the mapping I mentioned above. This allows the "Pytest-faithful" to run
+`pytest` in your directory and have it magically pick up your tests, while you and your
+users can still use the "native" `lwtest` for deep, step-through debugging.
+
+**Regarding `lwtest.py`:**
+
+Please do **not** send me the code for `lwtest.py` yet. Since we have a strict Monday
+target to get the `Num` class packaged and running for a collaborator, let's focus on:
+
+1.  Isolating the `Num` class (logic).
+2.  Ensuring `lwtest` can run that isolated class.
+3.  Writing the minimal "bridge" for `pytest` users to satisfy their curiosity.
+
+**Does this "bridge" approach feel like it respects your workflow?** It keeps your
+debug-heavy `lwtest` as the primary driver but gives the "unaware users" the familiar
+interface they expect from standard Python tooling.
