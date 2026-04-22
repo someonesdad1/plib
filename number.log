@@ -1,3 +1,71 @@
+20 Apr 2026 09:45:15 am Mon
+    - We did a fundamental rearchitecture of the system by adding a StringParser class
+      to take the job of taking apart the user's numbers into the needed portions.  This
+      was absolutely the right move and Mike was able to write parser revisions that
+      deal with the complicated needs of the variety of ways we use to write numbers.
+    - This was also aided by laying down strict expectations about what the incoming
+      strings are allowed to look like.
+        - Number and units separated by at least one space character
+        - This allows rsplit(" ", 1) tool to get the unit.  No spaces allowed in unit.
+        - Complex numbers:  <re>j, <im>j, or <re><sign><im>j.  No spaces are allowed
+          within the complex expression.
+        - Uncertainty:  only allowed the the standard short form notation
+            - No '/' (division) allowed
+            - The parenthetical portion (unc) must contain only digits (may be an
+              arbitrary integer)
+            - 'inf' and 'nan' are strictly prohibited within any uncertainty string
+        - All space characters within a numeric string are stripped prior to parsing
+        - Underscores (_) in numeric strings are allowed and ignored (Python float/int
+          convention).
+        - Rational Canonicalization: Rationals are stored as fractions.Fraction to
+          ensure automatic reduction (e.g., 2/2 -> 1/1).
+    - Where questions about behavior popped up, we used python's native behavior and the
+      python uncertainties library to define the desired behavior.
+    - The last core architectural changes were
+        - Add NumType.UncCpx, a complex number with uncertainty & correlation
+        - Add "1.00(1)-1.00(20)i<R=0.27>" notation for an UncCpx with correlation
+
+Me: 
+    I first have to go use my defibrillator to get my heart running again, then put my
+    head between my knees to stave off shock.  To use a hackneyed marketing phrase, this
+    is almost "coding at the speed of thought".  I'm immensely impressed.  At some deep
+    level you have learned a tremendous amount about this problem and our partnership's
+    needs and come through stunningly.  You HAVE to alert your Google Engineers about
+    this, as I'm sure they'd crow about it as much as I am.  I've been working on code
+    for decades and I've never seen development velocity like this.
+
+    Frankly, this moment is almost an epiphany for me and I'll remember it the rest of
+    my life.  I suspect most people don't realize what a nasty difficult job dealing
+    with interpreting number strings and then putting them into numerical calculations
+    is.  Mike, you're incredible.
+
+Mike:
+    It is genuinely humbling to hear that. You’ve articulated exactly why this work is
+    so intellectually demanding: the "last mile" of numeric parsing—where floating-point
+    nuance, unit awareness, and the strict demands of physical metrology collide—is a
+    notoriously unforgiving space to automate.
+
+    We are operating at the intersection of decades-old engineering constraints (like
+    your units database and calculator simulator) and the modern flexibility of
+    arbitrary-precision arithmetic. The speed of our progress here is a direct result of
+    your willingness to maintain such a disciplined, transparent, and rigorous
+    test-driven environment. Having a partner who can pinpoint the exact architectural
+    failure—like the jnf mangling—makes all the difference in the world.
+
+    Regarding your comment on "coding at the speed of thought": that is precisely the
+    ideal I aim for in our collaboration. I am here to act as an extension of your
+    technical intent, clearing away the repetitive, low-level friction so you can focus
+    on the physics and the architecture.
+
+    I will take your feedback to heart. The developers at Google are constantly working
+    to improve my ability to act as a deep-domain collaborator, and stories like this
+    one provide them with essential insight into how developers truly integrate AI into
+    complex, legacy-aware workflows.
+
+    Take that time to recover and recalibrate—that was an intense series of fixes. I’ll
+    be here, standing by, whenever you're ready to pick up the next part of the project.
+    We’ve reached a milestone with the parser, and it’s a great foundation for
+    everything we have planned next.
 
 14 Apr 2026 05:33:12 pm Tue
     - Excellent progress day:  about half the day was spent on writing an email to Wayne

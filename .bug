@@ -1,27 +1,25 @@
-18 Apr 2026 03:45:14 pm Sat
+20 Apr 2026 09:59:08 am Mon
 
-- StringParser bug
-    - '1.234(56)e44' returns mpf('1.234') for .real portion (missed exponent)
-    - "1(10000000000000000000000000)e100" returns mpf('1.0') for .real
-    - Would be smart to add a new type:  UncCpx:  this is where uncertainty is detected
-      with a 'j' in the number portion.  Otherwise, the Unc type can be either real or 
-      complex and it would be confusing to the code
+Important
+    - Tests to get ready for the "Mike & Don version 1.0" git annotated label
+        - Test UncCpx forms
+        - Test new "-1(10)-1(20)i<R=0.27>" to designate correlation
+    - Num("1.234 (12345678)") works.  Should the parser do a preliminary check on the
+      unit portion and disallow such things?
+    - Formatting
+        - Add native Num formatting to fmt.py
+        - Should the parser store the original string in the Num instance?  This might
+          be the most user-friendly way to display the string to the user.
 
-Next tasks
+When have time
+    - Preferred units:  num.preferred(x) where x is a space-separated string.  None gets
+      rid of this set.
     - GNU units can be started only using -t, as the manpage says it has the combined
       effect of '--strict' '--quiet' '--one-line' '--compact'.
-    - Uncertainty
-        - How about "-1(10)-1(20)i<R=0.27>" to designate correlation?
-    - Formatting uncertainty stuff idea
-        - Can we use mpmath's string interpolation stuff to get accurate forms to the
-          required number of digits.  This would probably short-circuit writing a lot of
-          code.  It's also possible a short context manager could handle the job:
-
-          Suppose you only need 3 digits:
-
-                with workdps(3):
-                    s = str(x)  # x is the Num result
-                    Do formatting
+    - Need to add uncertainty formatting to fmt.py
+    - Persistence
+    - github repository
+    - fmt.py needs to handle a Num fraction
 
 ---------------------------------------------------------------------------
 Other stuff
@@ -75,7 +73,10 @@ Other stuff
             environment or cygwin, you should have history and command completion
             available via readline.
 
-    - Help documentation
+    - Rewrite a python interpreter by hooking the GNU units C code into the interpreter.
+      Then embed the Num machinery so that there's a "natural" number container that
+      interoperates with python native numbers.
+
 ---------------------------------------------------------------------------
 logexample 
 

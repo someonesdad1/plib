@@ -612,12 +612,13 @@ if 1:  # Checking functions
             breakpoint()
         else:
             print(_modname, fail, file=sys.stderr)
-    def Assert(condition, msg="", debug=False, got=None, expected=None):
+    def Assert(condition, msg="", debug=False, op=None, got=None, expected=None):
         '''Replacement for assert but it can't be optimized out.
 
         Arguments
             debug       If True, drop into a debugger on an unhandled exception
             msg         On unhandled exception, print this message and start debugger
+            op          Test operation
             got         Test result gotten
             expected    Test result expected
 
@@ -639,6 +640,8 @@ if 1:  # Checking functions
         out.
         '''
         def PrintGotExpected():
+            if op is not None:
+                print(f"  op       = {op!r}")
             if got is not None:
                 print(f"  got      = {got!r}")
             if expected is not None:
