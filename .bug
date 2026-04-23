@@ -1,5 +1,8 @@
 20 Apr 2026 09:59:08 am Mon
 
+Important:  eliminated unit.setter.  Now need to find all '\.\<unit\>' occurrences and
+change them to _unit.
+
 Some test examples for fidding in the REPL
 
 - Calculate the resistance of a chunk of aluminum like what I made for the HCT

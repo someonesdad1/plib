@@ -211,53 +211,54 @@ if 0: # NumericMixin
             # Combine values safely
             if self.mytype <= NumType.Rat and other_norm.mytype <= NumType.Rat:
                 res_val = self.as_int_or_rat + other_norm.as_int_or_rat
-                return self._make_result(res_val, unit=self.unit)
+                return self._make_result(res_val, unit=self._unit)
             return self._binary_op(other_norm, lambda a, b: a+b)
         def __sub__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num):
                 other = Num(other)
             other = self._normalize(other, "sub")
             if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
-                return self._make_result(self.as_int_or_rat - other.as_int_or_rat, unit=self.unit)
+                return self._make_result(self.as_int_or_rat - other.as_int_or_rat,
+                unit=self._unit)
             return self._binary_op(other, lambda a, b: a-b)
         def __mul__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num):
                 other = Num(other)
             res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})*({other.unit})"
-            elif self.unit or other.unit:
-                res_unit = self.unit or other.unit
+            if self._unit and other._unit:
+                res_unit = f"({self._unit})*({other._unit})"
+            elif self._unit or other._unit:
+                res_unit = self._unit or other._unit
             if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
                 res = self._make_result(self.as_int_or_rat * other.as_int_or_rat, unit=res_unit)
                 return res
             res = self._binary_op(other, lambda a, b: a*b)
-            res.unit = res_unit
+            res._unit = res_unit
             return res
         def __truediv__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num):
                 other = Num(other)
             res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})/({other.unit})"
-            elif self.unit:
-                res_unit = self.unit
-            elif other.unit:
-                res_unit = f"1/({other.unit})"
+            if self._unit and other._unit:
+                res_unit = f"({self._unit})/({other._unit})"
+            elif self._unit:
+                res_unit = self._unit
+            elif other._unit:
+                res_unit = f"1/({other._unit})"
             if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
                 res = self._make_result(self.as_int_or_rat / other.as_int_or_rat, unit=res_unit)
                 return res
             res = self._binary_op(other, lambda a, b: a/b)
-            res.unit = res_unit
+            res._unit = res_unit
             return res
         def __pow__(self, other: ty.Any) -> "Num":
             '''Exponentiation with safe unit propagation.'''
             if not isinstance(other, Num):
                 other = Num(str(other))
-            if self.unit and other.mytype == NumType.Cpx:
-                raise TypeError(f"Cannot raise unit-bearing quantity ({self.unit}) to a complex power")
+            if self._unit and other.mytype == NumType.Cpx:
+                raise TypeError(f"Cannot raise unit-bearing quantity ({self._unit}) to a complex power")
             res = self._binary_op(other, lambda a, b: a**b)
-            if self.unit:
+            if self._unit:
                 if other.mytype == NumType.Rat:
                     exp_str = f"({other.as_int_or_rat.numerator}/{other.as_int_or_rat.denominator})"
                 else:
@@ -266,7 +267,7 @@ if 0: # NumericMixin
                         exp_str = str(int(exp_f)) if exp_f.is_integer() else str(exp_f)
                     except:
                         exp_str = str(other.raw_value)
-                raw_unit = f"({self.unit})^{exp_str}"
+                raw_unit = f"({self._unit})^{exp_str}"
                 new_val, simplified_unit = self.arb.simplify(res.raw_value, raw_unit)
                 return Num(new_val, unit=simplified_unit)
             return res
@@ -277,7 +278,7 @@ if 0: # NumericMixin
                 # Complex correlated propagation: simplified placeholder logic for complex structure
                 new_re_unc = mp_sqrt((self.re_unc**2) + (other.re_unc**2))
                 new_im_unc = mp_sqrt((self.im_unc**2) + (other.im_unc**2))
-                res = self._make_result(z_val, unit=self.unit)
+                res = self._make_result(z_val, unit=self._unit)
                 res.re_unc = new_re_unc
                 res.im_unc = new_im_unc
                 res.mytype = NumType.UncCpx
@@ -290,7 +291,7 @@ if 0: # NumericMixin
                 o_sens = abs(df_dother)
                 new_re_unc = mp_sqrt((s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2)
                 new_im_unc = mp_sqrt((s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2)
-            res = self._make_result(z_val, unit=self.unit)
+            res = self._make_result(z_val, unit=self._unit)
             res.re_unc = new_re_unc
             res.im_unc = new_im_unc
             res.mytype = NumType.Unc
@@ -319,7 +320,7 @@ if 0: # NumericMixin
                     other = Num(other)
                 except:
                     return False
-            if self.unit != other.unit:
+            if self._unit != other._unit:
                 try:
                     other = self._normalize(other, "cmp")
                 except (ValueError, TypeError):
@@ -336,9 +337,9 @@ if 0: # NumericMixin
             except:
                 return v1 == v2
         def __abs__(self) -> "Num":
-            return self._make_result(abs(self.raw_value), unit=self.unit)
+            return self._make_result(abs(self.raw_value), unit=self._unit)
         def __neg__(self) -> "Num":
-            return self._make_result(-self.raw_value, unit=self.unit)
+            return self._make_result(-self.raw_value, unit=self._unit)
         def __radd__(self, other: ty.Any) -> "Num":
             return Num(other)+self
         def __rsub__(self, other: ty.Any) -> "Num":
@@ -358,53 +359,53 @@ if 1: # NumericMixin
             other_norm = self._normalize(other, "add")
             if self.mytype <= NumType.Rat and other_norm.mytype <= NumType.Rat:
                 res_val = self.as_int_or_rat + other_norm.as_int_or_rat
-                return self._make_result(res_val, unit=self.unit)
+                return self._make_result(res_val, unit=self._unit)
             return self._binary_op(other_norm, lambda a, b: a+b)
         def __sub__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num):
                 other = Num(other)
             other = self._normalize(other, "sub")
             if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
-                return self._make_result(self.as_int_or_rat - other.as_int_or_rat, unit=self.unit)
+                return self._make_result(self.as_int_or_rat - other.as_int_or_rat, unit=self._unit)
             return self._binary_op(other, lambda a, b: a-b)
         def __mul__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num):
                 other = Num(other)
             res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})*({other.unit})"
-            elif self.unit or other.unit:
-                res_unit = self.unit or other.unit
+            if self._unit and other._unit:
+                res_unit = f"({self._unit})*({other._unit})"
+            elif self._unit or other._unit:
+                res_unit = self._unit or other._unit
             if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
                 res = self._make_result(self.as_int_or_rat * other.as_int_or_rat, unit=res_unit)
                 return res
             res = self._binary_op(other, lambda a, b: a*b)
-            res.unit = res_unit
+            res._unit = res_unit
             return res
         def __truediv__(self, other: ty.Any) -> "Num":
             if not isinstance(other, Num):
                 other = Num(other)
             res_unit = ""
-            if self.unit and other.unit:
-                res_unit = f"({self.unit})/({other.unit})"
-            elif self.unit:
-                res_unit = self.unit
-            elif other.unit:
-                res_unit = f"1/({other.unit})"
+            if self._unit and other._unit:
+                res_unit = f"({self._unit})/({other._unit})"
+            elif self._unit:
+                res_unit = self._unit
+            elif other._unit:
+                res_unit = f"1/({other._unit})"
             if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
                 res = self._make_result(self.as_int_or_rat / other.as_int_or_rat, unit=res_unit)
                 return res
             res = self._binary_op(other, lambda a, b: a/b)
-            res.unit = res_unit
+            res._unit = res_unit
             return res
         def __pow__(self, other: ty.Any) -> "Num":
             '''Exponentiation with safe unit propagation.'''
             if not isinstance(other, Num):
                 other = Num(str(other))
-            if self.unit and other.mytype == NumType.Cpx:
-                raise TypeError(f"Cannot raise unit-bearing quantity ({self.unit}) to a complex power")
+            if self._unit and other.mytype == NumType.Cpx:
+                raise TypeError(f"Cannot raise unit-bearing quantity ({self._unit}) to a complex power")
             res = self._binary_op(other, lambda a, b: a**b)
-            if self.unit:
+            if self._unit:
                 if other.mytype == NumType.Rat:
                     exp_str = f"({other.as_int_or_rat.numerator}/{other.as_int_or_rat.denominator})"
                 else:
@@ -413,7 +414,7 @@ if 1: # NumericMixin
                         exp_str = str(int(exp_f)) if exp_f.is_integer() else str(exp_f)
                     except:
                         exp_str = str(other.raw_value)
-                raw_unit = f"({self.unit})^{exp_str}"
+                raw_unit = f"({self._unit})^{exp_str}"
                 new_val, simplified_unit = self.arb.simplify(res.raw_value, raw_unit)
                 return Num(new_val, unit=simplified_unit)
             return res
@@ -423,7 +424,7 @@ if 1: # NumericMixin
                 z_val = op_func(self.as_mpc, other.as_mpc)
                 new_re_unc = mp_sqrt((self.re_unc**2) + (other.re_unc**2))
                 new_im_unc = mp_sqrt((self.im_unc**2) + (other.im_unc**2))
-                res = self._make_result(z_val, unit=self.unit)
+                res = self._make_result(z_val, unit=self._unit)
                 res.re_unc = new_re_unc
                 res.im_unc = new_im_unc
                 res.mytype = NumType.UncCpx
@@ -436,7 +437,7 @@ if 1: # NumericMixin
                 o_sens = abs(df_dother)
                 new_re_unc = mp_sqrt((s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2)
                 new_im_unc = mp_sqrt((s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2)
-            res = self._make_result(z_val, unit=self.unit)
+            res = self._make_result(z_val, unit=self._unit)
             res.re_unc = new_re_unc
             res.im_unc = new_im_unc
             res.mytype = NumType.Unc
@@ -465,7 +466,7 @@ if 1: # NumericMixin
                     other = Num(other)
                 except:
                     return False
-            if self.unit != other.unit:
+            if self._unit != other._unit:
                 try:
                     other = self._normalize(other, "cmp")
                 except (ValueError, TypeError):
@@ -482,9 +483,9 @@ if 1: # NumericMixin
             except:
                 return v1 == v2
         def __abs__(self) -> "Num":
-            return self._make_result(abs(self.raw_value), unit=self.unit)
+            return self._make_result(abs(self.raw_value), unit=self._unit)
         def __neg__(self) -> "Num":
-            return self._make_result(-self.raw_value, unit=self.unit)
+            return self._make_result(-self.raw_value, unit=self._unit)
         def __radd__(self, other: ty.Any) -> "Num":
             return Num(other)+self
         def __rsub__(self, other: ty.Any) -> "Num":
@@ -524,7 +525,8 @@ if 1: # Num
             self._unit = ""
             self._mytype: NumType = NumType.Int
             if value is None:
-                if unit: self.unit = unit
+                if unit:
+                    self._unit = unit
                 return
             if isinstance(value, str):
                 payload = StringParser.parse(value, unit)
@@ -541,7 +543,7 @@ if 1: # Num
                 self._real, self._imag = value._real, value._imag
                 self.re_unc, self.im_unc = value.re_unc, value.im_unc
                 self.correl = value.correl
-                self._unit = unit if unit else value.unit
+                self._unit = unit if unit else value._unit
                 self.mytype = value.mytype
             elif isinstance(value, int):
                 self._val = fractions.Fraction(value)
@@ -564,7 +566,7 @@ if 1: # Num
             else:
                 raise TypeError(f"Type {type(value)} not supported")
             if unit: 
-                self.unit = unit
+                self._unit = unit
             if not (-1 <= self.correl <= 1):
                 raise ValueError("Correlation coefficient must be on [-1, 1]")
         def _promote(self) -> "Num":
@@ -593,7 +595,7 @@ if 1: # Num
             return self
         def _binary_op(self, other: "Num", op_func: ty.Callable) -> "Num":
             target_type = max(self.mytype.value, other.mytype.value)
-            res_unit = self.unit
+            res_unit = self._unit
             if target_type <= NumType.Rat.value:
                 raw_val = op_func(self.as_int_or_rat, other.as_int_or_rat)
                 return self._make_result(raw_val, unit=res_unit)
@@ -609,19 +611,19 @@ if 1: # Num
         def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
             return Num(value, unit=unit)._promote()
         def _normalize(self, other: "Num", operation: str = "") -> "Num":
-            if self.unit == other.unit or operation in ("mul", "div"):
+            if self._unit == other._unit or operation in ("mul", "div"):
                 return other
-            is_ok, factor_str = self.arb.check_conformable(other.unit, self.unit)
+            is_ok, factor_str = self.arb.check_conformable(other._unit, self._unit)
             if not is_ok:
                 raise ValueError(f"Unit Mismatch: {factor_str}")
             factor = mpmath.mpf(factor_str)
             adjusted = Num(other)
             adjusted._real = adjusted.as_mpf * factor
             adjusted.mytype = NumType.Flt
-            adjusted._unit = self.unit
+            adjusted._unit = self._unit
             return adjusted
         def base(self, unit: str = "") -> None:
-            target = unit if unit else self.unit
+            target = unit if unit else self._unit
             if target: print(self.arb._register_unit(target))
         def help(self, topic: str = "") -> None:
             h = Help()
@@ -639,7 +641,7 @@ if 1: # Num
                 s = f"{self.as_mpc} +/- {self.re_unc} + {self.im_unc}i <R={self.correl}>"
             else:
                 s = self.fmt(self._real)
-            unit_string = f" {t.whtl}{self.unit}{t.n}" if self.unit else ""
+            unit_string = f" {t.whtl}{self._unit}{t.n}" if self._unit else ""
             color = Num.type_color.get(self.mytype, t.wht)
             return f"{color}{s}{t.n}{unit_string}"
         def _r(self) -> str:
@@ -651,34 +653,37 @@ if 1: # Num
                 s = f"{self.as_mpc!r}"
             else:
                 s = str(self._real)
-            if self.unit: s += f" {self.unit}"
+            if self._unit: s += f" {self._unit}"
             return f"Num('{s}')"
         def __str__(self) -> str:
             return self._r() if Num.flip else self._s()
         def __repr__(self) -> str:
             return self._s() if Num.flip else self._r()
         def __hash__(self) -> int:
-        '''Noether-invariant hash of an immutable physical quantity.'''
-        # Canonical string of value at fixed 25-digit precision ensures stability
-        # independent of the global mpmath.mp.dps setting.
-        val_str = mpmath.nstr(self.raw_value, 25)
-        return hash((val_str, self._unit))
+            '''Noether-invariant hash of an immutable physical quantity.'''
+            # Canonical string of value at fixed 25-digit precision ensures stability
+            # independent of the global mpmath.mp.dps setting.
+            val_str = mpmath.nstr(self.raw_value, 25)
+            return hash((val_str, self._unit))
         def to(self, unit: str, auto_promote: bool = True) -> "Num":
-            if not unit or unit == self.unit: return Num(self)
-            is_ok, factor_str = self.arb.check_conformable(self.unit, unit)
+            if not unit or unit == self._unit:
+                return Num(self)
+            is_ok, factor_str = self.arb.check_conformable(self._unit, unit)
             if not is_ok:
                 self.arb._register_unit(unit)
-                is_ok, factor_str = self.arb.check_conformable(self.unit, unit)
-                if not is_ok: raise ValueError(f"Incompatible: {self.unit} -> {unit}")
+                is_ok, factor_str = self.arb.check_conformable(self._unit, unit)
+                if not is_ok: raise ValueError(f"Incompatible: {self._unit} -> {unit}")
             res = Num(self)
             res._real = res.as_mpf*mpmath.mpf(factor_str)
             res.mytype = NumType.Flt
-            res.unit = unit
+            res._unit = unit
             return res._promote() if auto_promote else res
         def approx(self, y: ty.Any, ndigits: int) -> bool:
-            if not isinstance(y, Num): y = Num(y)
+            if not isinstance(y, Num):
+                y = Num(y)
             vx, vy = self.as_mpf, y.as_mpf
-            if vy == 0: return abs(vx) < 10**(-ndigits)
+            if vy == 0:
+                return abs(vx) < 10**(-ndigits)
             val = abs((vx-vy)/vy)
             return True if val == 0 else int(abs(mpmath.log10(val))) >= ndigits
         @property
@@ -693,7 +698,7 @@ if 1: # Num
             print(f"{indent}    self.re_unc           {self.re_unc}")
             print(f"{indent}    self.im_unc           {self.im_unc}")
             print(f"{indent}    self.correl           {self.correl}")
-            print(f"{indent}    self.unit             {self.unit!r}")
+            print(f"{indent}    self._unit             {self._unit!r}")
             print(f"{indent}    self.mytype           {self.mytype} {d[self.mytype]}")
         @property
         def unit(self) -> str:
@@ -718,7 +723,7 @@ if 1: # Num
         @property
         def num(self) -> "Num":
             res = Num(self)
-            res.unit = ""
+            res._unit = ""
             return res
         @property
         def pi(self) -> "Num": return Num(+mpmath.pi)
@@ -889,12 +894,12 @@ if 1:  # UnitArbiter
                 mp_func = getattr(mpmath, func_name)
                 def wrapped(x: ty.Any) -> "Num":
                     if isinstance(x, Num):
-                        if is_dimensionless and x.unit:
-                            raise ValueError(f"{func_name} requires a dimensionless Num (got {x.unit})")
+                        if is_dimensionless and x._unit:
+                            raise ValueError(f"{func_name} requires a dimensionless Num (got {x._unit})")
                         z_val = mp_func(x.as_mpc)
-                        res_unit = "" if is_dimensionless else x.unit
+                        res_unit = "" if is_dimensionless else x._unit
                         if func_name == "sqrt":
-                            res_unit = f"sqrt({x.unit})" if x.unit else ""
+                            res_unit = f"sqrt({x._unit})" if x._unit else ""
                         if func_name == "degrees":
                             res_unit = "deg"
                         if func_name == "radians":
@@ -1052,7 +1057,7 @@ if 1:  # Functions
     def e(n: "Num"):
         '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
         import tempfile, os, subprocess
-        initial_text = f"Unit: {n.unit}\nValue: {n._real}\nDoc: {n.d}"
+        initial_text = f"Unit: {n._unit}\nValue: {n._real}\nDoc: {n.d}"
         with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tf:
             tf.write(initial_text)
             temp_path = tf.name
@@ -1060,7 +1065,7 @@ if 1:  # Functions
         editor = os.environ.get('EDITOR', 'vi')
         subprocess.call([editor, temp_path])
         # ... logic to read the file back and update n.d ...
-        print(f"Updated {n.unit} metadata.")
+        print(f"Updated {n._unit} metadata.")
 
 if 1:   # Global namespace function population
     unit_arbiter = UnitArbiter() # Singleton initialization
@@ -1082,17 +1087,17 @@ if 1:   # Global namespace function population
             res_unit = ""
             if logic == "dimensionless":
                 for i, a in enumerate(n_args):
-                    if a.unit:
-                        raise ValueError(f"{func_name} argument {i} must be dimensionless, got {a.unit}")
+                    if a._unit:
+                        raise ValueError(f"{func_name} argument {i} must be dimensionless, got {a._unit}")
             elif logic == "conformable":
                 if len(n_args) >= 2:
-                    have, want = n_args[0].unit, n_args[1].unit
+                    have, want = n_args[0]._unit, n_args[1]._unit
                     is_ok, _ = unit_arbiter.check_conformable(have, want)
                     if not is_ok:
                         raise ValueError(f"{func_name} arguments must be conformable: {have!r} vs {want}")
             elif logic == "sqrt":
-                if n_args[0].unit:
-                    res_unit = f"sqrt({n_args[0].unit})"
+                if n_args[0]._unit:
+                    res_unit = f"sqrt({n_args[0]._unit})"
             # 4. Execute using raw values
             result_val = mp_func(*[a.raw_value for a in n_args], **kwargs)
             # 5. Return and Promote
