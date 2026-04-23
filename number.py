@@ -1,25 +1,27 @@
-from __future__ import annotations
+#from __future__ import annotations
 '''
-ToDo
 
-Parser Mandates (Don & Gemini Collaboration):
-1. Unit Separation: Units must be separated from the numeric string by one or more spaces.
-   The unit string itself may not contain spaces; use '*' for multiplication.
-2. Parsing Pipeline: The parser performs an rsplit(" ", 1) first. If the right-hand part
-   is a valid unit (verified via UnitArbiter), it is treated as a unit. Otherwise,
-   the entire string is treated as a numeric expression.
-3. Complex Numbers: Must follow standard Pythonic syntax: <re>j, <im>j, or <re><sign><im>j.
-   No spaces are allowed within the complex expression.
-4. Uncertainty: Only allowed in "short-form" notation: main(unc).
-   - No '/' (division) allowed in an uncertainty expression.
-   - The parenthetical portion (unc) must contain only digits (may be an arbitrary integer).
-   - 'inf' and 'nan' are prohibited within any uncertainty string.
-5. Numerical Normalization:
-   - All space characters within a numeric string are stripped prior to parsing.
-   - Underscores (_) in numeric strings are allowed and ignored (Python float/int convention).
-6. Rational Canonicalization: Rationals are stored as fractions.Fraction to ensure
-   automatic reduction (e.g., 2/2 -> 1/1).  Improper fractions are the only supported
-   form (e.g., you can't write '3-1/8'; you must use '25/8' instead.
+- Uncertainty tests
+    - "1.234(0)" is valid 
+    - "1.234(-0)" is invalid 
+- Persistence in REPL
+    - Core name is ".number.ini".  The first occurrence of the following is used:
+        - If defined in environment, then points to initialization file
+        - If ./.number.ini exists
+        - If ~/.number.ini exists
+    - New information is always appended to existing file
+    - Block chaining is used to maintain provenance.  The intent is not to encrypt
+      (that's up to the user) but to provide a tool to detect when the file has been
+      corrupted or intentionally changed (can't tell the difference)
+
+- .frac:  property used to show fractional form.  
+    - None:  always show number as mpf
+    - False:  show number as improper fraction
+    - True:  show as proper fraction
+    - If None, the formatter can show it as a float, but italicize it to tell
+        you it's actually a fraction
+
+
 '''
 if 1:  # Header
     if 1:   # Standard imports
@@ -61,16 +63,7 @@ if 1:  # Header
         __license__   = "MIT License (see /plib/_lic.mit)"
         __test__      = "notest"
         __category__  = "math"
-        __todo__      = '''These are ToDo items not to forget
-            
-            - Num.strict:  if on, uncertainties never compare equal.  If off, then if
-              the mean and stdev match, they're equal with a warning to stderr:
-              "Warning:  comparing distributions".
-            - If Num.hashable is True, you might want the hash to be a tuple of the core
-              values: hash((self.mytype, self.real, self.imag, self.unit)).  
-            - Num.on?  Turns colorizing on/off
-        
-        '''
+        __todo__      = ''' '''
     if 1:   # Global variables
         Path = pathlib.Path
         Assert = lwtest.Assert
@@ -141,43 +134,30 @@ if 0:   # Documentation
             
         The Num class is an abstract container of numbers intended to model the routine
         calculations we do in the real world.  The primary features of the class are
-            - Integers, fractions, real, and complex numbers are supported, but you
-              don't need to think of them:  just type in numbers with natural notation:
+            - Integers, fractions, real, and complex numbers are supported.  Just type
+              them in with simple notation:
                 - Num(1), Num("1") -> integer
-                - Num("3/8") -> fraction
-                - Num("1.0") -> real
-                - Num("1-4.2j") -> complex
+                - Num(3/8), Num("3/8") -> fraction
+                - Num(1.0), Num("1.0") -> real
+                - Num(1-4.2j), Num("1-4.2j") -> complex
                 - Num("1.00(5)") -> real number with uncertainty
                 - Num("1.00(5)+2.0(1)j") -> complex number with uncertainty
-            - Physical units can be attached to the numbers.  You can define arbitrary
-              new units dynamically.  The Num objects with units can both document your
-              intent and prevent you from making dimensionally-inconsistent calculations.
-            - Linear uncertainty propagation is used to model uncertainty; used with
-              real and complex numbers.
-            - The numbers can be used with many special functions
-            - The Num class infects other numbers with its type so that e.g. a python
-              float and a Num combined with a Num in a binary operation like addition
-              returns a Num.
-            - The instantiation in a python REPL using the Num class is persistent.  It
-              means your calculations are automatically saved and you can later ask to
-              see how a calculation was done, seeing exactly what was typed in and what
-              the python environment returned.  The model for this is how paper and pen
-              lab notebooks have been used to record ideas, thoughts, data,
-              calculations, and conclusions. 
+                - Num("1.00(5)+2.0(1)j<R=0.77>") -> complex number with uncertainty and
+                  correlation between the real and imaginary parts (linear uncertainty
+                  propagation)
+            - Physical units can be attached to the numbers:  x = Num("1.2 m/s")
+                - You can define new units:  x.base("dogs"); x.base("cats")
+            - Num objects with units document your intent and prevent
+            - Many special functions are supported
+            - Infection model:  a binary operation with a Num results in another Num
 
         Architecture:  The num class is a wrapper for mpmath numbers and the special
         functions of the mpmath library.  The GNU units program is run as a coprocess to
         provide the dimensional algebra support.
 
         Example:  suppose gasoline costs $5/gallon and your vehicle averages 50
-        miles/gallon.  What's the cost in $ per mile?  You'd solve this problem in the
-        GNU units program as
-
-            You have: (5 $/gal)/(50 mi/gal)
-            You want: $/mi
-                * 0.1
-    
-        Using the Num class in the python REPL, the equivalent calculation is
+        miles/gallon.  Using the Num class in the python REPL, the equivalent
+        calculation is
 
             >>> from number import Num
             >>> cost_per_mile = Num("5 $/gal")/Num("50 mi/gal")
@@ -198,6 +178,31 @@ if 0:   # Documentation
 
         The units of the first argument in a binary expression are retained in the
         expression's result.
+
+        Parser mandates
+            - Unit string separated from numeric string by one or more spaces
+            - No spaces allowed in unit string
+            - Parser uses x.rsplit(" ", 1) to check for a unit.  If the right-hand part
+              is a valid unit (verified via UnitArbiter), it is treated as a unit.
+              Otherwise, the entire string is treated as a numeric expression.
+            - Complex numbers must follow standard python syntax: <re>j, <im>j, or
+              <re><sign><im>j.  No spaces are allowed within the complex expression.
+            - Uncertainty:  only the short-form string form is allowed:  "1.234(5)" or
+              "1.234(5)e-12".  No "/" allowed in the expression.  The uncertainty
+              parenthetical expression can only contain digits (it's an arbitrary
+              positive integer or zero).
+
+        4. Uncertainty: Only allowed in "short-form" notation: main(unc).
+        - No '/' (division) allowed in an uncertainty expression.
+        - The parenthetical portion (unc) must contain only digits (may be an arbitrary integer).
+        - 'inf' and 'nan' are prohibited within any uncertainty string.
+        5. Numerical Normalization:
+        - All space characters within a numeric string are stripped prior to parsing.
+        - Underscores (_) in numeric strings are allowed and ignored (Python float/int convention).
+        6. Rational Canonicalization: Rationals are stored as fractions.Fraction to ensure
+        automatic reduction (e.g., 2/2 -> 1/1).  Improper fractions are the only supported
+        form (e.g., you can't write '3-1/8'; you must use '25/8' instead.
+
         '''
 
 if 0: # NumericMixin
@@ -632,7 +637,7 @@ if 1: # Num
             if self.mytype == NumType.Int:
                 s = self.fmt(self._val.numerator)
             elif self.mytype == NumType.Rat:
-                s = self.fmt(self._val)
+                s = self.fmt(self.as_mpf)
             elif self.mytype == NumType.Cpx:
                 s = self.fmt(self.as_mpc)
             elif self.mytype == NumType.Unc:
@@ -653,7 +658,8 @@ if 1: # Num
                 s = f"{self.as_mpc!r}"
             else:
                 s = str(self._real)
-            if self._unit: s += f" {self._unit}"
+            if self._unit:
+                s += f" {self._unit}"
             return f"Num('{s}')"
         def __str__(self) -> str:
             return self._r() if Num.flip else self._s()

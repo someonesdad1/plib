@@ -1,44 +1,24 @@
 20 Apr 2026 09:59:08 am Mon
 
-Important:  eliminated unit.setter.  Now need to find all '\.\<unit\>' occurrences and
-change them to _unit.
-
-Some test examples for fidding in the REPL
-
-- Calculate the resistance of a chunk of aluminum like what I made for the HCT
-  transformer
-    - Legs
-        - 2 pieces of Al tubing
-            - 21.3 mm dia
-            - 2 mm wall
-            - L = 31 + 82 + 20 = 133 mm 
-            - The tubing can be modeled as a chunk of rectangular stock 4 mm thick by
-              31.5 mm wide, as this is what it hammered down to for joining with the
-              threaded rod
-    - Rod
-        - 1 pc joining rod of 1/2" dia Al barstock:  133 mm long (a 5/16 UNC thread was
-          single pointed on each end and used with a nut, 3/8" washer, and lockwasher
-          for a tight clamp to the two tubing pieces
-    - Calculation
-        - Leg resistance = 59.62 μΩ, L = 266 mm, A = 126 mm2, rho = 28.24 nohm*m
-        - Rod resistance = 29.65 μΩ, L = 133 mm, A = 1963 in2, rho = 28.24 nohm*m
-        - Total R = 89.27 μΩ
-    - In 2024, I measured the resistance of this short by using a high current
-      transformer.  I didn't note the current setting, but it was likely 200 A, as
-      that's the current I commonly tested this transformer at (I could run it to a
-      measured 620 A before my ammeter overranged and for short periods (a few seconds)
-      I probably ran it at over 1000 A.  The measured resistance was 129 μΩ.  This
-      calculated value is missing the resistance of the two 1/2 inch diameter bolts
-      clamping it to the transformer's winding and the resistance of the two threaded
-      connections of the 1/2 inch diameter bar.  This calculation is reasonable,
-      however (validating the estimate), because the measured value is 44% above the
-      calculated and the clamped joint resistances would be hard to estimate.
-
+- Feature changes
+    - Num("5 $/gal")/Num("50 mi/gal") gives Num('1/10 ($/gal)/(mi/gal)').  Should not
+      use fractions; should be shown as Num('0.1 ($/gal)/(mi/gal)').  I changed the _s()
+      method to use as_mpf and now it shows as a float but with fraction color.
+      Actually, a pretty good compromise.
+- Needed attributes
+    - .r:  Reduce units:  "3 (mm)*(mm)" -> "3 mm2"
+        - Note this might have to be 3e-06 m^2, as that's what GNU units produces
+        - Shows need for formatting:  nice form would be "3 mm²"
+    - .b:  Show in base SI units
+    - .t:  x.t = "mm2" same as x.to("mm2") (returns new Num instance)
+    - .f:  Show as a fraction (this will be only way to see the fractional details, as
+      most folks will just want the decimal or integer form)
 
 - Moving to a github repository
     - Testing
         - Move self-tests to separate file
         - Include lwtest.py (see xxpytest below for Mike's comments on using pytest)
+
 
 ---------------------------------------------------------------------------
 Thoughts for Buff:
@@ -79,7 +59,43 @@ Thoughts for Buff:
         computation logs transforms "code execution" into a "provable physical record."
 
 ---------------------------------------------------------------------------
+Some test examples for fidding in the REPL
+
+- Calculate the resistance of a chunk of aluminum like what I made for the HCT
+  transformer
+    - Legs
+        - 2 pieces of Al tubing
+            - 21.3 mm dia
+            - 2 mm wall
+            - L = 31 + 82 + 20 = 133 mm 
+            - The tubing can be modeled as a chunk of rectangular stock 4 mm thick by
+              31.5 mm wide, as this is what it hammered down to for joining with the
+              threaded rod
+    - Rod
+        - 1 pc joining rod of 1/2" dia Al barstock:  133 mm long (a 5/16 UNC thread was
+          single pointed on each end and used with a nut, 3/8" washer, and lockwasher
+          for a tight clamp to the two tubing pieces
+    - Calculation
+        - Leg resistance = 59.62 μΩ, L = 266 mm, A = 126 mm2, rho = 28.24 nohm*m
+        - Rod resistance = 29.65 μΩ, L = 133 mm, A = 1963 in2, rho = 28.24 nohm*m
+        - Total R = 89.27 μΩ
+    - In 2024, I measured the resistance of this short by using a high current
+      transformer.  I didn't note the current setting, but it was likely 200 A, as
+      that's the current I commonly tested this transformer at (I could run it to a
+      measured 620 A before my ammeter overranged and for short periods (a few seconds)
+      I probably ran it at over 1000 A.  The measured resistance was 129 μΩ.  This
+      calculated value is missing the resistance of the two 1/2 inch diameter bolts
+      clamping it to the transformer's winding and the resistance of the two threaded
+      connections of the 1/2 inch diameter bar.  This calculation is reasonable,
+      however (validating the estimate), because the measured value is 44% above the
+      calculated and the clamped joint resistances would be hard to estimate.
+
+---------------------------------------------------------------------------
+
 Important
+    - Num.strict:  if on, uncertainties never compare equal.  If off, then if the mean
+      and stdev match, they're equal with a warning to stderr:  "Warning:  comparing
+      distributions".
     - Formatting
         - Add native Num formatting to fmt.py
             - Need to display numbers with uncertainty

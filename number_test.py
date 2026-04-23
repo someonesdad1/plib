@@ -361,23 +361,22 @@ def Test_Functions():
         Assert(sin(x).approx(0.5, 10))
 def Test_Uncertainty():
     '''This output came from the _unc.py script, which uses the python
-    uncertainties library to calculate the results.  I consider it a gold
-    standard whose results we must reproduce.
+    uncertainties library to calculate the results.  I feel the Num class
+    must reproduce its results.
     
     Introduction
         This simulates a measurement made in the yard with a Starrett fiberglass
         200 foot tape measure.  The tape measure is graduated in units of 0.01 ft.
         I have no standard or calibration to know the uncertainty, so I'm forced
         to estimate a type B uncertainty.  Much of the measurement uncertainty
-        won't come from the uncertainty in the tape measure itself, it will come
+        won't come from the uncertainty in the tape measure itself; it will come
         from going over the bumpy lawn and having to be pulled on to get things
         straighter (tape stretch and small cumulative cosine errors).  I'll
         estimate the uncertainty at 0.1 ft, which means the standard deviation is
         about 1.2 inches.  If you regard a measurement as "nearly certain" if it's
         within 3 standard deviations, then that means we regard each measurement
         as "known" within about ±3.5 inches as a near certainty.  For a 50 to 100
-        ft typical measurement in the yard, that doesn't sound too optimistic or
-        pessimistic.
+        ft typical measurement in the yard, that sounds reasonable.
     
     Basic arithmetic:
         x1 = 100.00(10)
@@ -488,6 +487,14 @@ def Test_Uncertainty():
         Assert(result == Num(0))
         y = Num(result.re_unc)
         Assert(y.approx(22360, 4))
+    if 1:   # Zero uncertainty
+        x = Num("1.23(0)")
+        Assert(x._real == mpmath.mpf("1.23"))
+        Assert(x._imag == mpmath.mpf("0"))
+        Assert(x.re_unc == mpmath.mpf("0"))
+        Assert(x.im_unc == mpmath.mpf("0"))
+        Assert(x.correl == mpmath.mpf("0"))
+        Assert(x.mytype == NumType.Unc)
 def Test_Infection():
     '''The Num class follows the infection model in that a Num instance with
     another instance in a binary operation will return the Num type, "infecting"
@@ -681,6 +688,7 @@ def Test_StringParser():
         # Forms that cause exceptions
         exc = (
             "1(500)/2",
+            "1.234(-0)",
             "1.234(12345678e88)",
             "1.234(inf)",
             "1.234(-inf)",
@@ -722,6 +730,7 @@ def Test_StringParser():
             ("0(100)", 0, 100),
             ("1(100)", 1, 100),
             ("-1(100)", -1, 100),
+            ("1.234(0)e44", mpf("1.234e44"), mpf("0")),
             ("1.234(56)e44", mpf("1.234e44"), mpf("5.6000000000000011e+42")),
             ("1(10000000000000000000000000)e100", mpf("1.0e100"), mpf("1.0000000000000001e+125")),
             ("-1(10000000000000000000000000)e100", mpf("-1.0e100"), mpf("1.0000000000000001e+125")),
