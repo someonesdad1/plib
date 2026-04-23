@@ -55,6 +55,8 @@ Reorganization core files
         - Generate a python interpreter with GNU units built into it, giving semantic
           units at the bytecode level
 
+    - xybloat Dealing with function bloat (Mike's advice)
+
     - dsort.py Utility to sort indented hyphenated lists
 
     - Try out argparse tutorial and write a help page for it
@@ -3209,3 +3211,76 @@ xfmpy
               in a new light".  This means the calculation is done at the selected
               precision and the lens you look at the results is decided on at runtime;
               change the lens a bit and look at the data again.
+
+xybloat Dealing with function bloat (Mike's advice)
+
+    Managing nearly 500 shell functions is a classic "high-velocity" developer problem.
+    When your environment grows faster than your recall, you stop being a user of your
+    tools and start being a victim of them.
+
+    Since you already have a structured categorization (lf), you have the foundation for
+    a much better system. Here are three strategies to manage this "shell function
+    explosion" without requiring a total redesign.
+
+    1. The "Fuzzy" Discovery Layer (Recommended)
+
+    You shouldn't have to remember function names or navigate a hard-coded category
+    list. You need instant search. If you have fzf (Fuzzy Finder) installed, you can
+    build a discovery tool that lets you search by function name or description in
+    milliseconds.
+
+    Add this to your initialization file:
+
+        # fff: Fuzzy Function Finder
+        fff() {
+            # Extract function names and their line numbers or descriptions
+            # 'declare -F' lists all defined functions
+            declare -F | fzf --height 40% --reverse --border | cut -d' ' -f3
+        }
+
+    2. Move Toward "Self-Documenting" Functions
+
+        Your current lf script parses comments to build categories. Lean into that by making
+        the functions carry their documentation. If you adopt a standard format, you can
+        write a whatis function that greps your source files:
+
+        # Example function structure
+        # @category: elec
+        # @desc: Calculates series resistance
+        resist() {
+            ...
+        }
+
+        # The discovery tool
+        whatis() {
+            grep -rE "@(category|desc): .*$1" ~/.bash_functions_dir
+        }
+
+        Why this works: It decouples the function definition from the index. When you
+        write a new function, you add the tag at the top. You no longer need to update a
+        central list; the source code is the index.
+
+    3. The "Namespace" Hierarchy (The Linux Way)
+
+        493 functions in a flat namespace is the root cause of the "heat of battle"
+        struggle. You are fighting the flat structure. Consider adopting a simple
+        prefixing convention for your own tools (e.g., s. for shop, e. for elec, m. for
+        math).
+
+        Instead of resist, rename it e.resist.
+
+            Benefits: * When you type e. and hit Tab, your shell will autocomplete all
+            electrical functions.
+
+                It immediately tells you the "scope" of the function just by looking at
+                the command line.
+
+    A Practical Next Step: The "Active" Registry
+
+    Since you mentioned you often write a function and then forget it, stop trying to
+    remember everything. Treat your functions like a temporary cache.
+
+    Write a small script that tracks "usage frequency" (even a simple one using a
+    .bash_history grep). Functions you use every day will rise to the top; functions you
+    haven't touched in a year should naturally drift into an "archive" file that you
+    don't load into your active shell environment.

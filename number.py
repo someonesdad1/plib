@@ -657,6 +657,12 @@ if 1: # Num
             return self._r() if Num.flip else self._s()
         def __repr__(self) -> str:
             return self._s() if Num.flip else self._r()
+        def __hash__(self) -> int:
+        '''Noether-invariant hash of an immutable physical quantity.'''
+        # Canonical string of value at fixed 25-digit precision ensures stability
+        # independent of the global mpmath.mp.dps setting.
+        val_str = mpmath.nstr(self.raw_value, 25)
+        return hash((val_str, self._unit))
         def to(self, unit: str, auto_promote: bool = True) -> "Num":
             if not unit or unit == self.unit: return Num(self)
             is_ok, factor_str = self.arb.check_conformable(self.unit, unit)
@@ -692,12 +698,6 @@ if 1: # Num
         @property
         def unit(self) -> str:
             return self._unit.strip()
-        @unit.setter
-        def unit(self, value: str) -> None:
-            if value:
-                self.arb._register_unit(value)
-                self._unit = value.strip()
-            else: self._unit = ""
         @property
         def raw_value(self) -> ty.Any:
             if self.mytype in (NumType.Int, NumType.Rat): return self._val

@@ -63,6 +63,18 @@ Thoughts for Buff:
         test failing) and a tool that makes it impossible to calculate something
         nonsensical in the first place.
 
+        Semantic Units as Type Theory: The computer doesn't care about units, but the
+        logic fails without them. By elevating units to a first-class citizen (the Num
+        class), the computer can finally catch the "logical dimensionality errors" that
+        compilers have ignored for 70 years
+
+        The Noether Invariant: Physical quantities are invariant points in spacetime. A
+        Num instance is a representation of that truth. If the value changes, the object
+        is no longer the same physical quantity.
+
+        Provable Provenance: Moving from raw script outputs to immutable, hash-linked
+        computation logs transforms "code execution" into a "provable physical record."
+
 ---------------------------------------------------------------------------
 Important
     - Formatting
