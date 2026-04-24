@@ -1,5 +1,26 @@
 20 Apr 2026 09:59:08 am Mon
 
+Bugs
+    - < etc. must only work on conformable quantities:  currently Num(1) < Num("2 m")
+      returns True
+    - sqrt received uncertainty for arg 0; need to implement
+    - Need sum to handle Num arguments.  I'd guess best approach is to wrap mpmath.fsum
+    - Num("1 m") + Num(1) hangs.  This should result in a units incompatibility.  Note
+      Num("1 m")*Num(1) works
+    - Tests should have * and / of scalar and unit item
+    - Incompatible units
+        - Num("1 m") + Num("1 m2") -> broken pipe
+        - Same error on just Num("1 m2")
+        - Then Num("1 m") gets same error
+        - Another example
+            - a = Num("1 m")
+            - b = Num("1 s")
+            - a + b gives unit mismatch (good, was expected)
+            - c = Num("1 m2")
+            - a + c gets error in self._normalize(other, "add"):  ValueError: could not
+              convert string to float: '1 m'; the error was in line 624 of _normalize:
+              'factor = mpmath.mpf(factor_str)'
+
 - Feature changes
     - Num("5 $/gal")/Num("50 mi/gal") gives Num('1/10 ($/gal)/(mi/gal)').  Should not
       use fractions; should be shown as Num('0.1 ($/gal)/(mi/gal)').  I changed the _s()
@@ -119,21 +140,17 @@ Important
         - num.preferred(None) erases remembered units
         - Could be a REPL command 'prefer a b...' and prefer none
 
----------------------------------------------------------------------------
-Other stuff
+--------------------------------------------------------------------------- Other stuff
     - Persistence
         - See logexample below
+            - Mike pointed out this could be done without having to modify the GNU units
+              code
         - SQLite persistence
             - Add when it's time, keep the interface simple
-            - At some point a breadcrumb command would be useful (i.e., show me the history
-            of this calculation or dump it to a file.
-        - A middle ground would be an option to the REPL that lets you log to a file.
-          This would capture all input/output, but not like script, which captures all
-          keystrokes; you'd just want it to capture the finished line that's submitted
-          to the REPL.  Of course, for critical stuff, you could use script as needed.
-          I'm leaning towards the REPL log, as it should be straightforward to
-          implement, give you that critical history when needed, and doesn't require
-          lots of code.
+            - At some point a breadcrumb command would be useful (i.e., show me the
+              history of this calculation or dump it to a file.
+        - A core need is any encountered exception also needs to be logged, as this
+          makes debugging problems easier
     - REPL hacking
         - 'q' command:  single command to quit the REPL, just like the debugger
         - Once set up, can show user how to extend to their tastes

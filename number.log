@@ -1,3 +1,109 @@
+23 Apr 2026 11:07:35 am Thu     Fractions & formatting socket
+
+    The context was using a .frac instance property with None, or iIpP values, for
+    decimal fractionw when None, improper when i, and proper when p; the lowercase
+    version for limited denominator, the capital for all digits.
+
+    Me:
+
+        As always, it's valuable consulting you because the scope of your answer is
+        always large and makes me think of things I didn't think of.  Yes, my mental
+        model of Num is it's the "rotation group" SO(3); i.e., Num represents an
+        abstract number type I think practical folks are interested in, just like SO(3)
+        is the abstract group.  The different string interpolations are analogous to the
+        many different representations of the rotation group.
+
+        I like your assessment of trans-disciplinary, as that's a good short word for
+        what prompted this.  One thing I won't go far enough to do is reach to the
+        "foot, inches, and fractions of an inch" type of thing you'll still see today in
+        things like rafter square manuals, a remnant from the 1800's.  There's nothing
+        wrong with that representation; it's just clumsy for e.g. science/engineering
+        work.
+
+        Perhaps an even better architectural move would be to provide a "socket" to
+        allow someone to "plug in" the formatter of their choice; this allows for
+        expansion and puts the testing burden on the person who wants it.  It makes our
+        job still tough:  make sure the interface of the socket is proper and robust.
+
+        I don't mind spending the effort to do this for two core reasons.  First, we're
+        creating a tool for the ages, which really means we want it to be useful
+        indefinitely into the future.  Second, I have a friend named Mike who is really
+        good at writing code, so we'll get him to do it.  <smile>
+
+        Should we rethink things in the context of giving the Num class a specific
+        socket for doing the formatting of the numbers?  I like how this maps to the
+        analogy of abstract group and representation -- and these "separation" tactics
+        help define responsibilities and simplify code by compartmentalizing it.
+
+    Mike:
+
+        The "socket" architecture for formatting is an elegant move. You are essentially
+        shifting from a **Hard-Coded Formatter** to a **Strategy Pattern**. In your
+        group-theory analogy, the `Num` class is the "Abstract Object" (the invariant
+        group element), and the "Socket" is the interface through which you choose your
+        "Representation" (how that element is projected onto the terminal).
+
+        This is a profound architectural shift for three reasons:
+
+        ### 1. Separation of Concerns
+
+            By decoupling the `Num` class from the `str()` output, you stop the `Number`
+            class from becoming a "God Object." The logic for "how a fraction looks"
+            doesn't belong in the same place as "how a square root is calculated." The
+            `Num` class remains responsible for the *physics* (the value and the unit),
+            while the "Socket" is responsible for the *communication* (the
+            human-readable interface).
+
+        ### 2. Extensibility and the "Testing Burden"
+
+            You are absolutely correct that this offloads the testing burden. If a user
+            wants "Rafter Square" formatting (feet-inches-sixteenths), they write a
+            `RafterFormatter` that satisfies your socket interface. You don't have to
+            maintain it, understand it, or debug it. You only maintain the *interface*
+            (the protocol), which is far easier to test for correctness.
+
+        ### 3. Implementing the Socket (The Protocol)
+
+            To keep the Noether Invariant secure, the socket must only accept what the
+            `Num` instance provides. Here is a proposed interface approach:
+
+            ```python
+            # The Formatter Protocol
+            class NumFormatter(ty.Protocol):
+                def format(self, val: mpmath.mpf, unit: str) -> str:
+                    ...
+
+            # Inside your Num class:
+            class Num:
+                # Default socket is a standard decimal formatter
+                formatter: NumFormatter = StandardDecimalFormatter()
+
+                def __str__(self) -> str:
+                    return self.formatter.format(self.raw_value, self.unit)
+            ```
+
+        ### Strategic Alignment: The "Tool for the Ages"
+
+            By using this "socket" approach, you ensure the code remains useful
+            indefinitely. If 20 years from now someone needs to interface your
+            calculator with a new industrial standard or a quantum-computer output, they
+            don't need to touch your `number.py` logic. They just write a new class that
+            plugs into the socket. 
+
+            This is the ultimate form of "Noether Invariance" applied to software
+            architecture: **the core logic (the math) remains invariant regardless of
+            how the periphery (the display) changes.**
+
+            Since you have a friend named Mike who is good at writing code, this is the
+            perfect task to hand off: "Mike, here is the `NumFormatter` protocol
+            interface—build me the Rafter, Fraction, and Decimal strategies that satisfy
+            this contract."
+
+        **Does this "Socket/Strategy" pattern feel right for the `fmt.py` integration,
+        or would you prefer a more functional approach (passing a callback function to
+        the `Num` instance) rather than a formal Protocol/Class interface?**
+
+
 20 Apr 2026 09:45:15 am Mon
     - We did a fundamental rearchitecture of the system by adding a StringParser class
       to take the job of taking apart the user's numbers into the needed portions.  This

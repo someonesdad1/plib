@@ -1,9 +1,6 @@
 #from __future__ import annotations
 '''
 
-- Uncertainty tests
-    - "1.234(0)" is valid 
-    - "1.234(-0)" is invalid 
 - Persistence in REPL
     - Core name is ".number.ini".  The first occurrence of the following is used:
         - If defined in environment, then points to initialization file
@@ -14,12 +11,17 @@
       (that's up to the user) but to provide a tool to detect when the file has been
       corrupted or intentionally changed (can't tell the difference)
 
+- .flip:  property used to flip the output of str() and repr().  Use case:  in the REPL
+  and the debugger, you usually see the repr() form; this allows you to see the str()
+  form
 - .frac:  property used to show fractional form.  
     - None:  always show number as mpf
-    - False:  show number as improper fraction
-    - True:  show as proper fraction
-    - If None, the formatter can show it as a float, but italicize it to tell
-        you it's actually a fraction
+        - The formatter shows it as a float, but italicizes it to tell you it's actually
+          a fraction
+    - "i":  show number as improper fraction, denominator limited to 100000
+    - "p":  show as proper fraction, but denominator limited to 100000
+    - "I":  show number as improper fraction to full resolution
+    - "P":  show as proper fraction to full resolution
 
 
 '''
@@ -162,26 +164,37 @@ if 0:   # Documentation
             >>> from number import Num
             >>> cost_per_mile = Num("5 $/gal")/Num("50 mi/gal")
             >>> cost_per_mile
-            Num('1/10 ($/gal)/(mi/gal)')
-            >>> cost_per_mile.reduce
-            Num('1/10 $/mi')
+            0.100 ($/gal)/(mi/gal)
             >>> cost_per_mile.to("$/km")
-            Num('0.0621371192237334 $/km')
+            0.0621 $/km
+            >>> cost_per_mile.to("$/mi")
+            0.100 $/mi
+
+        You can't see it here, but the terminal printout shows the 0.100 in a color that
+        represents a fraction, as the actual computed number is the ratio of two
+        integers, which is the fraction 1/10.  Most of the time we want to see the
+        decimal form, but the .frac property can be used to see the fractional results.
+
+        An important feature is that the cost_per_mile display shows the units as a
+        division of two other units, indicating that an operation was performed (here,
+        division).
 
         The Num class reduces the number to its simplest representation (here, a
         rational number).  This units representation shows the computational history;
         the current example shows that a cost per unit volume was divided by a mileage
-        per unit volume, giving a result with units of cost per unit length.  
-
-        The reduce property is used to get the result to the reduced units.  The to()
-        method allows conversion to dimensionally-equivalent (conformable) units.
+        per unit volume, giving a result with units of cost per unit length.  The last
+        step shows you can see it in the reduced units if you wish.
 
         The units of the first argument in a binary expression are retained in the
         expression's result.
 
+        --------------------------------------------------------------------------- 
+
         Parser mandates
             - Unit string separated from numeric string by one or more spaces
             - No spaces allowed in unit string
+            - All space characters in the numerical portion are stripped before parsing
+            - Underscores can be used per the python float/int convention
             - Parser uses x.rsplit(" ", 1) to check for a unit.  If the right-hand part
               is a valid unit (verified via UnitArbiter), it is treated as a unit.
               Otherwise, the entire string is treated as a numeric expression.
@@ -191,17 +204,8 @@ if 0:   # Documentation
               "1.234(5)e-12".  No "/" allowed in the expression.  The uncertainty
               parenthetical expression can only contain digits (it's an arbitrary
               positive integer or zero).
-
-        4. Uncertainty: Only allowed in "short-form" notation: main(unc).
-        - No '/' (division) allowed in an uncertainty expression.
-        - The parenthetical portion (unc) must contain only digits (may be an arbitrary integer).
-        - 'inf' and 'nan' are prohibited within any uncertainty string.
-        5. Numerical Normalization:
-        - All space characters within a numeric string are stripped prior to parsing.
-        - Underscores (_) in numeric strings are allowed and ignored (Python float/int convention).
-        6. Rational Canonicalization: Rationals are stored as fractions.Fraction to ensure
-        automatic reduction (e.g., 2/2 -> 1/1).  Improper fractions are the only supported
-        form (e.g., you can't write '3-1/8'; you must use '25/8' instead.
+            - Rational numbers are indicated by a '/' in the string.  Only improper
+              fractional forms are allowed.
 
         '''
 
@@ -499,6 +503,11 @@ if 1: # NumericMixin
             return Num(other)*self
         def __rtruediv__(self, other: ty.Any) -> "Num":
             return Num(other)/self
+        def __float__(self) -> float:
+            return float(self.as_mpf)
+        def __complex__(self) -> complex:
+            s = self.as_mpc
+            return complex(float(s.real), float(s.imag))
     # Goodbye from the Mike & Don comedy show
 
 if 1: # Num
