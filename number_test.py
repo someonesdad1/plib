@@ -5,9 +5,14 @@ import contextlib
 import decimal
 import fractions
 import io
+import sys
 import mpmath
 from number import Num, NumType, StringParser
 from lwtest import Assert
+import dptypes
+
+g1 = dptypes.Constant()
+g1.dbg = True if len(sys.argv) > 1 else False
 
 def Test_Constructor_With_Numbers():
     zero = 0
@@ -342,6 +347,28 @@ def Test_Corners():
             x + y
         z = x*y
         Assert(z == Num('1.0 (m)*(J)'))
+    if 1:   # Comparisons
+        x, y = Num("1 m"), Num("1.0 J")
+        from number import g
+        with g:
+            g.dbg = True
+        print("\n---------------------------------------------------------------------------\nRunning comparison tests")
+        with raises(ValueError):
+            print("  x < y")
+            x < y
+        with raises(ValueError):
+            print("  x <= y")
+            x <= y
+        with raises(ValueError):
+            print("  x > y")
+            x > y
+        with raises(ValueError):
+            print("  x >= y")
+            x >= y
+        with raises(ValueError):
+            print("  x == y")
+            x == y
+        
 def Test_New_Unit():
     return
     # I've shut this off, as it has been tested and works

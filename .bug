@@ -1,25 +1,16 @@
 20 Apr 2026 09:59:08 am Mon
 
 Bugs
-    - < etc. must only work on conformable quantities:  currently Num(1) < Num("2 m")
-      returns True
-    - sqrt received uncertainty for arg 0; need to implement
-    - Need sum to handle Num arguments.  I'd guess best approach is to wrap mpmath.fsum
-    - Num("1 m") + Num(1) hangs.  This should result in a units incompatibility.  Note
-      Num("1 m")*Num(1) works
-    - Tests should have * and / of scalar and unit item
-    - Incompatible units
-        - Num("1 m") + Num("1 m2") -> broken pipe
-        - Same error on just Num("1 m2")
-        - Then Num("1 m") gets same error
-        - Another example
-            - a = Num("1 m")
-            - b = Num("1 s")
-            - a + b gives unit mismatch (good, was expected)
-            - c = Num("1 m2")
-            - a + c gets error in self._normalize(other, "add"):  ValueError: could not
-              convert string to float: '1 m'; the error was in line 624 of _normalize:
-              'factor = mpmath.mpf(factor_str)'
+    - rho = Num("136.9(5) g/in3")
+        - rho.to("g/mL") gave 8.35415056656885, but lost the propagated uncertainty
+    - x, y = Num("1 m"), Num("1.0 J"):  x == y should raise ValueError
+        - Instrumented test with from number import g;with g: g.dbg = True
+        - Got:  DEBUG UnitArbiter.check_conformable sent:  'J\nm\n'
+            DEBUG UnitArbiter.check_conformable got:  '1 kg m^2 / s^2'
+            - It's missing the "conformable error"l
+here's the DEBUG trace:
+
+
 
 - Feature changes
     - Num("5 $/gal")/Num("50 mi/gal") gives Num('1/10 ($/gal)/(mi/gal)').  Should not
@@ -39,45 +30,6 @@ Bugs
     - Testing
         - Move self-tests to separate file
         - Include lwtest.py (see xxpytest below for Mike's comments on using pytest)
-
-
----------------------------------------------------------------------------
-Thoughts for Buff:
-
-    If you want to move him past the "we have libraries for this" reflex, frame it as a
-    "Type-Safety Gap" problem.
-
-        Many libraries (like pint or astropy) handle units but often struggle when you
-        cross type boundaries (Real -> Complex -> Uncertainty -> Matrix) or when you
-        need the stability of arbitrary precision (mpmath).
-
-        Ask him this: "In your experience, how many scientific computational errors are
-        caused by unit-mismatch bugs versus logic bugs?" When he agrees that unit
-        mismatches are the silent killers, show him how your system makes those errors
-        mathematically impossible to ignore. That’s not just a library; that’s a
-        computationally sound environment.
-
-        Library-based units are effectively 'meta-data wrappers' that users can bypass
-        or forget. By making the unit a first-class citizen of the type system, the REPL
-        becomes a collaborator in the dimensional analysis, making it functionally
-        impossible to 'accidentally' add a Foot to a Meter without an explicit
-        conversion trigger.
-
-        It's the difference between a tool that tells you you did something wrong (a
-        test failing) and a tool that makes it impossible to calculate something
-        nonsensical in the first place.
-
-        Semantic Units as Type Theory: The computer doesn't care about units, but the
-        logic fails without them. By elevating units to a first-class citizen (the Num
-        class), the computer can finally catch the "logical dimensionality errors" that
-        compilers have ignored for 70 years
-
-        The Noether Invariant: Physical quantities are invariant points in spacetime. A
-        Num instance is a representation of that truth. If the value changes, the object
-        is no longer the same physical quantity.
-
-        Provable Provenance: Moving from raw script outputs to immutable, hash-linked
-        computation logs transforms "code execution" into a "provable physical record."
 
 ---------------------------------------------------------------------------
 Some test examples for fidding in the REPL

@@ -13,7 +13,16 @@
 .~lock*#
 *.pickle
 
-# A comment like this can comment a rule out and save it for later
+aa.1             
+aa.2             
+aa.3             
+aa.4             
+aa.5             
+aa.6             
+final_clean.txt  
+jim              
+put              
+repl_test1       
 
 .vi
 .z
