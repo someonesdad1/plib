@@ -5,7 +5,6 @@ Bugs
         - rho.to("g/mL") gave 8.35415056656885 (correct), but lost the propagated uncertainty
     - .r:  Reduce to base units:  "3 (mm)*(mm)" -> "3e-06 m^2"
 
-
 - Feature changes
     - Num("5 $/gal")/Num("50 mi/gal") gives Num('1/10 ($/gal)/(mi/gal)').  Should not
       use fractions; should be shown as Num('0.1 ($/gal)/(mi/gal)').  I changed the _s()

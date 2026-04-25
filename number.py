@@ -1431,6 +1431,22 @@ if 1: # Num
                 if new_type.value < NumType.Unc.value:
                     self.re_unc = self.im_unc = self.correl = mpmath.mpf("0")
             self._mytype = new_type
+        @property
+        def r(self) -> "Num":
+            'Reduce to base units'
+            # 1. Get reduction factor from the arbiter
+            # Note: Arbiter method needs to handle the double newline: f"{self._unit}\n\n"
+            factor, base_unit = self.arb.reduce_to_base(self._unit)
+            # 2. Use the existing Num arithmetic to scale the value.
+            # By multiplying a Num object by a scalar (mpf), your __mul__ 
+            # should already be handling the uncertainty propagation.
+            new_num = self * factor
+            # 3. Update the unit string
+            # We manually overwrite the unit string of the result. 
+            # This keeps the uncertainty (propagated by self * factor) 
+            # while correcting the dimensionality.
+            new_num._unit = base_unit
+            return new_num
     # Goodbye from the Mike & Don comedy show
 
 if 1: # ParsedPayload
@@ -1576,6 +1592,21 @@ if 1:  # UnitArbiter
             conv_factor = mpmath.mpf(parts[0])
             new_unit = parts[1]
             return mpmath.mpf(value) * conv_factor, new_unit
+        def reduce_to_base(self, unit_str: str) -> ty.Tuple[float, str]:
+            'Reduce to base SI units'
+            # Send the unit to units, using -t for terse/base output
+            query = f"{unit_str}\n\n"
+            self.proc.stdin.write(query)
+            self.proc.stdin.flush()
+            # Read the base unit reduction (e.g., "3e-06 m^2")
+            ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
+            line = self.proc.stdout.readline().strip()
+            # Parse '3e-06 m^2' into (3e-06, 'm^2')
+            # Handle potential edge cases where there might not be a scalar
+            parts = line.split(" ", 1)
+            scalar = float(parts[0])
+            base_unit = parts[1] if len(parts) > 1 else ""
+            return scalar, base_unit
         def is_known_unit(self, unit_str: str) -> bool:
             if not unit_str: return True
             query = f"{unit_str}\n\n"
