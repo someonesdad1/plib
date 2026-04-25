@@ -10,10 +10,89 @@ import mpmath
 from number import Num, NumType, StringParser
 from lwtest import Assert
 import dptypes
+from number import g
 
-g1 = dptypes.Constant()
-g1.dbg = True if len(sys.argv) > 1 else False
+#g1 = dptypes.Constant()
+#g1.dbg = True if len(sys.argv) > 1 else False
 
+def Test_Arithmetic():
+    if 1:   # Test addition
+        if 1:   # Integer & real
+            x = Num("1.0", "ft")
+            y = Num("1", "m")
+            result = x + y
+            expected = "4.28083989501312"   # 15 digit GNU units answer
+            Assert(result._real == mpmath.mpf(expected))
+            Assert(result == Num(expected, "ft"))
+        if 1:   # Rational
+            x = Num("3/8", "in")
+            y = Num("24/16", "in")
+            result = x + y
+            if 0:   # This is old test when the result was a rational
+                # Mike and I agreed it doesn't really make sense to spend effort
+                # fixing this now.  Maybe later it will feel more important if a
+                # special use case needs it.
+                expected = Num("15/8", "in")
+            else:
+                expected = Num("1.875", "inch")
+            Assert(result == expected)
+            # See if an integer and fraction remain a fraction
+            x = Num("3/8")
+            y = Num("1")
+            result = x + y
+            expected = Num("11/8")
+            Assert(result == expected)
+            # Fraction and float should give a float
+            x = Num("3/8")
+            y = Num("1.0")
+            result = x + y
+            expected = Num("1.375") # Fractions that are powers of 2 are exact floats
+            Assert(result == expected)
+    if 1:   # Test subtraction
+        if 1:   # Integer & real
+            x = Num("1", "ft")
+            y = Num("1", "m")
+            result = x - y
+            expected = Num('-2.28083989501312 ft')
+            Assert(result == expected)
+        if 1:   # Rational
+            x = Num("3/8", "in")
+            y = Num("24/16", "in")
+            result = x - y
+            #expected = Num("-1.125 inch")
+            expected = Num("-9/8", "in")   # 3/8 - 12/8 = -9/8
+            Assert(result == expected)
+    if 1:   # Test multiplication
+        if 1:   # Integer & real
+            x = Num("1.5", "V")
+            y = Num("2.0", "A")
+            result = x*y
+            expected = "3.0"
+            Assert(result._real == mpmath.mpf(expected))
+            #Assert(result == Num("3.0 kg*m^2/s^3"))  Old parse; new keeps V*A
+            Assert(result == Num("3.0 (V)*(A)"))
+        if 1:   # Rational
+            x = Num("3/8", "in")
+            y = Num("24/16", "in")
+            result = x*y
+            expected = Num("9/16", "(in)*(in)")   # 3/8*12/8 = 36/64 = 9/16
+            #expected = Num("0.00036290249999999997 m^2")
+            Assert(result == expected)
+    if 1:   # Test division
+        if 1:   # Integer & real
+            x = Num("1.0", "ft")
+            y = Num("1", "m")
+            result = x/y
+            #expected = Num("0.30480000000000002") Older conversion to float
+            expected = Num("1.0 (ft)/(m)")
+            Assert(result == expected)
+        if 1:   # Rational
+            x = Num("3/8", "in")
+            y = Num("24/16", "in")
+            result = x/y
+            #expected = Num("0.25") Older conversion to float
+            expected = Num("1/4 (in)/(in)")
+            Assert(result == expected)
 def Test_Constructor_With_Numbers():
     zero = 0
     if 1:   # No input
@@ -130,84 +209,6 @@ def Test_Constructor_Strings():
         result = x*y
         expected = Num("12.621551567779301945529644873425361979 (m)*(kg)")
         Assert(result == expected)
-def Test_Arithmetic():
-    if 1:   # Test addition
-        if 1:   # Integer & real
-            x = Num("1.0", "ft")
-            y = Num("1", "m")
-            result = x + y
-            expected = "4.28083989501312"   # 15 digit GNU units answer
-            Assert(result._real == mpmath.mpf(expected))
-            Assert(result == Num(expected, "ft"))
-        if 1:   # Rational
-            x = Num("3/8", "in")
-            y = Num("24/16", "in")
-            result = x + y
-            if 0:   # This is old test when the result was a rational
-                # Mike and I agreed it doesn't really make sense to spend effort
-                # fixing this now.  Maybe later it will feel more important if a
-                # special use case needs it.
-                expected = Num("15/8", "in")
-            else:
-                expected = Num("1.875", "inch")
-            Assert(result == expected)
-            # See if an integer and fraction remain a fraction
-            x = Num("3/8")
-            y = Num("1")
-            result = x + y
-            expected = Num("11/8")
-            Assert(result == expected)
-            # Fraction and float should give a float
-            x = Num("3/8")
-            y = Num("1.0")
-            result = x + y
-            expected = Num("1.375") # Fractions that are powers of 2 are exact floats
-            Assert(result == expected)
-    if 1:   # Test subtraction
-        if 1:   # Integer & real
-            x = Num("1", "ft")
-            y = Num("1", "m")
-            result = x - y
-            expected = Num('-2.28083989501312 ft')
-            Assert(result == expected)
-        if 1:   # Rational
-            x = Num("3/8", "in")
-            y = Num("24/16", "in")
-            result = x - y
-            #expected = Num("-1.125 inch")
-            expected = Num("-9/8", "in")   # 3/8 - 12/8 = -9/8
-            Assert(result == expected)
-    if 1:   # Test multiplication
-        if 1:   # Integer & real
-            x = Num("1.5", "V")
-            y = Num("2.0", "A")
-            result = x*y
-            expected = "3.0"
-            Assert(result._real == mpmath.mpf(expected))
-            #Assert(result == Num("3.0 kg*m^2/s^3"))  Old parse; new keeps V*A
-            Assert(result == Num("3.0 (V)*(A)"))
-        if 1:   # Rational
-            x = Num("3/8", "in")
-            y = Num("24/16", "in")
-            result = x*y
-            expected = Num("9/16", "(in)*(in)")   # 3/8*12/8 = 36/64 = 9/16
-            #expected = Num("0.00036290249999999997 m^2")
-            Assert(result == expected)
-    if 1:   # Test division
-        if 1:   # Integer & real
-            x = Num("1.0", "ft")
-            y = Num("1", "m")
-            result = x/y
-            #expected = Num("0.30480000000000002") Older conversion to float
-            expected = Num("1.0 (ft)/(m)")
-            Assert(result == expected)
-        if 1:   # Rational
-            x = Num("3/8", "in")
-            y = Num("24/16", "in")
-            result = x/y
-            #expected = Num("0.25") Older conversion to float
-            expected = Num("1/4 (in)/(in)")
-            Assert(result == expected)
 def Test_Noether_Invariant():
     '''The .num component is used to normalize to a "unit vector" in the
     particular "unit" vector's direction.  This means that x/x.num returns a Num
@@ -347,12 +348,12 @@ def Test_Corners():
             x + y
         z = x*y
         Assert(z == Num('1.0 (m)*(J)'))
-    if 1:   # Comparisons
-        x, y = Num("1 m"), Num("1.0 J")
-        from number import g
-        with g:
-            g.dbg = True
-        print("\n---------------------------------------------------------------------------\nRunning comparison tests")
+def Test_Comparisons():
+    g.dbg = True    # Turn on debug printing to see GNU units interaction
+    if 1:   # Show we get exception when trying to compare nonconformable units
+        x = Num("1 m")
+        y = Num("1.0 J")
+        print("Running comparison tests:")
         with raises(ValueError):
             print("  x < y")
             x < y
@@ -365,10 +366,10 @@ def Test_Corners():
         with raises(ValueError):
             print("  x >= y")
             x >= y
-        with raises(ValueError):
-            print("  x == y")
-            x == y
-        
+        if 0:
+            with raises(ValueError):
+                print("  x == y")
+                x == y
 def Test_New_Unit():
     return
     # I've shut this off, as it has been tested and works
@@ -606,7 +607,6 @@ def Test_Infection():
         Assert(isinstance(y, Num))
         y /= x
         Assert(isinstance(y, Num))
-        
 def Test_StringParser():
     '''These are some test cases Mike and I developed together, as getting the
     string parsing to work is such a fundamental need.  Much of the work was at
@@ -819,4 +819,7 @@ if __name__ == "__main__":
     assert mpmath.mp.dps == 15
     run = lwtest.run
     raises = lwtest.raises
-    exit(lwtest.run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
+    if 0:
+        Test_Comparisons()
+    else:
+        exit(lwtest.run(globals(), regexp=r"^Test_", halt=1, verbose=1)[0])

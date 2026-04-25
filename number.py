@@ -23,7 +23,6 @@
     - "I":  show number as improper fraction to full resolution
     - "P":  show as proper fraction to full resolution
 
-
 '''
 if 1:  # Header
     if 1:   # Standard imports
@@ -41,6 +40,7 @@ if 1:  # Header
         import pathlib
         import random
         import re
+        import select
         import shutil
         import subprocess
         import sys
@@ -71,11 +71,13 @@ if 1:  # Header
         Assert = lwtest.Assert
         t = trm.TrmDP()
         t.dbg = "#bdf6fe"
-        g = dptypes.Constant()
+        #g = dptypes.Constant()
+        class G:
+            pass
+        g = G()
         g.dbg = False
-        if len(sys.argv) > 1 and sys.argv[1][0] == "d":
-            with g:
-                g.dbg = True
+        if len(sys.argv) > 1: # and sys.argv[1][0] == "d":
+            g.dbg = True
     if 1:   # Types and enums
         class NumType(enum.IntEnum):
             Int = 1
@@ -90,6 +92,12 @@ if 1:  # Header
             uncertainties.UFloat , "Num" , str , None]
     if 1:   # Utility stuff
         def Dbg(*p, **kw):
+            # Simple debugging command
+            if not g.dbg:
+                return
+            print("DEBUG ", end="")
+            print(*p, **kw)
+        def _Dbg(*p, **kw):
             if not hasattr(Dbg, "file"):
                 Dbg.file = sys.stdout
             if g.dbg:
@@ -1406,6 +1414,7 @@ if 1:  # UnitArbiter
         units_bin = "/home/don/.0rc/bin/units"
         main_config = "/home/don/.0rc/bin/definitions.units"
         dynamic_config = "/home/don/.units_dynamic"
+        read_timeout = 0.5  # Centralized timeout in seconds for all I/O operations
         def __new__(cls) -> "UnitArbiter":
             if cls._instance is None:
                 cls._instance = super(UnitArbiter, cls).__new__(cls)
@@ -1426,8 +1435,7 @@ if 1:  # UnitArbiter
             if not os.path.exists(self.dynamic_config):
                 with open(self.dynamic_config, "w") as f: f.write("")
             cmd.extend(["-f", self.dynamic_config])
-            if g.dbg:
-                print(f"DEBUG Units _start_process command:\n  {' '.join(cmd)}")
+            Dbg(f"Units _start_process command:\n  {' '.join(cmd)}")
             self.proc = subprocess.Popen(
                 cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, bufsize=1
@@ -1436,67 +1444,114 @@ if 1:  # UnitArbiter
             trans = str.maketrans("0123456789+-", "0123456789+-")
             return s.translate(trans).replace(" ", "*")
         def _drain_units(self):
-            # Non-blocking drain of leftover data
-            import select
+            # Non-blocking drain of all leftover data in the stdout buffer
             while True:
-                # Use select to see if there's any data waiting to be read
-                ready, _, _ = select.select([self.proc.stdout], [], [], 0.0)
+                # Poll for readiness with a tiny timeout
+                ready, _, _ = select.select([self.proc.stdout], [], [], 0.001)
                 if not ready:
                     break
-                self.proc.stdout.readline()
+                # Read line, but do it in a way that handles partial packets
+                line = self.proc.stdout.readline()
+                Dbg(f"Units _drain_units flushed: {line!r}")
         def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
             if not self.proc or self.proc.poll() is not None:
                 self._start_process()
-            # Clean the pipe before sending new input
-            self._drain_units()
+            have = self._translate_unicode(have)
+            want = self._translate_unicode(want)
+            query = f"{have}\n{want}\n"
+            Dbg(f"UnitArbiter.check_conformable sent: {query!r}")
+            try:
+                self.proc.stdin.write(query)
+                self.proc.stdin.flush()
+                # Consume lines until we find the result that isn't just a unit definition
+                result_line = ""
+                for _ in range(3): # We expect at most 3 lines (eval have, eval want, result)
+                    ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
+                    if not ready: break
+                    line = self.proc.stdout.readline().strip()
+                    Dbg(f"UnitArbiter.check_conformable scanned: {line!r}")
+                    # If this line looks like the conformability result, capture it and stop
+                    if "error" in line.lower() or "unknown" in line.lower() or "/" in line or "m^" in line:
+                         # Heuristic: if it looks like a conversion result, this is our line
+                         result_line = line
+                         # Note: We keep looking if it's just an evaluation,
+                         # but if we see 'error' we know we have the result.
+                         if "error" in line.lower():
+                             break
+                is_ok = not (not result_line or "error" in result_line.lower() or "unknown" in result_line.lower())
+                return is_ok, result_line
+            except Exception as e:
+                return False, f"Error: Pipe communication failed: {str(e)}"
+            finally:
+                self._drain_units()
+        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
+            if not self.proc or self.proc.poll() is not None:
+                self._start_process()
             have = self._translate_unicode(have)
             want = self._translate_unicode(want)
             query = f"{have}\n{want}\n"
             if g.dbg:
-                print(f"DEBUG UnitArbiter.check_conformable sent:  {query!r}")
+                print(f"DEBUG UnitArbiter.check_conformable sent: {query!r}")
             try:
                 self.proc.stdin.write(query)
                 self.proc.stdin.flush()
-                output = self.proc.stdout.readline().strip()
-                if g.dbg:
-                    print(f"DEBUG UnitArbiter.check_conformable got:  {output!r}")
-                if not output or "error" in output.lower() or "unknown" in output.lower():
-                    return False, output
-                return True, output
+                result_line = ""
+                for _ in range(3):
+                    ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
+                    if not ready: break
+                    line = self.proc.stdout.readline().strip()
+                    if g.dbg:
+                        print(f"DEBUG UnitArbiter.check_conformable scanned: {line!r}")
+                    # Heuristic:
+                    # 1. If we see an error/unknown, we are done (False).
+                    # 2. If the line is a number, the units are conformable (True).
+                    if "error" in line.lower() or "unknown" in line.lower():
+                        result_line = line
+                        break
+                    # Check if line is a valid number (conversion factor)
+                    try:
+                        float(line)
+                        result_line = line
+                        break # Found a valid conversion factor, success!
+                    except ValueError:
+                        continue # Keep scanning for the real result
+                # If result_line is empty, check_conformable failed to get a clear answer
+                is_ok = (result_line != "" and "error" not in result_line.lower() and "unknown" not in result_line.lower())
+                return is_ok, result_line
             except Exception as e:
-                return False, str(e)
+                return False, f"Error: Pipe communication failed: {str(e)}"
+            finally:
+                self._drain_units()
         def simplify(self, value: ty.Any, unit_str: str) -> ty.Tuple[ty.Any, str]:
             query = f"{unit_str}\n\n"
-            if g.dbg:
-                print(f"DEBUG Units UnitArbiter.simplify sent:  {query!r}")
             self.proc.stdin.write(query)
             self.proc.stdin.flush()
+            ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
+            if not ready:
+                raise TimeoutError(f"Simplify timed out after {self.read_timeout}s")
             res = self.proc.stdout.readline().strip()
-            if g.dbg:
-                print(f"DEBUG Units UnitArbiter.simplify got:  {res!r}")
+            Dbg("Units UnitArbiter.simplify got:  {res!r}")
             parts = res.split(" ", 1)
             conv_factor = mpmath.mpf(parts[0])
             new_unit = parts[1]
             return mpmath.mpf(value) * conv_factor, new_unit
         def is_known_unit(self, unit_str: str) -> bool:
-            if not unit_str:
-                return True
+            if not unit_str: return True
             query = f"{unit_str}\n\n"
-            if g.dbg:
-                print(f"DEBUG Units UnitArbiter.is_known_unit sent:  {query!r}")
+            Dbg(f"Units UnitArbiter.is_known_unit sent:  {query!r}")
             self.proc.stdin.write(query)
             self.proc.stdin.flush()
+            ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
+            if not ready:
+                return False
             line = self.proc.stdout.readline()
-            if g.dbg:
-                print(f"DEBUG Units UnitArbiter.is_known_unit got:  {line!r}")
             return "unknown unit" not in line.lower()
         def add_base(self, unit_name: str) -> None:
             definition = f"{unit_name}\t\t!base!"
             with open(self.dynamic_config, "a") as f:
                 f.write(f"\n{definition}\n")
             self._start_process()
-            if g.dbg:
-                print(f"DEBUG Units UnitArbiter new def:  {definition!r}, restarted units process ")
+            Dbg(f"Units UnitArbiter new def:  {definition!r}, restarted units process ")
         def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
                 tmp.write(definition+"\n")
@@ -1513,9 +1568,8 @@ if 1:  # UnitArbiter
             finally:
                 if os.path.exists(tmp_path):
                     os.remove(tmp_path)
-            if g.dbg:
-                print(f"DEBUG Units UnitArbiter._check_definition:  {definition!r}")
-                print(f"            got:  {is_ok}, {error_msg!r}")
+            Dbg(f"Units UnitArbiter._check_definition:  {definition!r}")
+            Dbg(f"     got:  {is_ok}, {error_msg!r}")
             return is_ok, error_msg
         def _register_unit(self, unit_name: str) -> str:
             unit_name = unit_name.strip()
@@ -1734,10 +1788,9 @@ if 1:   # Global namespace function population
             # 2. Uncertainty/Correlation Alert
             for i, a in enumerate(n_args):
                 if a.mytype in (NumType.Unc, NumType.UncCpx):
-                    if g.dbg:
-                        print(f"DEBUG: {func_name} received uncertainty for arg {i}. "
-                                f"Propagation not yet implemented. Uncertainty will be lost.",
-                                file=sys.stderr)
+                    Dbg(f"{func_name} received uncertainty for arg {i}. "
+                        f"Propagation not yet implemented. Uncertainty will be lost.",
+                        file=sys.stderr)
             # 3. Apply Unit Logic Gates
             res_unit = ""
             if logic == "dimensionless":
