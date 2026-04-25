@@ -76,8 +76,6 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = False
-        if len(sys.argv) > 1: # and sys.argv[1][0] == "d":
-            g.dbg = True
     if 1:   # Types and enums
         class NumType(enum.IntEnum):
             Int = 1
@@ -847,13 +845,13 @@ if 1: # NumericMixin
                     return False
             v1, v2 = self.raw_value, other.raw_value
             try:
-                if hasattr(v1, "real") or hasattr(v2, "real"):
-                    res = mpmath.mpc(v1) == mpmath.mpc(v2)
-                else:
-                    res = mpmath.mpf(v1) == mpmath.mpf(v2)
-                if res:
-                    return True
-                return str(v1) == str(v2)
+                m1, m2 = self._to_mpmath(v1), self._to_mpmath(v2)
+                # Parity check for real vs complex
+                if hasattr(m1, "imag") != hasattr(m2, "imag"):
+                    return False
+                # Use default almosteq to allow for standard rounding noise
+                # scaled to your current mp.dps
+                return mpmath.almosteq(m1, m2)
             except:
                 return v1 == v2
         def __abs__(self) -> "Num":
@@ -873,6 +871,20 @@ if 1: # NumericMixin
         def __complex__(self) -> complex:
             s = self.as_mpc
             return complex(float(s.real), float(s.imag))
+        @classmethod
+        def _to_mpmath(cls, val):
+            'Return a numerical value as an mpf/mpc'
+            if isinstance(val, (mpmath.mpf, mpmath.mpc)):
+                return val
+            if hasattr(val, "imag") and not isinstance(val, (int, float, complex, fractions.Fraction)):
+                return mpmath.mpc(val)
+            try:
+                s = str(val)
+                if 'j' in s or 'i' in s:
+                    return mpmath.mpc(s)
+                return mpmath.mpf(s)
+            except:
+                return val
     # Goodbye from the Mike & Don comedy show
 
 if 0: # Num
@@ -1328,6 +1340,34 @@ if 1: # Num
                 return abs(vx) < 10**(-ndigits)
             val = abs((vx-vy)/vy)
             return True if val == 0 else int(abs(mpmath.log10(val))) >= ndigits
+        def is_equal(self, other: "Num", digits: int = None) -> bool:
+            'Compare two Nums to a specified number of digits'
+            # 1. Normalize units using existing logic
+            if not isinstance(other, Num):
+                try:
+                    other = Num(other)
+                except:
+                    return False
+            if self._unit != other._unit:
+                try:
+                    other = self._normalize(other, "cmp")
+                except (ValueError, TypeError):
+                    return False
+            if self.mytype > NumType.Cpx or other.mytype > NumType.Cpx:
+                print("Warning:  comparing distribution(s)", file=sys.stderr)
+                return False
+            # 2. Convert to mpmath
+            v1, v2 = self.raw_value, other.raw_value
+            m1 = self._to_mpmath(v1) 
+            m2 = self._to_mpmath(v2)
+            # 3. Determine precision
+            # If digits is provided, epsilon = 10^-digits.
+            # Otherwise use default almosteq (which is 10^(1-dps))
+            if digits is not None:
+                rel_eps = mpmath.mpf(10) ** -digits
+                return mpmath.almosteq(m1, m2, rel_eps=rel_eps)
+            else:
+                return mpmath.almosteq(m1, m2)
         @property
         def dump(self) -> None:
             indent = " "*0
@@ -1347,7 +1387,8 @@ if 1: # Num
             return self._unit.strip()
         @property
         def raw_value(self) -> ty.Any:
-            if self.mytype in (NumType.Int, NumType.Rat): return self._val
+            if self.mytype in (NumType.Int, NumType.Rat):
+                return self._val
             return self.as_mpc if self.mytype in (NumType.Cpx, NumType.Unc, NumType.UncCpx) else self._real
         @property
         def as_mpc(self) -> mpmath.mpc:

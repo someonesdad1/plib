@@ -2,14 +2,8 @@
 
 Bugs
     - rho = Num("136.9(5) g/in3")
-        - rho.to("g/mL") gave 8.35415056656885, but lost the propagated uncertainty
-    - x, y = Num("1 m"), Num("1.0 J"):  x == y should raise ValueError
-        - Instrumented test with from number import g;with g: g.dbg = True
-        - Got:  DEBUG UnitArbiter.check_conformable sent:  'J\nm\n'
-            DEBUG UnitArbiter.check_conformable got:  '1 kg m^2 / s^2'
-            - It's missing the "conformable error"l
-here's the DEBUG trace:
-
+        - rho.to("g/mL") gave 8.35415056656885 (correct), but lost the propagated uncertainty
+    - .r:  Reduce to base units:  "3 (mm)*(mm)" -> "3e-06 m^2"
 
 
 - Feature changes
@@ -22,7 +16,6 @@ here's the DEBUG trace:
         - Note this might have to be 3e-06 m^2, as that's what GNU units produces
         - Shows need for formatting:  nice form would be "3 mm²"
     - .b:  Show in base SI units
-    - .t:  x.t = "mm2" same as x.to("mm2") (returns new Num instance)
     - .f:  Show as a fraction (this will be only way to see the fractional details, as
       most folks will just want the decimal or integer form)
 

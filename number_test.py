@@ -8,13 +8,11 @@ import io
 import sys
 import mpmath
 from number import Num, NumType, StringParser
-from lwtest import Assert
+from lwtest import Assert, raises, run
 import dptypes
 from number import g
-
-#g1 = dptypes.Constant()
-#g1.dbg = True if len(sys.argv) > 1 else False
-
+assert mpmath.mp.dps == 15
+#g.dbg = True    # Turn on debug printing to see GNU units interaction
 def Test_Arithmetic():
     if 1:   # Test addition
         if 1:   # Integer & real
@@ -93,6 +91,61 @@ def Test_Arithmetic():
             #expected = Num("0.25") Older conversion to float
             expected = Num("1/4 (in)/(in)")
             Assert(result == expected)
+def Test_Comparisons():
+    if 1:   # Show we get exception when trying to compare nonconformable units
+        x = Num("1 m")
+        y = Num("1.0 J")
+        z = Num("3.28083989501312 ft")
+        with raises(ValueError):
+            x < y
+        with raises(ValueError):
+            x <= y
+        with raises(ValueError):
+            x > y
+        with raises(ValueError):
+            x >= y
+    if 1:   # Check equality testing
+        Assert(x != y)
+        Assert(x == z)
+def Test_Constructor_Strings():
+    zero = 0
+    ndigits = min(max(1, 7*mpmath.mp.dps//8), mpmath.mp.dps)
+    test_cases = [("1", NumType.Int),
+                    ("1/2", NumType.Rat),
+                    ("1.2", NumType.Flt),
+                    ("1.2e3", NumType.Flt),
+                    ("1+2j", NumType.Cpx)]
+    for s, typ in test_cases:
+        x = Num(s)
+        Assert(x.mytype == typ, expected=typ, got=x.mytype)
+        # Check numerical value
+        if s == "1":
+            Assert(x._val.numerator == 1 and x._val.denominator == 1)
+        elif s == "1/2":
+            Assert(x._val.numerator == 1 and x._val.denominator == 2)
+        elif s == "1.2":
+            Assert(x._real == mpmath.mpf(s))
+            Assert(x._imag == zero)
+        elif s == "1.2e3":
+            Assert(x.approx(Num("1200/1"), ndigits))
+            Assert(x._imag == zero)
+        elif s == "1+2j":
+            Assert(x._real == mpmath.mpf("1") and x._imag == mpmath.mpf("2"))
+    # Test using a long string to show we aren't dropping back to standard 64
+    # bit float precision
+    with mpmath.extradps(20):
+        sx = "1.123456789012345678901234567890"
+        sy = "11.23456789012345678901234567890"
+        x = mpmath.mpf(sx)
+        y = mpmath.mpf(sy)
+        result = x*y
+        expected = mpmath.mpf("12.621551567779301945529644873425361979")
+        Assert(result == expected)
+        x = Num(sx + " m")
+        y = Num(sy + " kg")
+        result = x*y
+        expected = Num("12.621551567779301945529644873425361979 (m)*(kg)")
+        Assert(result == expected)
 def Test_Constructor_With_Numbers():
     zero = 0
     if 1:   # No input
@@ -170,69 +223,6 @@ def Test_Constructor_With_Numbers():
         pass
     if 1:   # Unc
         pass
-def Test_Constructor_Strings():
-    zero = 0
-    ndigits = min(max(1, 7*mpmath.mp.dps//8), mpmath.mp.dps)
-    test_cases = [("1", NumType.Int),
-                    ("1/2", NumType.Rat),
-                    ("1.2", NumType.Flt),
-                    ("1.2e3", NumType.Flt),
-                    ("1+2j", NumType.Cpx)]
-    for s, typ in test_cases:
-        x = Num(s)
-        Assert(x.mytype == typ, expected=typ, got=x.mytype)
-        # Check numerical value
-        if s == "1":
-            Assert(x._val.numerator == 1 and x._val.denominator == 1)
-        elif s == "1/2":
-            Assert(x._val.numerator == 1 and x._val.denominator == 2)
-        elif s == "1.2":
-            Assert(x._real == mpmath.mpf(s))
-            Assert(x._imag == zero)
-        elif s == "1.2e3":
-            Assert(x.approx(Num("1200/1"), ndigits))
-            Assert(x._imag == zero)
-        elif s == "1+2j":
-            Assert(x._real == mpmath.mpf("1") and x._imag == mpmath.mpf("2"))
-    # Test using a long string to show we aren't dropping back to standard 64
-    # bit float precision
-    with mpmath.extradps(20):
-        sx = "1.123456789012345678901234567890"
-        sy = "11.23456789012345678901234567890"
-        x = mpmath.mpf(sx)
-        y = mpmath.mpf(sy)
-        result = x*y
-        expected = mpmath.mpf("12.621551567779301945529644873425361979")
-        Assert(result == expected)
-        x = Num(sx + " m")
-        y = Num(sy + " kg")
-        result = x*y
-        expected = Num("12.621551567779301945529644873425361979 (m)*(kg)")
-        Assert(result == expected)
-def Test_Noether_Invariant():
-    '''The .num component is used to normalize to a "unit vector" in the
-    particular "unit" vector's direction.  This means that x/x.num returns a Num
-    with unit numerical magnitude and the same units of x.  This is analogous to
-    how you normalize in linear vector spaces:  a unit vector in the direction
-    of v is v/|v|.
-    
-    I think it would be fitting to call this x/x.num the "Noether invariant";
-    it's really the "unit vector" in the dimensional space described by the
-    units.
-    '''
-    x = Num("1.23 A")
-    Assert(x._real == mpmath.mpf("1.23"))
-    Assert(x.unit == "A")
-    y = x/x.num
-    # Now y is in some sense a unit vector in the units space
-    Assert(y == Num("1 A"))
-    Assert(y.unit == x.unit)    # Make sure units didn't change
-    Assert(x.num*y == x)        # Prove the Noether invariance
-    # It has to work for complex too
-    z = Num("1+2i m")
-    y = z/z.num
-    Assert(y.unit == z.unit)    # Make sure units didn't change
-    Assert(z.num*y == z)        # Prove the Noether invariance
 def Test_Corners():
     N = Num
     if 1:   # 0 and 1
@@ -254,8 +244,7 @@ def Test_Corners():
     if 1:   # With units
         # Real
         Assert(N("0 m") + N("0 m") == N("0 m"))
-        Assert(N("0 m")*N("1 m") == N("0 m2"))
-        #Assert(N("0 m")/N("1 m") == N("0"))
+        Assert(N("0 m")*N("1 m") == Num('0 (m)*(m)'))
         Assert(N("0 m")/N("1 m") == N("0.0 (m)/(m)"))
         # Complex
         Assert(N("0+0j m") + N("0+0j m") == N("0+0j m"))
@@ -348,181 +337,12 @@ def Test_Corners():
             x + y
         z = x*y
         Assert(z == Num('1.0 (m)*(J)'))
-def Test_Comparisons():
-    g.dbg = True    # Turn on debug printing to see GNU units interaction
-    if 1:   # Show we get exception when trying to compare nonconformable units
-        x = Num("1 m")
-        y = Num("1.0 J")
-        print("Running comparison tests:")
-        with raises(ValueError):
-            print("  x < y")
-            x < y
-        with raises(ValueError):
-            print("  x <= y")
-            x <= y
-        with raises(ValueError):
-            print("  x > y")
-            x > y
-        with raises(ValueError):
-            print("  x >= y")
-            x >= y
-        if 0:
-            with raises(ValueError):
-                print("  x == y")
-                x == y
-def Test_New_Unit():
-    return
-    # I've shut this off, as it has been tested and works
-    if 0:
-        basename = "delete_me_"
-        for i in range(8):
-            c = random.randint(97, 122)
-            basename += chr(c)
-        x = Num("1 m")
-        print(f"basename = {basename!r}")
-        x.base(basename) # The Arbiter will turn this into "name\t!"
 def Test_Functions():
     x = Num(0)
     x.arb.inject_math()
     if 1:   # Prove radians() and sin() are in the global namespace
         x = Num(radians(30))
         Assert(sin(x).approx(0.5, 10))
-def Test_Uncertainty():
-    '''This output came from the _unc.py script, which uses the python
-    uncertainties library to calculate the results.  I feel the Num class
-    must reproduce its results.
-    
-    Introduction
-        This simulates a measurement made in the yard with a Starrett fiberglass
-        200 foot tape measure.  The tape measure is graduated in units of 0.01 ft.
-        I have no standard or calibration to know the uncertainty, so I'm forced
-        to estimate a type B uncertainty.  Much of the measurement uncertainty
-        won't come from the uncertainty in the tape measure itself; it will come
-        from going over the bumpy lawn and having to be pulled on to get things
-        straighter (tape stretch and small cumulative cosine errors).  I'll
-        estimate the uncertainty at 0.1 ft, which means the standard deviation is
-        about 1.2 inches.  If you regard a measurement as "nearly certain" if it's
-        within 3 standard deviations, then that means we regard each measurement
-        as "known" within about ±3.5 inches as a near certainty.  For a 50 to 100
-        ft typical measurement in the yard, that sounds reasonable.
-    
-    Basic arithmetic:
-        x1 = 100.00(10)
-        x2 = 150.00(10)
-        x1 + x2 = 250.00(14)
-        x1 - x2 = -50.00(14)
-        x1*x2 = 15000(18)
-        x1/x2 = 0.66667(80)
-    Problematic:
-        sqrt(ufloat(0, 1)) = 0.0+/-nan
-        ufloat(0, 1)/ufloat(0.0001, 1) = (0.0+/-1.0)e+04
-    Trig:
-        Using the cosine law and lengths x1 = 100.00+/-0.10 and x2 = 150.00+/-0.10,
-        calculate the third edge of a triangle if the angle between the two lengths is 
-        60(2) degrees, measured with a small compass.  The formula is
-            y² = x1² + x2² - 2*x1*x2*cos(angle)
-        where angle = 60.0+/-2.0°.  The task is to convert the angle to radians, then
-        peform the calculation.  The terms are
-            x1² = 10000+/-20
-            x2² = 22500+/-30
-            2*x1*x2 = (3.000+/-0.004)e+04
-            cos(radians(angle)) = 0.500+/-0.030
-        Putting the pieces together, the result is
-            y = 132.3+/-3.4
-        Note:  a calculator gives 132.388.
-    
-    Num constructor guts:
-        self._val: fractions.Fraction = fractions.Fraction(0, 1)
-        self._real: mpmath.mpf = mpmath.mpf("0")
-        self._imag: mpmath.mpf = mpmath.mpf("0")
-        self.re_unc: mpmath.mpf = mpmath.mpf("0")
-        self.im_unc: mpmath.mpf = mpmath.mpf("0")
-        self.correl: mpmath.mpf = mpmath.mpf("0")
-        self._unit = ""
-        self.mytype: NumType = NumType.Int
-    '''
-    mpf, mpc = mpmath.mpf, mpmath.mpc
-    indent = " "*4
-    x1 = Num("100 ft")
-    x2 = Num("150 ft")
-    # Manually convert to Unc instances
-    x1.re_unc = mpf("0.1")
-    x2.re_unc = x1.re_unc
-    x1.mytype = NumType.Unc
-    x2.mytype = NumType.Unc
-    if 1:   # Addition
-        result = x1 + x2
-        if 0:   # Dump values for debugging
-            print("x1 dump")
-            x1.dump(indent)
-            print("\nx2 dump")
-            x2.dump(indent)
-            print("\nresult dump")
-            result.dump(indent)
-        Assert(result == Num("250 ft"))
-        myresult = Num(str(result.re_unc))
-        expected = mpf("0.1")*mpmath.sqrt(2)
-        Assert(myresult.approx(expected, 14))
-    if 1:   # Multiplication
-        result = x1 * x2
-        if 0:   # Dump values for debugging
-            print("x1 dump")
-            x1.dump(indent)
-            print("\nx2 dump")
-            x2.dump(indent)
-            print("\nresult dump")
-            result.dump(indent)
-        Assert(result == Num("15000 (ft)*(ft)"))
-        myresult = Num(str(result.re_unc))
-        expected = mpf("18")
-        Assert(myresult.approx(expected, 2))
-    if 1:   # Division
-        result = x1 / x2
-        if 0:   # Dump values for debugging
-            print("x1 dump")
-            x1.dump(indent)
-            print("\nx2 dump")
-            x2.dump(indent)
-            print("\nresult dump")
-            result.dump(indent)
-        Assert(result.approx(2/3, 14))
-        myresult = Num(str(result.re_unc))
-        expected = mpf("0.00080")
-        Assert(myresult.approx(expected, 2))
-    if 0:   # Cosine law example
-        theta = Num(radians(60))    # 60°±2° 
-        theta.re_unc = radians(mpf(2))
-        theta.mytype = NumType.Unc
-        result = sqrt(x1*x1 + x2*x2 - 2*x1*x2*cos(theta))
-        if 0:   # Dump
-            print("theta dump")
-            theta.dump(indent)  # 1.0472 radians
-            print("result dump")
-            result.dump(indent)
-    if 1:   # Large derivative
-        x = Num("0")
-        x.re_unc = mpf(1)
-        x.mytype = NumType.Unc
-        f = io.StringIO()
-        with contextlib.redirect_stderr(f):
-            result = sqrt(x)
-        s = f.getvalue()
-        Assert("Warning" in s)
-        # Note:  the numerical differentiation gives a large number (1.9e11 for
-        # the default diff, but we're using a heuristic to select the step size
-        # h) sensitivity sens in inject_math.wrapped().  However, it of course
-        # doesn't result in a NaN like the python uncertainties library gets.
-        Assert(result == Num(0))
-        y = Num(result.re_unc)
-        Assert(y.approx(22360, 4))
-    if 1:   # Zero uncertainty
-        x = Num("1.23(0)")
-        Assert(x._real == mpmath.mpf("1.23"))
-        Assert(x._imag == mpmath.mpf("0"))
-        Assert(x.re_unc == mpmath.mpf("0"))
-        Assert(x.im_unc == mpmath.mpf("0"))
-        Assert(x.correl == mpmath.mpf("0"))
-        Assert(x.mytype == NumType.Unc)
 def Test_Infection():
     '''The Num class follows the infection model in that a Num instance with
     another instance in a binary operation will return the Num type, "infecting"
@@ -607,6 +427,41 @@ def Test_Infection():
         Assert(isinstance(y, Num))
         y /= x
         Assert(isinstance(y, Num))
+def Test_New_Unit():
+    return
+    # I've shut this off, as it has been tested and works
+    if 0:
+        basename = "delete_me_"
+        for i in range(8):
+            c = random.randint(97, 122)
+            basename += chr(c)
+        x = Num("1 m")
+        print(f"basename = {basename!r}")
+        x.base(basename) # The Arbiter will turn this into "name\t!"
+def Test_Noether_Invariant():
+    '''The .num component is used to normalize to a "unit vector" in the
+    particular "unit" vector's direction.  This means that x/x.num returns a Num
+    with unit numerical magnitude and the same units of x.  This is analogous to
+    how you normalize in linear vector spaces:  a unit vector in the direction
+    of v is v/|v|.
+    
+    I think it would be fitting to call this x/x.num the "Noether invariant";
+    it's really the "unit vector" in the dimensional space described by the
+    units.
+    '''
+    x = Num("1.23 A")
+    Assert(x._real == mpmath.mpf("1.23"))
+    Assert(x.unit == "A")
+    y = x/x.num
+    # Now y is in some sense a unit vector in the units space
+    Assert(y == Num("1 A"))
+    Assert(y.unit == x.unit)    # Make sure units didn't change
+    Assert(x.num*y == x)        # Prove the Noether invariance
+    # It has to work for complex too
+    z = Num("1+2i m")
+    y = z/z.num
+    Assert(y.unit == z.unit)    # Make sure units didn't change
+    Assert(z.num*y == z)        # Prove the Noether invariance
 def Test_StringParser():
     '''These are some test cases Mike and I developed together, as getting the
     string parsing to work is such a fundamental need.  Much of the work was at
@@ -813,13 +668,146 @@ def Test_StringParser():
             Assert(pp.type == NumType.UncCpx)
         # Correlation coefficient outside of [-1, 1] is error
         raises(ValueError, Num, "-1.0(2)-1.0(2)j<R=2>")
-
+def Test_Uncertainty():
+    '''This output came from the _unc.py script, which uses the python
+    uncertainties library to calculate the results.  I feel the Num class
+    must reproduce its results.
+    
+    Introduction
+        This simulates a measurement made in the yard with a Starrett fiberglass
+        200 foot tape measure.  The tape measure is graduated in units of 0.01 ft.
+        I have no standard or calibration to know the uncertainty, so I'm forced
+        to estimate a type B uncertainty.  Much of the measurement uncertainty
+        won't come from the uncertainty in the tape measure itself; it will come
+        from going over the bumpy lawn and having to be pulled on to get things
+        straighter (tape stretch and small cumulative cosine errors).  I'll
+        estimate the uncertainty at 0.1 ft, which means the standard deviation is
+        about 1.2 inches.  If you regard a measurement as "nearly certain" if it's
+        within 3 standard deviations, then that means we regard each measurement
+        as "known" within about ±3.5 inches as a near certainty.  For a 50 to 100
+        ft typical measurement in the yard, that sounds reasonable.
+    
+    Basic arithmetic:
+        x1 = 100.00(10)
+        x2 = 150.00(10)
+        x1 + x2 = 250.00(14)
+        x1 - x2 = -50.00(14)
+        x1*x2 = 15000(18)
+        x1/x2 = 0.66667(80)
+    Problematic:
+        sqrt(ufloat(0, 1)) = 0.0+/-nan
+        ufloat(0, 1)/ufloat(0.0001, 1) = (0.0+/-1.0)e+04
+    Trig:
+        Using the cosine law and lengths x1 = 100.00+/-0.10 and x2 = 150.00+/-0.10,
+        calculate the third edge of a triangle if the angle between the two lengths is 
+        60(2) degrees, measured with a small compass.  The formula is
+            y² = x1² + x2² - 2*x1*x2*cos(angle)
+        where angle = 60.0+/-2.0°.  The task is to convert the angle to radians, then
+        peform the calculation.  The terms are
+            x1² = 10000+/-20
+            x2² = 22500+/-30
+            2*x1*x2 = (3.000+/-0.004)e+04
+            cos(radians(angle)) = 0.500+/-0.030
+        Putting the pieces together, the result is
+            y = 132.3+/-3.4
+        Note:  a calculator gives 132.388.
+    
+    Num constructor guts:
+        self._val: fractions.Fraction = fractions.Fraction(0, 1)
+        self._real: mpmath.mpf = mpmath.mpf("0")
+        self._imag: mpmath.mpf = mpmath.mpf("0")
+        self.re_unc: mpmath.mpf = mpmath.mpf("0")
+        self.im_unc: mpmath.mpf = mpmath.mpf("0")
+        self.correl: mpmath.mpf = mpmath.mpf("0")
+        self._unit = ""
+        self.mytype: NumType = NumType.Int
+    '''
+    mpf, mpc = mpmath.mpf, mpmath.mpc
+    indent = " "*4
+    x1 = Num("100 ft")
+    x2 = Num("150 ft")
+    # Manually convert to Unc instances
+    x1.re_unc = mpf("0.1")
+    x2.re_unc = x1.re_unc
+    x1.mytype = NumType.Unc
+    x2.mytype = NumType.Unc
+    if 1:   # Addition
+        result = x1 + x2
+        if 0:   # Dump values for debugging
+            print("x1 dump")
+            x1.dump(indent)
+            print("\nx2 dump")
+            x2.dump(indent)
+            print("\nresult dump")
+            result.dump(indent)
+        Assert(result == Num("250 ft"))
+        myresult = Num(str(result.re_unc))
+        expected = mpf("0.1")*mpmath.sqrt(2)
+        Assert(myresult.approx(expected, 14))
+    if 1:   # Multiplication
+        result = x1 * x2
+        if 0:   # Dump values for debugging
+            print("x1 dump")
+            x1.dump(indent)
+            print("\nx2 dump")
+            x2.dump(indent)
+            print("\nresult dump")
+            result.dump(indent)
+        Assert(result == Num("15000 (ft)*(ft)"))
+        myresult = Num(str(result.re_unc))
+        expected = mpf("18")
+        Assert(myresult.approx(expected, 2))
+    if 1:   # Division
+        result = x1 / x2
+        if 0:   # Dump values for debugging
+            print("x1 dump")
+            x1.dump(indent)
+            print("\nx2 dump")
+            x2.dump(indent)
+            print("\nresult dump")
+            result.dump(indent)
+        Assert(result.approx(2/3, 14))
+        myresult = Num(str(result.re_unc))
+        expected = mpf("0.00080")
+        Assert(myresult.approx(expected, 2))
+    if 0:   # Cosine law example
+        theta = Num(radians(60))    # 60°±2° 
+        theta.re_unc = radians(mpf(2))
+        theta.mytype = NumType.Unc
+        result = sqrt(x1*x1 + x2*x2 - 2*x1*x2*cos(theta))
+        if 0:   # Dump
+            print("theta dump")
+            theta.dump(indent)  # 1.0472 radians
+            print("result dump")
+            result.dump(indent)
+    if 1:   # Large derivative
+        x = Num("0")
+        x.re_unc = mpf(1)
+        x.mytype = NumType.Unc
+        f = io.StringIO()
+        with contextlib.redirect_stderr(f):
+            result = sqrt(x)
+        s = f.getvalue()
+        Assert("Warning" in s)
+        # Note:  the numerical differentiation gives a large number (1.9e11 for
+        # the default diff, but we're using a heuristic to select the step size
+        # h) sensitivity sens in inject_math.wrapped().  However, it of course
+        # doesn't result in a NaN like the python uncertainties library gets.
+        Assert(result == Num(0))
+        y = Num(result.re_unc)
+        Assert(y.approx(22360, 4))
+    if 1:   # Zero uncertainty
+        x = Num("1.23(0)")
+        Assert(x._real == mpmath.mpf("1.23"))
+        Assert(x._imag == mpmath.mpf("0"))
+        Assert(x.re_unc == mpmath.mpf("0"))
+        Assert(x.im_unc == mpmath.mpf("0"))
+        Assert(x.correl == mpmath.mpf("0"))
+        Assert(x.mytype == NumType.Unc)
 if __name__ == "__main__":  
-    import lwtest
-    assert mpmath.mp.dps == 15
-    run = lwtest.run
-    raises = lwtest.raises
-    if 0:
-        Test_Comparisons()
+    if 1:
+        x = Num("1 m")
+        y = Num("3.281 ft")
+        print(x.is_equal(y, 5))
     else:
-        exit(lwtest.run(globals(), regexp=r"^Test_", halt=1, verbose=1)[0])
+        exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
