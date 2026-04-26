@@ -2,14 +2,18 @@
 '''
 
 - Persistence in REPL
-    - Core name is ".number.ini".  The first occurrence of the following is used:
-        - If defined in environment, then points to initialization file
-        - If ./.number.ini exists
-        - If ~/.number.ini exists
-    - New information is always appended to existing file
-    - Block chaining is used to maintain provenance.  The intent is not to encrypt
-      (that's up to the user) but to provide a tool to detect when the file has been
-      corrupted or intentionally changed (can't tell the difference)
+    - Mike has a 50 line vision of an SQLite db persistence connection for the REPL
+      using the memento pattern.
+        - A memento is a class that the Originator (Num class instance) saves its state
+          to.  The memento is passed to a Caretaker that e.g. persists it with block
+          chaining to establish provenance.  When restoring old state is needed, the
+          Originator is given back the memento and uses memento.GetState() to restore
+          the Num's state.  https://refactoring.guru/design-patterns/memento
+        - He also feels we can get this implemented in a single day, so it's worth the
+          effort.  This gives me persistence without losing my development context that
+          remembers the twisted paths of development and where the problems are; this
+          lets me continue to try the whole thing out as a real prototype with
+          persistence.
 
 - .flip:  property used to flip the output of str() and repr().  Use case:  in the REPL
   and the debugger, you usually see the repr() form; this allows you to see the str()
