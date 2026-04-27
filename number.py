@@ -706,6 +706,7 @@ if 0: # NumericMixin
             s = self.as_mpc
             return complex(float(s.real), float(s.imag))
     # Goodbye from the Mike & Don comedy show
+# CHUNK: NumericMixin
 if 1: # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__ _ensure_conformable'''
     class NumericMixin:
@@ -915,6 +916,7 @@ if 1: # NumericMixin
             except:
                 return val
     # Goodbye from the Mike & Don comedy show
+# END_CHUNK: NumericMixin
 
 if 0: # Num
     '''Manifest [20]: __init__ _promote _binary_op _make_result _normalize base help _s _r __str__ __repr__ to approx dump unit raw_value as_mpc as_mpf as_int_or_rat num pi e'''
@@ -1170,6 +1172,7 @@ if 0: # Num
                     self.re_unc = self.im_unc = self.correl = mpmath.mpf("0")
             self._mytype = new_type
     # Goodbye from the Mike & Don comedy show
+# CHUNK: Num
 if 1: # Num
     '''Manifest [20]: __init__ _promote _binary_op _make_result _normalize base help _s _r __str__ __repr__ to approx dump unit raw_value as_mpc as_mpf as_int_or_rat num pi e'''
     class Num(NumericMixin):
@@ -1485,7 +1488,9 @@ if 1: # Num
             new_num._unit = base_unit
             return new_num
     # Goodbye from the Mike & Don comedy show
+# END_CHUNK: Num
 
+# CHUNK: ParsedPayload
 if 1: # ParsedPayload
     @dataclasses.dataclass
     class ParsedPayload:
@@ -1499,7 +1504,9 @@ if 1: # ParsedPayload
         im_unc: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
         correl: mpmath.mpf = dataclasses.field(default_factory=lambda: mpmath.mpf("0"))
         unit: str = ""
+# END_CHUNK: ParsedPayload
 
+# CHUNK: UnitArbiter
 if 1:  # UnitArbiter
     '''Manifest [12]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
     class UnitArbiter:
@@ -1708,7 +1715,9 @@ if 1:  # UnitArbiter
             for name in misc_funcs:
                 setattr(target, name, create_wrapper(name, is_dimensionless=False))
     # Goodbye from the Mike & Don comedy show
+# END_CHUNK: UnitArbiter
 
+# CHUNK: StringParser
 if 1:  # StringParser
     '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
     class StringParser:
@@ -1827,24 +1836,9 @@ if 1:  # StringParser
             if "." in val_str: decimal_places = len(val_str.split(".")[1])
             return mpmath.mpf(unc_str) / (10**decimal_places)
     # Goodbye from the Mike & Don comedy show
+# END_CHUNK: StringParser
 
-if 1:  # Functions
-    def RegisterUnit(unit_name: str) -> None:
-        '''Global helper for the Num class to ensure units are registered.'''
-        UnitArbiter()._register_unit(unit_name)
-    def e(n: "Num"):
-        '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
-        import tempfile, os, subprocess
-        initial_text = f"Unit: {n._unit}\nValue: {n._real}\nDoc: {n.d}"
-        with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tf:
-            tf.write(initial_text)
-            temp_path = tf.name
-        # Fire up vi/vim/nano
-        editor = os.environ.get('EDITOR', 'vi')
-        subprocess.call([editor, temp_path])
-        # ... logic to read the file back and update n.d ...
-        print(f"Updated {n._unit} metadata.")
-
+# CHUNK: NumFunctionPopulation
 if 1:   # Global namespace function population
     unit_arbiter = UnitArbiter() # Singleton initialization
     def NoetherWrap(func_name: str, logic: str = "dimensionless"):
@@ -1925,6 +1919,27 @@ if 1:   # Global namespace function population
     sqrt = NoetherWrap("sqrt", logic="sqrt")
     ceil = NoetherWrap("ceil", logic="dimensionless")
     floor = NoetherWrap("floor", logic="dimensionless")
+# END_CHUNK: NumFunctionPopulation
+
+# CHUNK: NumFunctions
+if 1:  # Functions
+    def RegisterUnit(unit_name: str) -> None:
+        '''Global helper for the Num class to ensure units are registered.'''
+        UnitArbiter()._register_unit(unit_name)
+    def e(n: "Num"):
+        '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
+        import tempfile, os, subprocess
+        initial_text = f"Unit: {n._unit}\nValue: {n._real}\nDoc: {n.d}"
+        with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tf:
+            tf.write(initial_text)
+            temp_path = tf.name
+        # Fire up vi/vim/nano
+        editor = os.environ.get('EDITOR', 'vi')
+        subprocess.call([editor, temp_path])
+        # ... logic to read the file back and update n.d ...
+        print(f"Updated {n._unit} metadata.")
+# END_CHUNK: NumFunctions
+
 if 1:  # Help 
     class Help:
         'Adds the help() function (singleton class)'
