@@ -27,6 +27,31 @@
     - "I":  show number as improper fraction to full resolution
     - "P":  show as proper fraction to full resolution
 
+- Loss of linear uncertainty
+
+    - An important idea was in the UnitArbiter.inject_math(self) function which was an
+      early form of the currently-use NoetherWrap() function.  This is in the revisions
+      before about 84073ed2678a5f8bc for a week or two.  This was the core code:
+
+        with workdps(mp.dps + 4):
+            h_base = mp.power(10, -(mp.dps // 2))
+            d1 = diff(mp_func, x.as_mpc, h=h_base)
+            d2 = diff(mp_func, x.as_mpc, h=h_base / 2)
+            sens = abs(d1)
+            sens2 = abs(d2)
+            if abs(sens - sens2) / (sens + 1e-30) > 0.01:
+                print(f"Warning: Possible singularity suspected in {func_name} at {x.raw_value}."
+                    f"\nUncertainty propagation may be non-physical.", file=sys.stderr)
+            new_re_unc = sens * x.re_unc
+            new_im_unc = sens * x.im_unc
+
+    - This looked at the relative change of the sensitivity (absolute value of the
+      slope) and if it was above a threshold, a warning about uncertainty propagation
+      was made.  Note the default mp.dps is 15, so this uses an h of around 1e-7, then
+      h/2.  This is a practical strategy to detect steep derivatives that invalidate
+      linear uncertainty propagation.  I think it should be added back into the existing
+      closure factory.
+
 '''
 if 1:  # Header
     if 1:   # Standard imports
@@ -697,9 +722,9 @@ if 1: # NumericMixin
                 # Covariance term
                 cov_xy = self.correl * self.re_unc * self.im_unc
                 # Variance propagation formula (Taylor expansion)
-                var_real = (abs(df_dx)**2 * self.re_unc**2) + \
-                           (abs(df_dy)**2 * self.im_unc**2) + \
-                           (2 * df_dx * df_dy * cov_xy)
+                var_real = ((abs(df_dx)**2 * self.re_unc**2)
+                            + (abs(df_dy)**2 * self.im_unc**2)
+                            + (2 * df_dx * df_dy * cov_xy))
                 new_unc = mp_sqrt(abs(var_real))
             res = self._make_result(op_func(self.as_mpc), unit=res_unit)
             res.re_unc = new_unc
@@ -1162,17 +1187,18 @@ if 1: # Num
         active_system = "default"
         Fmt = fmt.Fmt()
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
-            self._doc = ""
             self.arb = UnitArbiter()
             self.fmt = Num.Fmt
-            self._val: fractions.Fraction = fractions.Fraction(0)
-            self._real: mpmath.mpf = mpmath.mpf("0")
-            self._imag: mpmath.mpf = mpmath.mpf("0")
-            self.re_unc: mpmath.mpf = mpmath.mpf("0")
-            self.im_unc: mpmath.mpf = mpmath.mpf("0")
-            self.correl: mpmath.mpf = mpmath.mpf("0")
-            self._unit = ""
-            self._mytype: NumType = NumType.Int
+            if 1:   # Set default state
+                self._doc = ""
+                self._val: fractions.Fraction = fractions.Fraction(0)
+                self._real: mpmath.mpf = mpmath.mpf("0")
+                self._imag: mpmath.mpf = mpmath.mpf("0")
+                self.re_unc: mpmath.mpf = mpmath.mpf("0")
+                self.im_unc: mpmath.mpf = mpmath.mpf("0")
+                self.correl: mpmath.mpf = mpmath.mpf("0")
+                self._unit = ""
+                self._mytype: NumType = NumType.Int
             if value is None:
                 if unit:
                     self._unit = unit
@@ -1219,12 +1245,19 @@ if 1: # Num
             if not (-1 <= self.correl <= 1):
                 raise ValueError("Correlation coefficient must be on [-1, 1]")
         def _promote(self) -> "Num":
-            '''Aggressively collapse Flt back to Rat or Int if precision allows.'''
+            'Collapse Flt back to Rat or Int if precision allows'
             if self.mytype == NumType.Flt:
                 try:
+                    # This limits the denominator to 1e5; I think this is a good
+                    # default, as it's too easy to get large integers when converting
+                    # from floats to rationals
                     f = fractions.Fraction(str(self._real)).limit_denominator()
+                    # Only convert if the fraction is equal to the mpf at working
+                    # precision
                     if mpmath.mpf(f.numerator) / mpmath.mpf(f.denominator) == self._real:
                         self._val = f
+                        # Note:  DO NOT set ._real to 0 here, as it will break other
+                        # calculations (example:  Num("3/8") + Num("1.0"))
                         self.mytype = NumType.Rat
                 except:
                     pass
@@ -1290,7 +1323,7 @@ if 1: # Num
         def _s(self) -> str:
             if self.mytype == NumType.Int:
                 s = self.fmt(self._val.numerator)
-            elif self.mytype == NumType.Rat:
+            elif self.mytype in (NumType.Rat, NumType.Flt):
                 s = self.fmt(self.as_mpf)
             elif self.mytype == NumType.Cpx:
                 s = self.fmt(self.as_mpc)
@@ -1299,7 +1332,7 @@ if 1: # Num
             elif self.mytype == NumType.UncCpx:
                 s = f"{self.as_mpc} +/- {self.re_unc} + {self.im_unc}i <R={self.correl}>"
             else:
-                s = self.fmt(self._real)
+                raise TypeError("Bug in type(self)")
             unit_string = f" {t.whtl}{self._unit}{t.n}" if self._unit else ""
             color = Num.type_color.get(self.mytype, t.wht)
             return f"{color}{s}{t.n}{unit_string}"
@@ -1514,37 +1547,6 @@ if 1:  # UnitArbiter
                 # Read line, but do it in a way that handles partial packets
                 line = self.proc.stdout.readline()
                 Dbg(f"Units _drain_units flushed: {line!r}")
-        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
-            if not self.proc or self.proc.poll() is not None:
-                self._start_process()
-            have = self._translate_unicode(have)
-            want = self._translate_unicode(want)
-            query = f"{have}\n{want}\n"
-            Dbg(f"UnitArbiter.check_conformable sent: {query!r}")
-            try:
-                self.proc.stdin.write(query)
-                self.proc.stdin.flush()
-                # Consume lines until we find the result that isn't just a unit definition
-                result_line = ""
-                for _ in range(3): # We expect at most 3 lines (eval have, eval want, result)
-                    ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
-                    if not ready: break
-                    line = self.proc.stdout.readline().strip()
-                    Dbg(f"UnitArbiter.check_conformable scanned: {line!r}")
-                    # If this line looks like the conformability result, capture it and stop
-                    if "error" in line.lower() or "unknown" in line.lower() or "/" in line or "m^" in line:
-                         # Heuristic: if it looks like a conversion result, this is our line
-                         result_line = line
-                         # Note: We keep looking if it's just an evaluation,
-                         # but if we see 'error' we know we have the result.
-                         if "error" in line.lower():
-                             break
-                is_ok = not (not result_line or "error" in result_line.lower() or "unknown" in result_line.lower())
-                return is_ok, result_line
-            except Exception as e:
-                return False, f"Error: Pipe communication failed: {str(e)}"
-            finally:
-                self._drain_units()
         def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
             if not self.proc or self.proc.poll() is not None:
                 self._start_process()
@@ -1900,7 +1902,6 @@ if 1:   # Global namespace function population
                 if (arg.mytype in (NumType.Unc, NumType.UncCpx)) and len(n_args) == 1:
                     # Redirect to the new helper method we just added
                     return arg._do_unary_uncertainty(mp_func, res_unit)
-                
                 # Standard path: no uncertainty or not unary
                 result_val = mp_func(*[a.raw_value for a in n_args], **kwargs)
                 return Num(result_val, unit=res_unit)._promote()

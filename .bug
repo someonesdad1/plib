@@ -1,20 +1,26 @@
 20 Apr 2026 09:59:08 am Mon
 
-Bugs
+Important
+    - Num("3.45 iu3r") automatically creates a new unit in the dynamic file as "iu3x
+      !base!".  This is dangerous, as it could have been a typo, but then that unit will
+      exist until the user deletes it.  The default units behavior is 'iu3r\n' will
+      return "Unknown unit 'iu3r'"
+        - Num.base() should be the only way to register a new unit, as it calls
+          UnitArbiter._register_unit()
+
+Minor
     - rho = Num("136.9(5) g/in3")
         - rho.to("g/mL") gave 8.35415056656885 (correct), but lost the propagated uncertainty
-    - .r:  Reduce to base units:  "3 (mm)*(mm)" -> "3e-06 m^2"
+
 
 - Feature changes
-    - Num("5 $/gal")/Num("50 mi/gal") gives Num('1/10 ($/gal)/(mi/gal)').  Should not
+    - Add the ability to cuddle an SI prefix as a shorthand: Num("3.7M"), which is the
+      same as Num("3.7e6").  While not critically needed, it's a handy tool for folks
+      who are familiar with working with SI units.
       use fractions; should be shown as Num('0.1 ($/gal)/(mi/gal)').  I changed the _s()
       method to use as_mpf and now it shows as a float but with fraction color.
       Actually, a pretty good compromise.
 - Needed attributes
-    - .r:  Reduce units:  "3 (mm)*(mm)" -> "3 mm2"
-        - Note this might have to be 3e-06 m^2, as that's what GNU units produces
-        - Shows need for formatting:  nice form would be "3 mm²"
-    - .b:  Show in base SI units
     - .f:  Show as a fraction (this will be only way to see the fractional details, as
       most folks will just want the decimal or integer form)
 

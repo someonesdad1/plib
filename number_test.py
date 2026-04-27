@@ -13,6 +13,12 @@ import dptypes
 from number import g
 assert mpmath.mp.dps == 15
 #g.dbg = True    # Turn on debug printing to see GNU units interaction
+if 1:   # Type abbreviations
+    Int, Rat, Flt, Cpx = NumType.Int, NumType.Rat, NumType.Flt, NumType.Cpx
+    Unc, UncCpx = NumType.Unc, NumType.UncCpx
+    Fr = fractions.Fraction
+    mpf = mpmath.mpf
+    mpc = mpmath.mpc
 def Test_Arithmetic():
     if 1:   # Test addition
         if 1:   # Integer & real
@@ -91,6 +97,25 @@ def Test_Arithmetic():
             #expected = Num("0.25") Older conversion to float
             expected = Num("1/4 (in)/(in)")
             Assert(result == expected)
+def Test_ArithmeticWithTypes():
+    '''The purpose of this test is to verify that the binary operations produce the type
+    results expected.
+    '''
+    if 1:   # Shows downcasting
+        # Downcasting to a Rat happens if the denominator is <= 1e5 and
+        # mpf(numerator/denominator) == original mpf
+        I = Num("2")
+        R = Num("3/2")
+        F = Num("2.5")
+        C = Num("1+i")
+        for case in (I*I, 2*I, 2.0*I, Fr(1, 2)*I, I*R, I*F):
+            Assert(case.mytype == Int)
+        Assert((R*F).mytype == Rat)
+        # This gets a Rat
+        x = Num("3.45")
+        y = Num("4")
+        Assert((x*y).mytype == Rat)
+
 def Test_Comparisons():
     if 1:   # Show we get exception when trying to compare nonconformable units
         x = Num("1 m")
@@ -806,8 +831,9 @@ def Test_Uncertainty():
         Assert(x.mytype == NumType.Unc)
 if __name__ == "__main__":  
     if 1:
-        x = Num("1 m")
-        y = Num("3.281 ft")
-        print(x.is_equal(y, 5))
+        breakpoint() # ∞∞ 
+        x = Num("3.45 iu3x")
+        y = Num("4")
+        z = x*y
     else:
         exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])
