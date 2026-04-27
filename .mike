@@ -1,3 +1,4 @@
+# CHUNK:  .mike
 - Most important formatting instructions that the AI context quickly forgets:
     - Put a newline after a ':' in a conditional, class, or function definition.
     - No empty lines or lines with whitespace only except in docstrings
@@ -123,3 +124,4 @@ using computers commit fewer logical errors.  My mental goal is to see this chan
 compiler and interpreter on the planet.  That sounds grandiose, but it's a powerful
 observation and so obvious, everyone's missed it for 70 or more years, kinda like wheels
 on luggage.
+# END_CHUNK:  .mike

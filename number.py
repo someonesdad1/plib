@@ -1508,7 +1508,7 @@ if 1:  # UnitArbiter
         units_bin = "/home/don/.0rc/bin/units"
         main_config = "/home/don/.0rc/bin/definitions.units"
         dynamic_config = "/home/don/.units_dynamic"
-        read_timeout = 0.5  # Centralized timeout in seconds for all I/O operations
+        read_timeout = 0.5  # Timeout in seconds for I/O operations
         def __new__(cls) -> "UnitArbiter":
             if cls._instance is None:
                 cls._instance = super(UnitArbiter, cls).__new__(cls)
