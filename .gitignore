@@ -13,12 +13,11 @@
 .~lock*#
 *.pickle
 
-aa.1             
-aa.2             
-aa.3             
-aa.4             
-aa.5             
-aa.6             
+.chunk_index.json
+.mike.py
+b.py
+piece_of_metal.py
+aa.*
 final_clean.txt  
 jim              
 put              
