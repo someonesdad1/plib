@@ -3,6 +3,9 @@
 Major
     - UnitArbiter refactor:  UnitArbiter is for "what" and UnitsMachinery is for
       "how".
+        - Must handle all SI prefixes in unit processing
+    - In dp_units.py, I've set mpmathpi as a base unit.  When UnitArbiter encounters
+      it, it needs to be evaluated at the current resolution.
 Important
     - Num("3.45 iu3r") automatically creates a new unit in the dynamic file as "iu3x
       !base!".  This is dangerous, as it could have been a typo, but then that unit will
