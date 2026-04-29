@@ -7,18 +7,17 @@ import fractions
 import io
 import sys
 import mpmath
-from number import Num, NumType, StringParser
+from number import Num, NumType, StringParser, unit_arbiter
 from lwtest import Assert, raises, run
 import dptypes
-from number import g
 assert mpmath.mp.dps == 15
-#g.dbg = True    # Turn on debug printing to see GNU units interaction
 if 1:   # Type abbreviations
     Int, Rat, Flt, Cpx = NumType.Int, NumType.Rat, NumType.Flt, NumType.Cpx
     Unc, UncCpx = NumType.Unc, NumType.UncCpx
     Fr = fractions.Fraction
     mpf = mpmath.mpf
     mpc = mpmath.mpc
+breakpoint() # ∞∞ 
 # CHUNK: NumTestNumeric
 if 1:   # Numeric tests
     def Test_Arithmetic():

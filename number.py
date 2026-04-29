@@ -890,9 +890,9 @@ if 1: # Num
         show_color = True
         active_system = "default"
         fmt = fmt.Fmt()         # Formatter for number strings
-        arb = unit_arbiter      # Singleton gatekeeper for unit strings
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
             '''Represent a general number useful for routine calculations'''
+            self.arb = unit_arbiter
             unit = unit.strip()
             # Set default state
             self._doc = ""
@@ -908,7 +908,7 @@ if 1: # Num
             if isinstance(value, str):
                 payload = StringParser.parse(value)
                 target = unit if unit else payload.unit
-                self._unit = Num.arb.Parse(target) if target else ""
+                self._unit = self.arb.Parse(target) if target else ""
                 if payload.type in (NumType.Int, NumType.Rat):
                     self._val = fractions.Fraction(payload.numer, payload.denom)
                 else:
@@ -922,31 +922,31 @@ if 1: # Num
                 self.re_unc, self.im_unc = value.re_unc, value.im_unc
                 self.correl = value.correl
                 target = unit if unit else value._unit
-                self._unit = Num.arb.Parse(target) if target else ""
+                self._unit = self.arb.Parse(target) if target else ""
                 self.mytype = value.mytype
             elif isinstance(value, int):
                 self._val = fractions.Fraction(value)
-                self._unit = Num.arb.Parse(unit) if unit else ""
+                self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Int
             elif isinstance(value, fractions.Fraction):
                 self._val = value
-                self._unit = Num.arb.Parse(unit) if unit else ""
+                self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Rat
             elif isinstance(value, (float, decimal.Decimal)):
                 self._real = mpmath.mpf(str(value))
-                self._unit = Num.arb.Parse(unit) if unit else ""
+                self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Flt
             elif isinstance(value, complex):
                 self._real, self._imag = mpmath.mpf(str(value.real)), mpmath.mpf(str(value.imag))
-                self._unit = Num.arb.Parse(unit) if unit else ""
+                self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Cpx
             elif hasattr(value, "_mpf_") or isinstance(value, mpmath.mpf):
                 self._real = value
-                self._unit = Num.arb.Parse(unit) if unit else ""
+                self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Flt
             elif isinstance(value, mpmath.mpc):
                 self._real, self._imag = value.real, value.imag
-                self._unit = Num.arb.Parse(unit) if unit else ""
+                self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Cpx
             else:
                 raise TypeError(f"Type {type(value)} not supported")
@@ -1003,7 +1003,7 @@ if 1: # Num
             # If one is unitless and the other is not, we cannot normalize add/sub/cmp.
             if not self._unit or not other._unit:
                 raise ValueError(f"Normalization failed: Incompatible units {self._unit!r} and {other._unit!r}")
-            is_ok, factor_str = Num.arb.check_conformable(other._unit, self._unit)
+            is_ok, factor_str = self.arb.check_conformable(other._unit, self._unit)
             if not is_ok:
                 raise ValueError(f"Unit Mismatch: '{other._unit}' -> '{self._unit}' ({factor_str})")
             factor = mpmath.mpf(factor_str)
@@ -1025,7 +1025,7 @@ if 1: # Num
             return adjusted
         def base(self, unit: str = "") -> None:
             target = unit if unit else self._unit
-            if target: print(Num.arb._register_unit(target))
+            if target: print(self.arb._register_unit(target))
         def help(self, topic: str = "") -> None:
             h = Help()
             h(topic) if topic else h()
@@ -1068,10 +1068,10 @@ if 1: # Num
         def to(self, unit: str, auto_promote: bool = True) -> "Num":
             if not unit or unit == self._unit:
                 return Num(self)
-            is_ok, factor_str = Num.arb.check_conformable(self._unit, unit)
+            is_ok, factor_str = self.arb.check_conformable(self._unit, unit)
             if not is_ok:
-                Num.arb._register_unit(unit)
-                is_ok, factor_str = Num.arb.check_conformable(self._unit, unit)
+                self.arb._register_unit(unit)
+                is_ok, factor_str = self.arb.check_conformable(self._unit, unit)
                 if not is_ok: raise ValueError(f"Incompatible: {self._unit} -> {unit}")
             res = Num(self)
             res._real = res.as_mpf*mpmath.mpf(factor_str)
@@ -1182,7 +1182,7 @@ if 1: # Num
             'Reduce to base units'
             # 1. Get reduction factor from the arbiter
             # Note: Arbiter method needs to handle the double newline: f"{self._unit}\n\n"
-            factor, base_unit = Num.arb.reduce_to_base(self._unit)
+            factor, base_unit = self.arb.reduce_to_base(self._unit)
             # 2. Use the existing Num arithmetic to scale the value.
             # By multiplying a Num object by a scalar (mpf), your __mul__ 
             # should already be handling the uncertainty propagation.
@@ -1664,6 +1664,7 @@ if 1:   # Default units and global unit_arbiter
     unit_arbiter = UnitArbiter()
     # Load these default units
     unit_arbiter.LoadRegistryString(default_units)
+    Num.unit_arbiter = unit_arbiter
 
 if __name__ == "__main__":  
     from lwtest import Assert, run, raises
