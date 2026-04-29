@@ -104,7 +104,7 @@ if 1:  # Header
         class G:
             pass
         g = G()
-        g.dbg = False
+        g.dbg = len(sys.argv) > 1
     if 1:   # Types and enums
         class NumType(enum.IntEnum):
             Int = 1
@@ -122,7 +122,8 @@ if 1:  # Header
             # Simple debugging command
             if not g.dbg:
                 return
-            print("DEBUG ", end="")
+            _, lineno = get_caller_info()
+            print(f"[{lineno}]:DEBUG ", end="")
             print(*p, **kw)
         def _Dbg(*p, **kw):
             if not hasattr(Dbg, "file"):
@@ -890,8 +891,8 @@ if 1: # Num
         active_system = "default"
         Fmt = fmt.Fmt()
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
-            self.arb = UnitArbiter()
-            self.fmt = Num.Fmt
+            self.arb = UnitArbiter()        # Guardian for semantic units
+            self.fmt = Num.Fmt              # Number formatter
             if 1:   # Set default state
                 self._doc = ""
                 self._val: fractions.Fraction = fractions.Fraction(0)
@@ -900,12 +901,8 @@ if 1: # Num
                 self.re_unc: mpmath.mpf = mpmath.mpf("0")
                 self.im_unc: mpmath.mpf = mpmath.mpf("0")
                 self.correl: mpmath.mpf = mpmath.mpf("0")
-                self._unit = ""
+                self._unit = unit
                 self._mytype: NumType = NumType.Int
-            if value is None:
-                if unit:
-                    self._unit = unit
-                return
             if isinstance(value, str):
                 payload = StringParser.parse(value, unit)
                 if payload.type in (NumType.Int, NumType.Rat):
@@ -943,10 +940,10 @@ if 1: # Num
                 self.mytype = NumType.Cpx
             else:
                 raise TypeError(f"Type {type(value)} not supported")
-            if unit: 
-                self._unit = unit
             if not (-1 <= self.correl <= 1):
                 raise ValueError("Correlation coefficient must be on [-1, 1]")
+            if unit: 
+                self._unit = unit
         def _promote(self) -> "Num":
             'Collapse Flt back to Rat or Int if precision allows'
             if self.mytype == NumType.Flt:
@@ -1206,265 +1203,138 @@ if 1: # ParsedPayload
         unit: str = ""
 # END_CHUNK: ParsedPayload
 
-if 0:  # UnitArbiter old implementation
-    '''Manifest [12]: __new__ __init__ _start_process _translate_unicode check_conformable simplify is_known_unit add_base _check_definition _register_unit inject_math'''
-    class UnitArbiter:
-        '''Singleton co-process manager for GNU Units.'''
-        _instance = None
-        units_bin = "/home/don/.0rc/bin/units"
-        main_config = "/home/don/.0rc/bin/definitions.units"
-        dynamic_config = "/home/don/.units_dynamic"
-        read_timeout = 0.5  # Timeout in seconds for I/O operations
-        def __new__(cls) -> "UnitArbiter":
-            if cls._instance is None:
-                cls._instance = super(UnitArbiter, cls).__new__(cls)
-            return cls._instance
-        def __init__(self) -> None:
-            if not hasattr(self, "proc"):
-                self.proc = None
-                self._start_process()
-        def _start_process(self) -> None:
-            if self.proc:
-                try:
-                    self.proc.terminate()
-                    self.proc.wait(timeout=0.2)
-                except:
-                    pass
-            cmd = [self.units_bin, "-t", "-d", "15"]
-            if os.path.exists(self.main_config): cmd.extend(["-f", self.main_config])
-            if not os.path.exists(self.dynamic_config):
-                with open(self.dynamic_config, "w") as f: f.write("")
-            cmd.extend(["-f", self.dynamic_config])
-            Dbg(f"Units _start_process command:\n  {' '.join(cmd)}")
-            self.proc = subprocess.Popen(
-                cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, text=True, bufsize=1
-            )
-        def _translate_unicode(self, s: str) -> str:
-            trans = str.maketrans("0123456789+-", "0123456789+-")
-            return s.translate(trans).replace(" ", "*")
-        def _drain_units(self):
-            # Non-blocking drain of all leftover data in the stdout buffer
-            while True:
-                # Poll for readiness with a tiny timeout
-                ready, _, _ = select.select([self.proc.stdout], [], [], 0.001)
-                if not ready:
-                    break
-                # Read line, but do it in a way that handles partial packets
-                line = self.proc.stdout.readline()
-                Dbg(f"Units _drain_units flushed: {line!r}")
-        def check_conformable(self, have: str, want: str) -> ty.Tuple[bool, str]:
-            if not self.proc or self.proc.poll() is not None:
-                self._start_process()
-            have = self._translate_unicode(have)
-            want = self._translate_unicode(want)
-            query = f"{have}\n{want}\n"
-            if g.dbg:
-                print(f"DEBUG UnitArbiter.check_conformable sent: {query!r}")
-            try:
-                self.proc.stdin.write(query)
-                self.proc.stdin.flush()
-                result_line = ""
-                for _ in range(3):
-                    ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
-                    if not ready: break
-                    line = self.proc.stdout.readline().strip()
-                    if g.dbg:
-                        print(f"DEBUG UnitArbiter.check_conformable scanned: {line!r}")
-                    # Heuristic:
-                    # 1. If we see an error/unknown, we are done (False).
-                    # 2. If the line is a number, the units are conformable (True).
-                    if "error" in line.lower() or "unknown" in line.lower():
-                        result_line = line
-                        break
-                    # Check if line is a valid number (conversion factor)
-                    try:
-                        float(line)
-                        result_line = line
-                        break # Found a valid conversion factor, success!
-                    except ValueError:
-                        continue # Keep scanning for the real result
-                # If result_line is empty, check_conformable failed to get a clear answer
-                is_ok = (result_line != "" and "error" not in result_line.lower() and "unknown" not in result_line.lower())
-                return is_ok, result_line
-            except Exception as e:
-                return False, f"Error: Pipe communication failed: {str(e)}"
-            finally:
-                self._drain_units()
-        def simplify(self, value: ty.Any, unit_str: str) -> ty.Tuple[ty.Any, str]:
-            query = f"{unit_str}\n\n"
-            self.proc.stdin.write(query)
-            self.proc.stdin.flush()
-            ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
-            if not ready:
-                raise TimeoutError(f"Simplify timed out after {self.read_timeout}s")
-            res = self.proc.stdout.readline().strip()
-            Dbg("Units UnitArbiter.simplify got:  {res!r}")
-            parts = res.split(" ", 1)
-            conv_factor = mpmath.mpf(parts[0])
-            new_unit = parts[1]
-            return mpmath.mpf(value) * conv_factor, new_unit
-        def reduce_to_base(self, unit_str: str) -> ty.Tuple[float, str]:
-            'Reduce to base SI units'
-            # Send the unit to units, using -t for terse/base output
-            query = f"{unit_str}\n\n"
-            self.proc.stdin.write(query)
-            self.proc.stdin.flush()
-            # Read the base unit reduction (e.g., "3e-06 m^2")
-            ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
-            line = self.proc.stdout.readline().strip()
-            # Parse '3e-06 m^2' into (3e-06, 'm^2')
-            # Handle potential edge cases where there might not be a scalar
-            parts = line.split(" ", 1)
-            scalar = float(parts[0])
-            base_unit = parts[1] if len(parts) > 1 else ""
-            return scalar, base_unit
-        def is_known_unit(self, unit_str: str) -> bool:
-            if not unit_str: return True
-            query = f"{unit_str}\n\n"
-            Dbg(f"Units UnitArbiter.is_known_unit sent:  {query!r}")
-            self.proc.stdin.write(query)
-            self.proc.stdin.flush()
-            ready, _, _ = select.select([self.proc.stdout], [], [], self.read_timeout)
-            if not ready:
-                return False
-            line = self.proc.stdout.readline()
-            return "unknown unit" not in line.lower()
-        def add_base(self, unit_name: str) -> None:
-            definition = f"{unit_name}\t\t!base!"
-            with open(self.dynamic_config, "a") as f:
-                f.write(f"\n{definition}\n")
-            self._start_process()
-            Dbg(f"Units UnitArbiter new def:  {definition!r}, restarted units process ")
-        def _check_definition(self, definition: str) -> ty.Tuple[bool, str]:
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
-                tmp.write(definition+"\n")
-                tmp_path = tmp.name
-            cmd = [self.units_bin, "-c", "-q", "-f", self.dynamic_config, "-f", tmp_path]
-            if os.path.exists(self.main_config):
-                cmd.extend(["-f", self.main_config])
-            try:
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
-                is_ok = (result.returncode == 0)
-                error_msg = result.stderr or result.stdout
-            except subprocess.TimeoutExpired:
-                is_ok, error_msg = False, "Timeout validating definition."
-            finally:
-                if os.path.exists(tmp_path):
-                    os.remove(tmp_path)
-            Dbg(f"Units UnitArbiter._check_definition:  {definition!r}")
-            Dbg(f"     got:  {is_ok}, {error_msg!r}")
-            return is_ok, error_msg
-        def _register_unit(self, unit_name: str) -> str:
-            unit_name = unit_name.strip()
-            if not unit_name:
-                return "Error: Unit name empty."
-            if not unit_name[0].isalpha():
-                return f"Error: '{unit_name}' must start with a letter."
-            if self.is_known_unit(unit_name):
-                return "ok"
-            try:
-                self.add_base(unit_name)
-                return "ok"
-            except Exception as e:
-                return f"Error: {str(e)}"
-        def inject_math(self) -> None:
-            '''Inject uncertainty-aware math wrappers into __main__ namespace.'''
-            import sys
-            import mpmath
-            from mpmath import workdps, diff, mp
-            target = sys.modules["__main__"]
-            def create_wrapper(func_name: str, is_dimensionless: bool = True):
-                mp_func = getattr(mpmath, func_name)
-                def wrapped(x: ty.Any) -> "Num":
-                    if isinstance(x, Num):
-                        if is_dimensionless and x._unit:
-                            raise ValueError(f"{func_name} requires a dimensionless Num (got {x._unit})")
-                        z_val = mp_func(x.as_mpc)
-                        res_unit = "" if is_dimensionless else x._unit
-                        if func_name == "sqrt":
-                            res_unit = f"sqrt({x._unit})" if x._unit else ""
-                        if func_name == "degrees":
-                            res_unit = "deg"
-                        if func_name == "radians":
-                            res_unit = "rad"
-                        if x.mytype not in (NumType.Unc, NumType.UncCpx):
-                            return Num(z_val, unit=res_unit)
-                        with workdps(mp.dps + 4):
-                            h_base = mp.power(10, -(mp.dps // 2))
-                            d1 = diff(mp_func, x.as_mpc, h=h_base)
-                            d2 = diff(mp_func, x.as_mpc, h=h_base / 2)
-                            sens = abs(d1)
-                            sens2 = abs(d2)
-                            if abs(sens - sens2) / (sens + 1e-30) > 0.01:
-                                print(f"Warning: Possible singularity suspected in {func_name} at {x.raw_value}.\nUncertainty propagation may be non-physical.", file=sys.stderr)
-                            new_re_unc = sens * x.re_unc
-                            new_im_unc = sens * x.im_unc
-                        res = Num(z_val, unit=res_unit)
-                        res.re_unc = new_re_unc
-                        res.im_unc = new_im_unc
-                        res.mytype = NumType.Unc if x.mytype == NumType.Unc else NumType.UncCpx
-                        return res
-                    return mp_func(x)
-                return wrapped
-            trig_funcs = ["cos", "sin", "tan", "acos", "asin", "atan", "exp", "log"]
-            misc_funcs = ["sqrt", "degrees", "radians"]
-            for name in trig_funcs:
-                setattr(target, name, create_wrapper(name, is_dimensionless=True))
-            for name in misc_funcs:
-                setattr(target, name, create_wrapper(name, is_dimensionless=False))
-    # Goodbye from the Mike & Don comedy show
+# Manifest: 14 methods, 1 class
 # CHUNK: UnitArbiter
-if 1:  # UnitArbiter: Core Implementation
+if 1:  # UnitArbiter
     class UnitArbiter:
         def __init__(self, db_path: str = "units.db"):
             self.db_path = db_path
-            self._registry = {}             # Maps name -> definition string
-            self._registry_scales = {}      # Cache: name -> float scale to base
-            self._registry_signatures = {}  # Cache: name -> dict {base: exponent}
-            self._provenance_hash = "initial_state"
-            self._max_depth = 10            # Prevent infinite recursion
-        def _update_provenance(self):
-            self._provenance_hash = hash(frozenset(self._registry.items()))
-        def GetRegistryVersion(self) -> str:
-            return str(self._provenance_hash)
+            self._registry = {}
+            self._registry_scales = {}
+            self._registry_signatures = {}
+        def LoadRegistry(self, file_path: str) -> None:
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Registry file {file_path} not found.")
+            with open(file_path, "r") as f:
+                for line in f:
+                    line = line.split("#")[0].strip() # GNU units use # for comments
+                    if not line: 
+                        continue
+                    parts = line.split(maxsplit=1)
+                    if len(parts) == 2:
+                        self.RegisterDynamicUnit(parts[0], parts[1])
         def RegisterDynamicUnit(self, name: str, definition: str) -> None:
             self._registry[name] = definition
             self._registry_scales.clear()
             self._registry_signatures.clear()
-            self._update_provenance()
-        def Parse(self, unit_str: str) -> str:
-            if " " in unit_str:
-                raise ValueError(f"Internal Error: Unit token '{unit_str}' contains spaces.")
-            if unit_str not in self._registry:
-                raise ValueError(f"Semantic Error: Unknown unit '{unit_str}'")
-            return self.SimplifyUnit(unit_str)
-        def SimplifyUnit(self, unit_str: str) -> str:
-            # Placeholder for reduction logic (e.g., (mm)*(mm) -> m^2)
-            return unit_str
+        def ValidatePolicy(self, unit_str: str) -> None:
+            if unit_str.count('/') > 1 and not ('(' in unit_str and ')' in unit_str):
+                raise ValueError(f"Ambiguous unit '{unit_str}': use parentheses for multiple slashes.")
         def GetScalingFactorToBaseUnits(self, unit_str: str, _depth: int = 0) -> float:
-            if _depth > self._max_depth:
-                raise RecursionError(f"Circular definition or max depth exceeded at '{unit_str}'")
             if unit_str not in self._registry_scales:
                 self._registry_scales[unit_str] = self._calculate_scale(unit_str, _depth)
             return self._registry_scales[unit_str]
         def _calculate_scale(self, unit_str: str, depth: int) -> float:
-            definition = self._registry.get(unit_str, "")
-            if not definition: # Base unit
-                return 1.0
-            return self._resolve_definition_value(definition, depth + 1)
+            if unit_str.startswith('(') and unit_str.endswith(')'):
+                return self._resolve_definition_value(unit_str[1:-1], depth)
+            name, exponent = self._decomposed_token(unit_str)
+            definition = self._registry.get(name, "")
+            if not definition: return 1.0 ** exponent
+            return (self._resolve_definition_value(definition, depth + 1)) ** exponent
         def _resolve_definition_value(self, definition: str, depth: int) -> float:
             parts = definition.split(" ", 1)
-            if len(parts) == 1:
-                return self.GetScalingFactorToBaseUnits(parts[0], depth)
-            magnitude = float(parts[0])
-            unit = parts[1]
-            return magnitude * self.GetScalingFactorToBaseUnits(unit, depth)
+            if len(parts) == 1: return self.GetScalingFactorToBaseUnits(parts[0], depth)
+            return float(parts[0]) * self.GetScalingFactorToBaseUnits(parts[1], depth)
         def GetDimensionalitySignature(self, unit_str: str) -> dict:
-            if unit_str not in self._registry_signatures:
-                # Placeholder for signature resolution logic
-                self._registry_signatures[unit_str] = {unit_str: 1}
-            return self._registry_signatures[unit_str]
+            if unit_str in self._registry_signatures:
+                return self._registry_signatures[unit_str]
+            
+            Dbg(f"GDS: Processing {unit_str!r}")
+            
+            # 1. Replace parens with placeholders, but ensure they are isolated
+            import re
+            def repl(match):
+                return f"_{self._store_temp_sig(self._combine_signatures_from_def(match.group(1)))}_"
+            
+            processed_str = unit_str
+            while '(' in processed_str:
+                processed_str = re.sub(r'\(([^()]+)\)', repl, processed_str)
+            
+            # 2. Split by structure, not just string manipulation
+            # Now processed_str looks like 'm/_0_'
+            # We split by / and * to get individual tokens
+            parts = processed_str.split('/')
+            numerator = parts[0].split('*')
+            denominator = parts[1].split('*') if len(parts) > 1 else []
+            
+            sig = {}
+            for t in numerator:
+                if t: self._update_sig(sig, self._resolve_token(t), 1)
+            for t in denominator:
+                if t: self._update_sig(sig, self._resolve_token(t), -1)
+            
+            Dbg(f"  GDS: Result for {unit_str!r} is {sig!r}")
+            self._registry_signatures[unit_str] = sig
+            return sig
+        def _resolve_token(self, token: str) -> dict:
+            # Handle the _ID_ placeholders
+            if token.startswith("_") and token.endswith("_"):
+                uid = token.strip("_")
+                return self._temp_sigs().get(uid, {})
+            
+            # Handle normal units (with potential exponents)
+            name, exponent = self._decomposed_token(token)
+            if name in self._registry and not self._registry[name]:
+                return {name: exponent}
+            elif name not in self._registry:
+                return {name: exponent}
+            else:
+                base = self._combine_signatures_from_def(self._registry[name])
+                return {k: v * exponent for k, v in base.items()}
+        def _combine_signatures_from_def(self, definition: str) -> dict:
+            Dbg(f"  CSFD: Combining {definition!r}")
+            if not definition: return {}
+            parts = definition.split('/')
+            numerator = parts[0].split('*')
+            denominator = parts[1].split('*') if len(parts) > 1 else []
+            signature = {}
+            for unit in numerator:
+                if unit: self._update_sig(signature, self._get_unit_sig(unit), 1)
+            for unit in denominator:
+                if unit: self._update_sig(signature, self._get_unit_sig(unit), -1)
+            Dbg(f"  CSFD: Result {signature!r}")
+            return signature
+        def _get_unit_sig(self, token: str) -> dict:
+            if token.startswith("_SIG_"):
+                uid = token.replace("_SIG_", "").replace("_", "")
+                return self._temp_sigs().get(uid, {})
+            return self.GetDimensionalitySignature(token)
+        def _update_sig(self, base_sig: dict, add_sig: dict, multiplier: int):
+            for unit, exponent in add_sig.items():
+                base_sig[unit] = base_sig.get(unit, 0) + (exponent * multiplier)
+                if base_sig[unit] == 0: del base_sig[unit]
+        def _temp_sigs(self):
+            if not hasattr(self, '_t_sigs'): self._t_sigs = {}
+            return self._t_sigs
+        def _store_temp_sig(self, sig: dict) -> str:
+            uid = str(len(self._temp_sigs()))
+            self._temp_sigs()[uid] = sig
+            return uid
+        def _decomposed_token(self, token: str) -> tuple[str, int]:
+            # No longer needs to know about _SIG_ tokens
+            if '^' in token:
+                name, exp = token.split('^')
+                return name, int(exp)
+            for i, char in enumerate(token):
+                if char.isdigit(): return token[:i], int(token[i:])
+            return token, 1
+        def Parse(self, unit_str: str) -> str:
+            # 1. Validate Syntax/Policy
+            self.ValidatePolicy(unit_str)
+            # 2. Verify existence and dimensional consistency (Warm the cache)
+            self.GetDimensionalitySignature(unit_str)
+            # 3. Final acceptance
+            return unit_str
 # END_CHUNK: UnitArbiter
 
 # CHUNK: StringParser
@@ -1739,3 +1609,56 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
+if __name__ == "__main__":  
+    from lwtest import Assert, run, raises
+    def Test_UnitArbiter_Scaling_Logic():
+        arbiter = UnitArbiter()
+        # Register base and derived units
+        arbiter.RegisterDynamicUnit("m", "")             # Base
+        arbiter.RegisterDynamicUnit("cm", "0.01 m")      # Derived
+        arbiter.RegisterDynamicUnit("in", "0.0254 m")    # Derived
+        arbiter.RegisterDynamicUnit("ft", "12 in")       # Nested derived
+        # Verify scaling factors
+        scale_cm = arbiter.GetScalingFactorToBaseUnits("cm")
+        scale_ft = arbiter.GetScalingFactorToBaseUnits("ft")
+        #print(f"Scale of 'cm' to 'm': {scale_cm}")
+        #print(f"Scale of 'ft' to 'm': {scale_ft}")
+        eps = 1e-9
+        Assert(abs(scale_cm - 0.01) < eps)
+        Assert(abs(scale_ft - 0.3048) < eps)
+    def Test_UnitArbiter_Signature_and_Policy_Verification():
+        arbiter = UnitArbiter()
+        # Setup base units
+        arbiter.RegisterDynamicUnit("kg", "")
+        arbiter.RegisterDynamicUnit("m", "")
+        arbiter.RegisterDynamicUnit("s", "")
+        if 1:   # Test signature: m2
+            got = arbiter.GetDimensionalitySignature("m2")
+            Assert(got == {'m': 2})
+        if 1:   # Test signature: kg*m2/s3
+            # Register derived units
+            # Power: kg*m2/s3 (testing exponents and multiplication)
+            arbiter.RegisterDynamicUnit("Power", "kg*m2/s3")
+            sig = arbiter.GetDimensionalitySignature("Power")
+            Dbg(f"Signature for Power: {sig}")
+            Assert(sig == {"kg": 1, "m": 2, "s": -3})
+        if 1:   # Test reduction: m/m -> dimensionless (empty signature)
+            arbiter.RegisterDynamicUnit("Ratio", "m/m")
+            sig_ratio = arbiter.GetDimensionalitySignature("Ratio")
+            #print(f"Signature for Ratio: {sig_ratio}")
+            Assert(sig_ratio == {})
+        if 1:   # Test policy violations
+            # Multiple slashes without parentheses not allowed
+            with raises(ValueError):
+                arbiter.ValidatePolicy("m/kg/s")
+            # This should be OK
+            g.dbg = True
+            got = arbiter.GetDimensionalitySignature("m/(kg/s)")
+            Dbg('got = arbiter.GetDimensionalitySignature("m/(kg/s)")')
+            Dbg(f"got      = {got}")
+            expected = {"m": 1, "s": 1, "kg": -1}
+            Dbg(f"expected = {expected}")
+            #Assert(sig == {"m": 1, "s": 1, "kg": -1})
+
+    if 1:
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
