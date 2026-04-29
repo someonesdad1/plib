@@ -889,61 +889,70 @@ if 1: # Num
         flip = False
         show_color = True
         active_system = "default"
-        Fmt = fmt.Fmt()
+        fmt = fmt.Fmt()         # Formatter for number strings
+        arb = unit_arbiter      # Singleton gatekeeper for unit strings
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
-            self.arb = UnitArbiter()        # Guardian for semantic units
-            self.fmt = Num.Fmt              # Number formatter
-            if 1:   # Set default state
-                self._doc = ""
-                self._val: fractions.Fraction = fractions.Fraction(0)
-                self._real: mpmath.mpf = mpmath.mpf("0")
-                self._imag: mpmath.mpf = mpmath.mpf("0")
-                self.re_unc: mpmath.mpf = mpmath.mpf("0")
-                self.im_unc: mpmath.mpf = mpmath.mpf("0")
-                self.correl: mpmath.mpf = mpmath.mpf("0")
-                self._unit = unit
-                self._mytype: NumType = NumType.Int
+            '''Represent a general number useful for routine calculations'''
+            unit = unit.strip()
+            # Set default state
+            self._doc = ""
+            self._val: fractions.Fraction = fractions.Fraction(0)
+            self._real: mpmath.mpf = mpmath.mpf("0")
+            self._imag: mpmath.mpf = mpmath.mpf("0")
+            self.re_unc: mpmath.mpf = mpmath.mpf("0")
+            self.im_unc: mpmath.mpf = mpmath.mpf("0")
+            self.correl: mpmath.mpf = mpmath.mpf("0")
+            self._unit = ""
+            self._mytype: NumType = NumType.Int
+            # Different types of initialization
             if isinstance(value, str):
-                payload = StringParser.parse(value, unit)
+                payload = StringParser.parse(value)
+                target = unit if unit else payload.unit
+                self._unit = Num.arb.Parse(target) if target else ""
                 if payload.type in (NumType.Int, NumType.Rat):
                     self._val = fractions.Fraction(payload.numer, payload.denom)
                 else:
                     self._real, self._imag = payload.real, payload.imag
                     self.re_unc, self.im_unc = payload.re_unc, payload.im_unc
                     self.correl = payload.correl
-                self._unit = payload.unit
                 self.mytype = payload.type
             elif isinstance(value, Num):
                 self._val = value._val
                 self._real, self._imag = value._real, value._imag
                 self.re_unc, self.im_unc = value.re_unc, value.im_unc
                 self.correl = value.correl
-                self._unit = unit if unit else value._unit
+                target = unit if unit else value._unit
+                self._unit = Num.arb.Parse(target) if target else ""
                 self.mytype = value.mytype
             elif isinstance(value, int):
                 self._val = fractions.Fraction(value)
+                self._unit = Num.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Int
             elif isinstance(value, fractions.Fraction):
                 self._val = value
+                self._unit = Num.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Rat
             elif isinstance(value, (float, decimal.Decimal)):
                 self._real = mpmath.mpf(str(value))
+                self._unit = Num.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Flt
             elif isinstance(value, complex):
                 self._real, self._imag = mpmath.mpf(str(value.real)), mpmath.mpf(str(value.imag))
+                self._unit = Num.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Cpx
             elif hasattr(value, "_mpf_") or isinstance(value, mpmath.mpf):
                 self._real = value
+                self._unit = Num.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Flt
             elif isinstance(value, mpmath.mpc):
                 self._real, self._imag = value.real, value.imag
+                self._unit = Num.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Cpx
             else:
                 raise TypeError(f"Type {type(value)} not supported")
+            # 3. Final validation for correlation coefficient
             if not (-1 <= self.correl <= 1):
                 raise ValueError("Correlation coefficient must be on [-1, 1]")
-            if unit: 
-                self._unit = unit
         def _promote(self) -> "Num":
             'Collapse Flt back to Rat or Int if precision allows'
             if self.mytype == NumType.Flt:
@@ -994,7 +1003,7 @@ if 1: # Num
             # If one is unitless and the other is not, we cannot normalize add/sub/cmp.
             if not self._unit or not other._unit:
                 raise ValueError(f"Normalization failed: Incompatible units {self._unit!r} and {other._unit!r}")
-            is_ok, factor_str = self.arb.check_conformable(other._unit, self._unit)
+            is_ok, factor_str = Num.arb.check_conformable(other._unit, self._unit)
             if not is_ok:
                 raise ValueError(f"Unit Mismatch: '{other._unit}' -> '{self._unit}' ({factor_str})")
             factor = mpmath.mpf(factor_str)
@@ -1016,17 +1025,17 @@ if 1: # Num
             return adjusted
         def base(self, unit: str = "") -> None:
             target = unit if unit else self._unit
-            if target: print(self.arb._register_unit(target))
+            if target: print(Num.arb._register_unit(target))
         def help(self, topic: str = "") -> None:
             h = Help()
             h(topic) if topic else h()
         def _s(self) -> str:
             if self.mytype == NumType.Int:
-                s = self.fmt(self._val.numerator)
+                s = Num.fmt(self._val.numerator)
             elif self.mytype in (NumType.Rat, NumType.Flt):
-                s = self.fmt(self.as_mpf)
+                s = Num.fmt(self.as_mpf)
             elif self.mytype == NumType.Cpx:
-                s = self.fmt(self.as_mpc)
+                s = Num.fmt(self.as_mpc)
             elif self.mytype == NumType.Unc:
                 s = f"{self._real} +/- {self.re_unc}"
             elif self.mytype == NumType.UncCpx:
@@ -1059,10 +1068,10 @@ if 1: # Num
         def to(self, unit: str, auto_promote: bool = True) -> "Num":
             if not unit or unit == self._unit:
                 return Num(self)
-            is_ok, factor_str = self.arb.check_conformable(self._unit, unit)
+            is_ok, factor_str = Num.arb.check_conformable(self._unit, unit)
             if not is_ok:
-                self.arb._register_unit(unit)
-                is_ok, factor_str = self.arb.check_conformable(self._unit, unit)
+                Num.arb._register_unit(unit)
+                is_ok, factor_str = Num.arb.check_conformable(self._unit, unit)
                 if not is_ok: raise ValueError(f"Incompatible: {self._unit} -> {unit}")
             res = Num(self)
             res._real = res.as_mpf*mpmath.mpf(factor_str)
@@ -1173,7 +1182,7 @@ if 1: # Num
             'Reduce to base units'
             # 1. Get reduction factor from the arbiter
             # Note: Arbiter method needs to handle the double newline: f"{self._unit}\n\n"
-            factor, base_unit = self.arb.reduce_to_base(self._unit)
+            factor, base_unit = Num.arb.reduce_to_base(self._unit)
             # 2. Use the existing Num arithmetic to scale the value.
             # By multiplying a Num object by a scalar (mpf), your __mul__ 
             # should already be handling the uncertainty propagation.
@@ -1212,6 +1221,23 @@ if 1:  # UnitArbiter
             self._registry = {}
             self._registry_scales = {}
             self._registry_signatures = {}
+        def Parse(self, unit_str: str) -> str:
+            # 1. Validate Syntax/Policy
+            self.ValidatePolicy(unit_str)
+            # 2. Verify existence and dimensional consistency (Warm the cache)
+            self.GetDimensionalitySignature(unit_str)
+            # 3. Final acceptance
+            return unit_str
+        def LoadRegistryString(self, registry_str: str) -> None:
+            'Parses a multiline string in GNU units format'
+            f = io.StringIO(registry_str)
+            for line in f:
+                line = line.split("#")[0].strip() # Handle comments
+                if not line:    
+                    continue
+                parts = line.split(maxsplit=1)
+                if len(parts) == 2:
+                    self.RegisterDynamicUnit(parts[0], parts[1])
         def LoadRegistry(self, file_path: str) -> None:
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"Registry file {file_path} not found.")
@@ -1234,17 +1260,6 @@ if 1:  # UnitArbiter
             if unit_str not in self._registry_scales:
                 self._registry_scales[unit_str] = self._calculate_scale(unit_str, _depth)
             return self._registry_scales[unit_str]
-        def _calculate_scale(self, unit_str: str, depth: int) -> float:
-            if unit_str.startswith('(') and unit_str.endswith(')'):
-                return self._resolve_definition_value(unit_str[1:-1], depth)
-            name, exponent = self._decomposed_token(unit_str)
-            definition = self._registry.get(name, "")
-            if not definition: return 1.0 ** exponent
-            return (self._resolve_definition_value(definition, depth + 1)) ** exponent
-        def _resolve_definition_value(self, definition: str, depth: int) -> float:
-            parts = definition.split(" ", 1)
-            if len(parts) == 1: return self.GetScalingFactorToBaseUnits(parts[0], depth)
-            return float(parts[0]) * self.GetScalingFactorToBaseUnits(parts[1], depth)
         def GetDimensionalitySignature(self, unit_str: str) -> dict:
             if unit_str in self._registry_signatures:
                 return self._registry_signatures[unit_str]
@@ -1276,6 +1291,17 @@ if 1:  # UnitArbiter
             Dbg(f"  GDS: Result for {unit_str!r} is {sig!r}")
             self._registry_signatures[unit_str] = sig
             return sig
+        def _calculate_scale(self, unit_str: str, depth: int) -> float:
+            if unit_str.startswith('(') and unit_str.endswith(')'):
+                return self._resolve_definition_value(unit_str[1:-1], depth)
+            name, exponent = self._decomposed_token(unit_str)
+            definition = self._registry.get(name, "")
+            if not definition: return 1.0 ** exponent
+            return (self._resolve_definition_value(definition, depth + 1)) ** exponent
+        def _resolve_definition_value(self, definition: str, depth: int) -> float:
+            parts = definition.split(" ", 1)
+            if len(parts) == 1: return self.GetScalingFactorToBaseUnits(parts[0], depth)
+            return float(parts[0]) * self.GetScalingFactorToBaseUnits(parts[1], depth)
         def _resolve_token(self, token: str) -> dict:
             # Handle the _ID_ placeholders
             if token.startswith("_") and token.endswith("_"):
@@ -1328,34 +1354,26 @@ if 1:  # UnitArbiter
             for i, char in enumerate(token):
                 if char.isdigit(): return token[:i], int(token[i:])
             return token, 1
-        def Parse(self, unit_str: str) -> str:
-            # 1. Validate Syntax/Policy
-            self.ValidatePolicy(unit_str)
-            # 2. Verify existence and dimensional consistency (Warm the cache)
-            self.GetDimensionalitySignature(unit_str)
-            # 3. Final acceptance
-            return unit_str
 # END_CHUNK: UnitArbiter
 
 # CHUNK: StringParser
 if 1:  # StringParser
     '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
     class StringParser:
-        '''Engine to dichotomize numeric strings and units.'''
-        unit_arbiter = UnitArbiter()
+        'Engine to dichotomize numeric strings and units'
         @staticmethod
-        def parse(s: str, passed_unit: str = "") -> ParsedPayload:
+        def parse(s: str) -> ParsedPayload:
             s = s.strip()
             num_str, unit_str = StringParser._split_input(s)
-            final_unit = unit_str if unit_str else passed_unit
-            if final_unit:
-                StringParser.unit_arbiter._register_unit(final_unit)
             if not s:
-                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=0, denom=1, unit=final_unit)
-            return StringParser._parse_number(num_str if num_str else s, final_unit)
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=0, denom=1, unit="")
+            # Parse the number, passing the raw unit string found.  Validation of the
+            # unit string now happens in Num.__init__ via UnitArbiter.Parse().
+            return StringParser._parse_number(num_str if num_str else s, unit_str)
         @staticmethod
         def _split_input(s: str) -> ty.Tuple[str, str]:
-            if " " not in s: return s, ""
+            if " " not in s: 
+                return s, ""
             return s.rsplit(" ", 1)
         @staticmethod
         def _parse_number(s: str, unit: str) -> ParsedPayload:
@@ -1460,7 +1478,6 @@ if 1:  # StringParser
 
 # CHUNK: NumFunctionPopulation
 if 1:   # Global namespace function population
-    unit_arbiter = UnitArbiter() # Singleton initialization
     def NoetherWrap(func_name: str, logic: str = "dimensionless"):
         '''
         Closure factory to bridge mpmath functions to Num containers,
@@ -1609,6 +1626,45 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
+if 1:   # Default units and global unit_arbiter
+    default_units = '''
+        # This is a set of units using the GNU units configuration file syntax
+            m                   !
+            kg                  !
+            s                   !
+            A                   !
+            cd                  !
+            mol                 !
+            K                   !
+            $                   !
+            mpmathpi            3.14159265358979323846264338328
+            radian              !dimensionless
+            degree              mpmathpi*radian/180
+            min                 60*s
+            hr                  3600*s
+            day                 24*hr
+            yr                  365.242198781*24*hr
+            inch                0.0254*m
+            L                   1e-3*m**3
+            c                   299792458*m/s
+            Hz                  1/s
+            g                   kg/1000
+            J                   kg*m**2/s**2
+            NA                  6.02214129e23/mol
+            N                   kg*m/s**2
+            Pa                  N/m**2
+            W                   J/s
+            coul                A/s
+            V                   J/coul
+            ohm                 V/A
+            F                   coul/V
+            H                   m**2*kg/coul**2
+    '''
+    # Create the UnitArbiter singleton
+    unit_arbiter = UnitArbiter()
+    # Load these default units
+    unit_arbiter.LoadRegistryString(default_units)
+
 if __name__ == "__main__":  
     from lwtest import Assert, run, raises
     def Test_UnitArbiter_Scaling_Logic():

@@ -4,8 +4,6 @@ Major
     - UnitArbiter refactor:  UnitArbiter is for "what" and UnitsMachinery is for
       "how".
         - Must handle all SI prefixes in unit processing
-    - In dp_units.py, I've set mpmathpi as a base unit.  When UnitArbiter encounters
-      it, it needs to be evaluated at the current resolution.
 Important
     - Num("3.45 iu3r") automatically creates a new unit in the dynamic file as "iu3x
       !base!".  This is dangerous, as it could have been a typo, but then that unit will
@@ -18,19 +16,32 @@ Minor
     - rho = Num("136.9(5) g/in3")
         - rho.to("g/mL") gave 8.35415056656885 (correct), but lost the propagated uncertainty
 
-
 - Feature changes
     - Add the ability to cuddle an SI prefix as a shorthand: Num("3.7M"), which is the
       same as Num("3.7e6").  While not critically needed, it's a handy tool for folks
       who are familiar with working with SI units.
-- Needed attributes
-    - .f:  Show as a fraction (this will be only way to see the fractional details, as
-      most folks will just want the decimal or integer form)
 
-- Moving to a github repository
-    - Testing
-        - Move self-tests to separate file
-        - Include lwtest.py (see xxpytest below for Mike's comments on using pytest)
+- Things I'll probably want
+    - Like SHOW in the HP42s:  show the full number form
+    - .n    Change the displayed number of decimals
+    - Num.N Change the decimal precision
+    - .f    Set the chosen format:  fix fixed sci eng eng si all
+
+---------------------------------------------------------------------------
+
+UnitArbiter refactor
+    - UnitArbiter is for "what" and UnitsMachinery is for "how"
+    - Current implementation may not need the UnitsMachinery class at all.  I'm using
+      the minimal GNU units compatible string from 'dp_units.py min' to define a basic
+      set of units for testing.  We probably can make the machinery accept a GNU units
+      config file, meaning there shouldn't be a need for the coprocess.
+    - UnitArbiter's dicts:
+        - _registry holds the definitions from the units definition file (GNU units
+          syntax).  key: name, value: definition
+        - _registry_scales will hold the conversion factor to base units.  key: name,
+          value: conversion factor
+        - __registry_signatures hold the "vector components" in base units.  key: name,
+          value: dict of base unit exponents (integers != 0 only)
 
 ---------------------------------------------------------------------------
 Some test examples for fidding in the REPL
