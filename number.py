@@ -67,6 +67,7 @@ if 1:  # Header
         import operator
         import os
         import pathlib
+        import pprint
         import random
         import re
         import select
@@ -105,6 +106,7 @@ if 1:  # Header
             pass
         g = G()
         g.dbg = len(sys.argv) > 1
+        pp = pprint.pprint
     if 1:   # Types and enums
         class NumType(enum.IntEnum):
             Int = 1
@@ -412,7 +414,6 @@ if 0: # NumericMixin
             s = self.as_mpc
             return complex(float(s.real), float(s.imag))
     # Goodbye from the Mike & Don comedy show
-# CHUNK: NumericMixin
 if 1: # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__ _ensure_conformable'''
     class NumericMixin:
@@ -652,6 +653,202 @@ if 1: # NumericMixin
             except:
                 return val
     # Goodbye from the Mike & Don comedy show
+# FILE: number.py
+# CHUNK: NumericMixin
+if 1: # NumericMixin
+    '''Manifest [23]: _do_unary_uncertainty _ensure_conformable __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__ __float__ __complex__ _to_mpmath'''
+    class NumericMixin:
+        '''
+        An abstract-style mixin providing arithmetic and logic for Num objects.
+        Now simplified: all numbers can carry uncertainty in their 'pocket'.
+        '''
+        def _do_unary_uncertainty(self, op_func: ty.Callable, res_unit: str = "") -> "Num":
+            from mpmath import workdps, diff, mpc, sqrt as mp_sqrt
+            with workdps(mpmath.mp.dps + 4):
+                real_mpc = mpc(self._real)
+                imag_mpc = mpc(self._imag)
+                df_dx = diff(lambda x: op_func(mpc(x) + 1j*imag_mpc), real_mpc)
+                df_dy = diff(lambda y: op_func(real_mpc + 1j*mpc(y)), imag_mpc)
+                cov_xy = self.correl * self.re_unc * self.im_unc
+                var_real = ((abs(df_dx)**2 * self.re_unc**2)
+                            + (abs(df_dy)**2 * self.im_unc**2)
+                            + (2 * df_dx * df_dy * cov_xy))
+                new_unc = mp_sqrt(abs(var_real))
+                def IsLargeSlope(value: mpmath.mpf, slope: mpmath.mpf, uncertainty: mpmath.mpf) -> bool:
+                    sensitivity = abs(slope)
+                    if ((value and abs(sensitivity*uncertainty/value) > 100) or sensitivity > 1e5):
+                        return True
+                    return False
+                if (IsLargeSlope(real_mpc, df_dx, self.re_unc) or IsLargeSlope(imag_mpc, df_dy, self.im_unc)):
+                    print("Warning: large slope; possible unphysical uncertainty", file=sys.stderr)
+            res = self._make_result(op_func(self.as_mpc), unit=res_unit)
+            res.re_unc = new_unc
+            res.correl = 0
+            return res
+        def _ensure_conformable(self, other: "Num", op: str) -> None:
+            self.arb.AssertConformable(self._unit, other._unit, op)
+        def __add__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            self._ensure_conformable(other, "+")
+            other_norm = self._normalize(other, "add")
+            if self.mytype <= NumType.Rat and other_norm.mytype <= NumType.Rat:
+                if self.re_unc == 0 and other_norm.re_unc == 0:
+                    return self._make_result(self.as_int_or_rat + other_norm.as_int_or_rat, unit=self._unit)
+            return self._binary_op(other_norm, lambda a, b: a+b)
+        def __sub__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            self._ensure_conformable(other, "-")
+            other_norm = self._normalize(other, "sub")
+            if self.mytype <= NumType.Rat and other_norm.mytype <= NumType.Rat:
+                if self.re_unc == 0 and other_norm.re_unc == 0:
+                    return self._make_result(self.as_int_or_rat - other_norm.as_int_or_rat, unit=self._unit)
+            return self._binary_op(other_norm, lambda a, b: a-b)
+        def __mul__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self._unit and other._unit:
+                res_unit = f"({self._unit})*({other._unit})"
+            elif self._unit or other._unit:
+                res_unit = self._unit or other._unit
+            if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
+                if self.re_unc == 0 and other.re_unc == 0:
+                    res = self._make_result(self.as_int_or_rat * other.as_int_or_rat, unit=res_unit)
+                    return res
+            res = self._binary_op(other, lambda a, b: a*b)
+            res._unit = res_unit
+            return res
+        def __truediv__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(other)
+            res_unit = ""
+            if self._unit and other._unit:
+                res_unit = f"({self._unit})/({other._unit})"
+            elif self._unit:
+                res_unit = self._unit
+            elif other._unit:
+                res_unit = f"1/({other._unit})"
+            if self.mytype <= NumType.Rat and other.mytype <= NumType.Rat:
+                if self.re_unc == 0 and other.re_unc == 0:
+                    res = self._make_result(self.as_int_or_rat / other.as_int_or_rat, unit=res_unit)
+                    return res
+            res = self._binary_op(other, lambda a, b: a/b)
+            res._unit = res_unit
+            return res
+        def __pow__(self, other: ty.Any) -> "Num":
+            if not isinstance(other, Num):
+                other = Num(str(other))
+            if self._unit and other.mytype == NumType.Cpx:
+                raise TypeError(f"Cannot raise unit-bearing quantity ({self._unit}) to a complex power")
+            res = self._binary_op(other, lambda a, b: a**b)
+            if self._unit:
+                if other.mytype == NumType.Rat:
+                    exp_str = f"({other.as_int_or_rat.numerator}/{other.as_int_or_rat.denominator})"
+                else:
+                    try:
+                        exp_f = float(other.as_mpf)
+                        exp_str = str(int(exp_f)) if exp_f.is_integer() else str(exp_f)
+                    except:
+                        exp_str = str(other.raw_value)
+                raw_unit = f"({self._unit})^{exp_str}"
+                try:
+                    new_val, simplified_unit = self.arb.simplify(res.raw_value, raw_unit)
+                except AttributeError:
+                    print(f"FIXME: UnitArbiter.simplify missing. Using raw unit: {raw_unit}", file=sys.stderr)
+                    new_val, simplified_unit = res.raw_value, raw_unit
+                return Num(new_val, unit=simplified_unit)
+            return res
+        def _do_uncertainty_math(self, other: "Num", op_func: ty.Callable) -> "Num":
+            from mpmath import workdps, diff, sqrt as mp_sqrt
+            z_val = op_func(self.as_mpc, other.as_mpc)
+            with workdps(mpmath.mp.dps+4):
+                df_dself = diff(lambda x: op_func(x, other.as_mpc), self.as_mpc)
+                df_dother = diff(lambda y: op_func(self.as_mpc, y), other.as_mpc)
+                s_sens = abs(df_dself)
+                o_sens = abs(df_dother)
+                new_re_unc = mp_sqrt((s_sens*self.re_unc)**2 + (o_sens*other.re_unc)**2)
+                new_im_unc = mp_sqrt((s_sens*self.im_unc)**2 + (o_sens*other.im_unc)**2)
+            res = self._make_result(z_val, unit=self._unit)
+            res.re_unc = new_re_unc
+            res.im_unc = new_im_unc
+            return res
+        def _check_ordering(self, other: ty.Any, op: str):
+            other_num = other if isinstance(other, Num) else Num(other)
+            if self._unit or other_num._unit:
+                self._ensure_conformable(other_num, op)
+            if self.mytype == NumType.Cpx or other_num.mytype == NumType.Cpx:
+                raise TypeError(f"'{op}' not supported between complex numbers.")
+        def __lt__(self, other):
+            self._check_ordering(other, "<")
+            other_num = other if isinstance(other, Num) else Num(other)
+            other_norm = self._normalize(other_num, "cmp")
+            return self.raw_value < other_norm.raw_value
+        def __le__(self, other):
+            self._check_ordering(other, "<=")
+            other_num = other if isinstance(other, Num) else Num(other)
+            other_norm = self._normalize(other_num, "cmp")
+            return self.raw_value <= other_norm.raw_value
+        def __gt__(self, other):
+            self._check_ordering(other, ">")
+            other_num = other if isinstance(other, Num) else Num(other)
+            other_norm = self._normalize(other_num, "cmp")
+            return self.raw_value > other_norm.raw_value
+        def __ge__(self, other):
+            self._check_ordering(other, ">=")
+            other_num = other if isinstance(other, Num) else Num(other)
+            other_norm = self._normalize(other_num, "cmp")
+            return self.raw_value >= other_norm.raw_value
+        def __eq__(self, other: ty.Any) -> bool:
+            if not isinstance(other, Num):
+                try:
+                    other = Num(other)
+                except:
+                    return False
+            if self._unit != other._unit:
+                try:
+                    other = self._normalize(other, "cmp")
+                except (ValueError, TypeError):
+                    return False
+            v1, v2 = self.raw_value, other.raw_value
+            try:
+                m1, m2 = self._to_mpmath(v1), self._to_mpmath(v2)
+                if hasattr(m1, "imag") != hasattr(m2, "imag"):
+                    return False
+                return mpmath.almosteq(m1, m2)
+            except:
+                return v1 == v2
+        def __abs__(self) -> "Num":
+            return self._make_result(abs(self.raw_value), unit=self._unit)
+        def __neg__(self) -> "Num":
+            return self._make_result(-self.raw_value, unit=self._unit)
+        def __radd__(self, other: ty.Any) -> "Num":
+            return Num(other)+self
+        def __rsub__(self, other: ty.Any) -> "Num":
+            return Num(other)-self
+        def __rmul__(self, other: ty.Any) -> "Num":
+            return Num(other)*self
+        def __rtruediv__(self, other: ty.Any) -> "Num":
+            return Num(other)/self
+        def __float__(self) -> float:
+            return float(self.as_mpf)
+        def __complex__(self) -> complex:
+            s = self.as_mpc
+            return complex(float(s.real), float(s.imag))
+        @classmethod
+        def _to_mpmath(cls, val):
+            if isinstance(val, (mpmath.mpf, mpmath.mpc)):
+                return val
+            if hasattr(val, "imag") and not isinstance(val, (int, float, complex, fractions.Fraction)):
+                return mpmath.mpc(val)
+            try:
+                s = str(val)
+                if 'j' in s or 'i' in s:
+                    return mpmath.mpc(s)
+                return mpmath.mpf(s)
+            except:
+                return val
 # END_CHUNK: NumericMixin
 
 if 0: # Num
@@ -1104,9 +1301,15 @@ if 1: # Num
                 adjusted.mytype = other.mytype
             adjusted._unit = self._unit
             return adjusted
-        def base(self, unit: str = "") -> None:
-            target = unit if unit else self._unit
-            if target: print(self.arb._register_unit(target))
+        def base(self) -> "Num":
+            '''
+            Returns a new Num instance converted to the base SI units
+            (meters, kilograms, seconds, etc.).
+            '''
+            # Get the base unit string and the conversion factor from the arbiter
+            # Assuming arb.GetBase(unit) returns (factor_str, base_unit_str)
+            factor_str, base_unit = self.arb.GetBase(self._unit)
+            return self.to(base_unit)
         def help(self, topic: str = "") -> None:
             h = Help()
             h(topic) if topic else h()
@@ -1147,17 +1350,26 @@ if 1: # Num
             val_str = mpmath.nstr(self.raw_value, 25)
             return hash((val_str, self._unit))
         def to(self, unit: str, auto_promote: bool = True) -> "Num":
+            '''
+            Converts the quantity to a new conformable unit.
+            Scales both the value and the uncertainty by the conversion factor.
+            '''
             if not unit or unit == self._unit:
                 return Num(self)
             is_ok, factor_str = self.arb.CheckConformable(self._unit, unit)
             if not is_ok:
-                self.arb._register_unit(unit)
-                is_ok, factor_str = self.arb.CheckConformable(self._unit, unit)
-                if not is_ok: raise ValueError(f"Incompatible: {self._unit} -> {unit}")
+                # If CheckConformable fails, the unit is truly incompatible.
+                raise ValueError(f"Incompatible units: cannot convert {self._unit} to {unit}")
+            factor = mpmath.mpf(factor_str)
             res = Num(self)
-            res._real = res.as_mpf*mpmath.mpf(factor_str)
-            res.mytype = NumType.Flt
+            # Scale the core value
+            res._real = self.as_mpf * factor
+            res._imag = self._imag * factor
+            # Scale the uncertainty (the crucial fix!)
+            res.re_unc = self.re_unc * factor
+            res.im_unc = self.im_unc * factor
             res._unit = unit
+            res.mytype = NumType.Flt if self.mytype != NumType.Cpx else NumType.Cpx
             return res._promote() if auto_promote else res
         def approx(self, y: ty.Any, ndigits: int) -> bool:
             if not isinstance(y, Num):
@@ -1361,23 +1573,43 @@ if 1:  # UnitArbiter
             if unit_str.count('/') > 1 and not ('(' in unit_str and ')' in unit_str):
                 raise ValueError(f"Ambiguous unit '{unit_str}': use parentheses for multiple slashes.")
         def GetScalingFactorToBaseUnits(self, unit_str: str, _depth: int = 0) -> float:
-            '''
-            Calculates the cumulative multiplier to convert a unit to SI base units.
-    
-            This method recursively traverses unit definitions through the registry.
-            It uses a memoization pattern: if the scale isn't in _registry_scales,
-            it triggers _calculate_scale and caches the result.
-    
-            Args:
-                unit_str: The unit to resolve.
-                _depth: Internal recursion tracker to prevent infinite loops.
-    
-            Returns:
-                A float (or mpmath.mpf) representing the conversion factor to SI.
-            '''
-            if unit_str not in self._registry_scales:
-                self._registry_scales[unit_str] = self._calculate_scale(unit_str, _depth)
-            return self._registry_scales[unit_str]
+            if not unit_str: return 1.0
+            if unit_str in self._registry_scales:
+                return self._registry_scales[unit_str]
+            # 1. Handle structure (slashes and dots/stars)
+            # This mirrors the logic in GetDimensionalitySignature
+            import re
+            # Simple recursive resolution for parentheticals
+            if '(' in unit_str:
+                # For scaling, we can just solve the inside and move on
+                # but for simplicity, let's just handle the top-level split
+                pass
+            parts = unit_str.split('/')
+            numerator_str = parts[0]
+            denominator_str = parts[1] if len(parts) > 1 else ""
+            def get_list_scale(s):
+                if not s: return 1.0
+                # Split by * and space
+                tokens = s.replace("**", "__POW__").split('*')
+                final_tokens = []
+                for t in tokens:
+                    final_tokens.extend(t.split())
+
+                res = 1.0
+                for token in final_tokens:
+                    token = token.strip().replace("__POW__", "**")
+                    if not token: continue
+                    if self._is_number(token):
+                        res *= float(token)
+                    else:
+                        # Recursively call _calculate_scale for INDIVIDUAL tokens only
+                        res *= self._calculate_scale(token, _depth + 1)
+                return res
+            num_scale = get_list_scale(numerator_str)
+            den_scale = get_list_scale(denominator_str)
+            final_scale = num_scale / den_scale
+            self._registry_scales[unit_str] = final_scale
+            return final_scale
         def GetDimensionalitySignature(self, unit_str: str) -> dict:
             '''
             Reduces a unit string to its irreducible base-dimension signature.
@@ -1393,31 +1625,25 @@ if 1:  # UnitArbiter
             '''
             if unit_str in self._registry_signatures:
                 return self._registry_signatures[unit_str]
-            
             Dbg(f"GDS: Processing {unit_str!r}")
-            
             # 1. Replace parens with placeholders, but ensure they are isolated
             import re
             def repl(match):
                 return f"_{self._store_temp_sig(self._combine_signatures_from_def(match.group(1)))}_"
-            
             processed_str = unit_str
             while '(' in processed_str:
                 processed_str = re.sub(r'\(([^()]+)\)', repl, processed_str)
-            
             # 2. Split by structure, not just string manipulation
             # Now processed_str looks like 'm/_0_'
             # We split by / and * to get individual tokens
             parts = processed_str.split('/')
             numerator = parts[0].split('*')
             denominator = parts[1].split('*') if len(parts) > 1 else []
-            
             sig = {}
             for t in numerator:
                 if t: self._update_sig(sig, self._resolve_token(t), 1)
             for t in denominator:
                 if t: self._update_sig(sig, self._resolve_token(t), -1)
-            
             Dbg(f"  GDS: Result for {unit_str!r} is {sig!r}")
             self._registry_signatures[unit_str] = sig
             return sig
@@ -1446,6 +1672,10 @@ if 1:  # UnitArbiter
                 raise ValueError(f"Operation '{operation}' failed: {unit_a} and {unit_b} are incompatible. ({msg})")
         def CheckConformable(self, have: str, want: str) -> tuple[bool, str]:
             '''Check if two units have the same physical dimensions.'''
+            if 0:
+                print("CheckConformable has temp cache clear")
+                self._registry_scales.clear()
+                self._registry_signatures.clear()
             if have == want:
                 return True, "1.0"
             try:
@@ -1463,34 +1693,37 @@ if 1:  # UnitArbiter
                 return False, str(e)
         def _calculate_scale(self, unit_str: str, depth: int) -> float:
             if unit_str.startswith('(') and unit_str.endswith(')'):
+                Dbg(f"_calculate_scale():  recursion with {unit_str!r}")
                 return self._resolve_definition_value(unit_str[1:-1], depth)
+            # 1. Decompose 'in3' into ('in', 3)
             name, exponent = self._decomposed_token(unit_str)
+            Dbg(f"_calculate_scale():  decomposed to {name!r}, {exponent!r}")
+            # 2. Get the scale of the BASE unit ('in' -> 0.0254)
             definition = self._registry.get(name, "")
-            if not definition: return 1.0 ** exponent
-            return (self._resolve_definition_value(definition, depth + 1)) ** exponent
+            Dbg(f"_calculate_scale():  registry get:  {definition!r}")
+            if not definition or definition == "!":
+                base_scale = 1.0
+            else:
+                base_scale = self._resolve_definition_value(definition, depth + 1)
+            Dbg(f"_calculate_scale():  base_scale = {base_scale!r}")
+            # 3. Apply the exponent to the scale: (0.0254 ** 3)
+            return float(base_scale) ** exponent
         def _resolve_definition_value(self, definition: str, depth: int) -> float:
-            parts = definition.split(" ", 1)
-            if len(parts) == 1: return self.GetScalingFactorToBaseUnits(parts[0], depth)
-            return float(parts[0]) * self.GetScalingFactorToBaseUnits(parts[1], depth)
-        def _resolve_definition_value(self, definition: str, depth: int) -> float:
-            # If the definition contains '*', we split and multiply the parts
-            if '*' in definition:
-                parts = definition.split('*')
-                total_scale = 1.0
-                for p in parts:
-                    p = p.strip()
-                    if self._is_number(p):
-                        total_scale *= float(p)
-                    else:
-                        total_scale *= self.GetScalingFactorToBaseUnits(p, depth)
-                return total_scale
-            # Fallback for standard "space" or "single" definitions
-            parts = definition.split(maxsplit=1)
-            if len(parts) == 1:
-                if self._is_number(parts[0]): return float(parts[0])
-                return self.GetScalingFactorToBaseUnits(parts[0], depth)
-
-            return float(parts[0]) * self.GetScalingFactorToBaseUnits(parts[1], depth)
+            # Protect exponents during split
+            safe_def = definition.replace("**", "__POW__")
+            parts = []
+            for p in safe_def.split('*'):
+                parts.extend(p.split())
+            total_scale = 1.0
+            for p in parts:
+                p = p.strip().replace("__POW__", "**")
+                if not p: continue
+                if self._is_number(p):
+                    total_scale *= float(p)
+                else:
+                    # Recursively get scale (this handles in3 -> in^3)
+                    total_scale *= self.GetScalingFactorToBaseUnits(p, depth)
+            return total_scale
         def _resolve_token(self, token: str) -> dict:
             # Handle the _ID_ placeholders
             if token.startswith("_") and token.endswith("_"):
@@ -1532,14 +1765,15 @@ if 1:  # UnitArbiter
             self._temp_sigs()[uid] = sig
             return uid
         def _decomposed_token(self, token: str) -> tuple[str, int]:
-            # Handle m**3 or m^3
-            for op in ["**", "^"]:
+            # 1. Handle explicit operators: m**3 or m^3
+            for op in ["**", "^"]: # In code, these are literal strings
                 if op in token:
-                    name, exp = token.split(op)
-                    return name.strip(), int(exp)
-
-            # Handle m3 (trailing digits)
-            # We walk backwards to find where the digits start
+                    parts = token.split(op)
+                    name = parts[0].strip()
+                    # If there's a second part, it's the exponent
+                    exp = int(parts[1]) if len(parts) > 1 and parts[1] else 1
+                    return name, exp
+            # 2. Handle implicit integers: m3
             name = token
             exp_str = ""
             for i in range(len(token) - 1, -1, -1):
@@ -1548,9 +1782,9 @@ if 1:  # UnitArbiter
                     name = token[:i]
                 else:
                     break
-
             if exp_str:
                 return name, int(exp_str)
+            # 3. Default case
             return token, 1
         def _is_number(self, s: str) -> bool:
             try:
@@ -1561,33 +1795,41 @@ if 1:  # UnitArbiter
         def _combine_signatures_from_def(self, definition: str) -> dict:
             Dbg(f"  _combine_signatures_from_def: Parsing {definition!r}")
             if not definition: return {}
-            # Split by / first for denominator logic
-            parts = definition.split('/')
-            numerator_raw = parts[0].split('*')
-            denominator_raw = parts[1].split('*') if len(parts) > 1 else []
-            # Flatten any space-separated tokens (e.g., "0.3048 m" -> ["0.3048", "m"])
-            numerator = []
-            for p in numerator_raw:
-                numerator.extend(p.split())
-            denominator = []
-            for p in denominator_raw:
-                denominator.extend(p.split())
+            
+            # PROTECT THE EXPONENTS: 
+            # Temporarily replace '**' with a placeholder that doesn't contain '*'
+            safe_def = definition.replace("**", "__POW__")
+            
+            # Now we can safely split by '/' and '*'
+            parts = safe_def.split('/')
+            num_tokens = []
+            for p in parts[0].split('*'):
+                num_tokens.extend(p.split())
+                
+            den_tokens = []
+            if len(parts) > 1:
+                for p in parts[1].split('*'):
+                    den_tokens.extend(p.split())
+
             signature = {}
-            for unit in numerator:
-                unit = unit.strip()
-                # CRITICAL: Skip numeric scaling factors in the dimensionality signature
-                if unit and not self._is_number(unit):
-                    self._update_sig(signature, self._get_unit_sig(unit), 1)
-            for unit in denominator:
-                unit = unit.strip()
-                if unit and not self._is_number(unit):
-                    self._update_sig(signature, self._get_unit_sig(unit), -1)
+            
+            for token in num_tokens:
+                token = token.strip().replace("__POW__", "**") # Restore it
+                if not token or self._is_number(token): continue
+                name, exponent = self._decomposed_token(token)
+                self._update_sig(signature, self._resolve_token(name), exponent)
+                
+            for token in den_tokens:
+                token = token.strip().replace("__POW__", "**") # Restore it
+                if not token or self._is_number(token): continue
+                name, exponent = self._decomposed_token(token)
+                self._update_sig(signature, self._resolve_token(name), -exponent)
+                
             Dbg(f"  _combine_signatures_from_def: Resulting sig {signature!r}")
             return signature
 # END_CHUNK: UnitArbiter
 
-# CHUNK: StringParser
-if 1:  # StringParser
+if 0:  # StringParser
     '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
     class StringParser:
         '''
@@ -1702,6 +1944,124 @@ if 1:  # StringParser
             if "." in val_str: decimal_places = len(val_str.split(".")[1])
             return mpmath.mpf(unc_str) / (10**decimal_places)
     # Goodbye from the Mike & Don comedy show
+# FILE: number.py
+# CHUNK: StringParser
+if 1:  # StringParser
+    '''Manifest [4]: parse _split_input _parse_number _calc_explicit_unc _calc_implied_unc'''
+    class StringParser:
+        '''
+        The bridge between human-readable strings and the Num object.
+        - Tokenizes strings like "5.20(1) m/s^2".
+        - Implements the '6 AM Epiphany': All floating-point inputs receive
+          either explicit (n) or implied (unc_lsd) uncertainty.
+        - Enforces standard metrological notation: significand(unc)exponent.
+        '''
+        @staticmethod
+        def parse(s: str, unc_lsd: float = 1.0) -> ParsedPayload:
+            s = s.strip()
+            if not s:
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=0, denom=1, unit="")
+            num_str, unit_str = StringParser._split_input(s)
+            return StringParser._parse_number(num_str if num_str else s, unit_str, unc_lsd)
+        @staticmethod
+        def _split_input(s: str) -> ty.Tuple[str, str]:
+            if " " not in s:
+                return s, ""
+            return s.rsplit(" ", 1)
+        @staticmethod
+        def _calc_explicit_unc(val_str: str, unc_str: str) -> mpmath.mpf:
+            '''Calculates uncertainty from explicit (n) notation relative to decimal places.'''
+            places = 0
+            if "." in val_str:
+                places = len(val_str.split(".")[1])
+            return mpmath.mpf(unc_str) / (10**places)
+        @staticmethod
+        def _calc_implied_unc(val_str: str, unc_lsd: float) -> mpmath.mpf:
+            '''Calculates uncertainty based on the precision of the string representation.'''
+            if "." not in val_str:
+                return mpmath.mpf("0")
+            decimal_part = val_str.split(".")[1]
+            decimal_part = re.split(r'[eE]', decimal_part)[0]
+            places = len(decimal_part)
+            return mpmath.mpf(unc_lsd) / (10**places)
+        @staticmethod
+        def _parse_number(s: str, unit: str, unc_lsd: float) -> ParsedPayload:
+            clean_s = s.replace(" ", "").replace("_", "").lower()
+            if clean_s in ("inf", "nan", "-inf", "-nan", "+inf", "+nan"):
+                return ParsedPayload(NumType.Flt, mpmath.mpf(clean_s), unit=unit)
+            # mpmath sanitizer for bare dots or signs
+            if clean_s.startswith("."):
+                clean_s = "0" + clean_s
+            elif clean_s.startswith("-."):
+                clean_s = clean_s.replace("-.", "-0.")
+            elif clean_s.startswith("+."):
+                clean_s = clean_s.replace("+.", "+0.")
+            if clean_s.endswith("."):
+                clean_s += "0"
+            if "j" in clean_s or ("i" in clean_s and "inf" not in clean_s):
+                clean_s = clean_s.replace("i", "j")
+                correl = mpmath.mpf("0")
+                match_correl = re.search(r"<r=(-?[\d\.]+)>", clean_s)
+                if match_correl:
+                    correl = mpmath.mpf(match_correl.group(1))
+                    clean_s = re.sub(r"<r=(-?[\d\.]+)>", "", clean_s)
+                s_stripped = clean_s.replace("j", "")
+                def _parse_part(part: str):
+                    if "(" in part:
+                        m = re.fullmatch(r"([+-]?\d*\.?\d+)\(([\d\.]+)\)(e[+-]?\d+)?", part)
+                        if not m:
+                            raise ValueError("Invalid complex uncertainty format")
+                        v_base, u_val, exp = m.groups()
+                        val = mpmath.mpf(v_base + (exp if exp else ""))
+                        unc = StringParser._calc_explicit_unc(v_base, u_val)
+                        if exp:
+                            unc *= mpmath.mpf("1" + exp)
+                        return val, unc
+                    else:
+                        val = mpmath.mpf(part)
+                        unc = StringParser._calc_implied_unc(part, unc_lsd)
+                        return val, unc
+                split_idx = -1
+                for i in range(len(s_stripped) - 1, 0, -1):
+                    if s_stripped[i] in "+-" and s_stripped[i-1] != "e":
+                        split_idx = i
+                        break
+                if split_idx != -1:
+                    r_val, r_unc = _parse_part(s_stripped[:split_idx])
+                    i_part = s_stripped[split_idx:]
+                    if i_part == "+":
+                        i_val, i_unc = mpmath.mpf("1"), mpmath.mpf("0")
+                    elif i_part == "-":
+                        i_val, i_unc = mpmath.mpf("-1"), mpmath.mpf("0")
+                    else:
+                        i_val, i_unc = _parse_part(i_part.replace("+", ""))
+                else:
+                    r_val, r_unc = mpmath.mpf("0"), mpmath.mpf("0")
+                    i_val, i_unc = _parse_part(s_stripped)
+                return ParsedPayload(NumType.Cpx, r_val, imag=i_val, re_unc=r_unc, im_unc=i_unc, correl=correl, unit=unit)
+            if "/" in clean_s:
+                if "(" in clean_s:
+                    raise ValueError("Fractions cannot have explicit uncertainty")
+                f = fractions.Fraction(clean_s)
+                return ParsedPayload(NumType.Rat, mpmath.mpf("0"), numer=f.numerator, denom=f.denominator, unit=unit)
+            if "(" in clean_s:
+                match = re.fullmatch(r"([+-]?\d*\.?\d+)\(([\d\.]+)\)(e[+-]?\d+)?", clean_s)
+                if not match:
+                    raise ValueError("Invalid format. Use 1.23(4) or 1.23(4)e-5")
+                v_base, u_val, exp = match.groups()
+                val = mpmath.mpf(v_base + (exp if exp else ""))
+                re_unc = StringParser._calc_explicit_unc(v_base, u_val)
+                if exp:
+                    re_unc *= mpmath.mpf("1" + exp)
+                ntype = NumType.Int if ("." not in v_base) else NumType.Flt
+                return ParsedPayload(ntype, val, re_unc=re_unc, unit=unit)
+            if "." in clean_s or "e" in clean_s:
+                val = mpmath.mpf(clean_s)
+                re_unc = StringParser._calc_implied_unc(clean_s, unc_lsd)
+                return ParsedPayload(NumType.Flt, val, re_unc=re_unc, unit=unit)
+            else:
+                val_int = int(clean_s)
+                return ParsedPayload(NumType.Int, mpmath.mpf(val_int), numer=val_int, denom=1, unit=unit)
 # END_CHUNK: StringParser
 
 # CHUNK: NumFunctionPopulation
@@ -2293,6 +2653,15 @@ if 1:   # Default units and global unit_arbiter
             buck                 $
             bucks                $
             '''
+    if 1:
+        # This is for debugging the rho = Num("136.9(5) g/in3") case, which should give 
+        # .to("g/L"), but is failing the conversion.
+        default_units = '''
+            m   !
+            g   1e-3*kg
+            L   1e-3*m**3
+            in   0.0254*m
+        '''
     # Create the UnitArbiter singleton
     unit_arbiter = UnitArbiter()
     # Load these default units

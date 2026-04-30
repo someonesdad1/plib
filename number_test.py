@@ -491,7 +491,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             Assert(x.re_unc == mpmath.mpf("0"))
             Assert(x.im_unc == mpmath.mpf("0"))
             Assert(x.correl == mpmath.mpf("0"))
-            Assert(x.mytype == NumType.Unc)
+            Assert(x.mytype == NumType.Flt)
 # END_CHUNK: NumTestConstructor
 
 # CHUNK: NumTestCorner
@@ -668,6 +668,7 @@ if 1:   # StringParser tests
                 ("-398579387349375937593749379385740684095840", -398579387349375937593749379385740684095840),
             )
             for s, expected in tests:
+                Dbg(f"s = {s!r}, expected = {expected!r}")
                 pl = p(s)
                 Assert(pl.numer == expected)
                 Assert(pl.type == NumType.Int)
@@ -687,6 +688,7 @@ if 1:   # StringParser tests
                 ("-2_2_2_2_2_2_2_2_2_2_2_2/2_2_2_2_2_2_2_2_2_2", -10101010101, 101010101),
             )
             for s, numer, denom in tests:
+                Dbg(f"s = {s!r}, expected = {expected!r}")
                 pl = p(s)
                 Assert(pl.numer == numer)
                 Assert(pl.denom == denom)
@@ -716,6 +718,7 @@ if 1:   # StringParser tests
                 ("-" + u, -v),
             )
             for s, expected in tests:
+                Dbg(f"s = {s!r}, expected = {expected!r}")
                 pl = p(s)
                 Assert(pl.real == expected)
                 Assert(pl.type == NumType.Flt)
@@ -740,6 +743,7 @@ if 1:   # StringParser tests
                 ("1/3+1/2j", mpf("0.33333333333333331"), mpf("0.5")),
             )
             for s, re, im in tests:
+                Dbg(f"s = {s!r}, expected = {expected!r}")
                 pl = p(s)
                 Assert(pl.real == re)
                 Assert(pl.imag == im)
@@ -755,6 +759,7 @@ if 1:   # StringParser tests
                 "1.234(nan)",
             )
             for s in exc:
+                Dbg(f"s = {s!r} (testing raises)")
                 with raises(ValueError):
                     p(s)
             '''
@@ -783,23 +788,25 @@ if 1:   # StringParser tests
             x - y
             x*y
             x/y
+            Int, Flt = NumType.Int, NumType.Flt
             tests = (
-                ("0(0)", 0, 0),
-                ("1(0)", 1, 0),
-                ("-1(0)", -1, 0),
-                ("0(100)", 0, 100),
-                ("1(100)", 1, 100),
-                ("-1(100)", -1, 100),
-                ("1.234(0)e44", mpf("1.234e44"), mpf("0")),
-                ("1.234(56)e44", mpf("1.234e44"), mpf("5.6000000000000011e+42")),
-                ("1(10000000000000000000000000)e100", mpf("1.0e100"), mpf("1.0000000000000001e+125")),
-                ("-1(10000000000000000000000000)e100", mpf("-1.0e100"), mpf("1.0000000000000001e+125")),
+                ("0(0)", 0, 0, Int),
+                ("1(0)", 1, 0, Int),
+                ("-1(0)", -1, 0, Int),
+                ("0(100)", 0, 100, Int),
+                ("1(100)", 1, 100, Int),
+                ("-1(100)", -1, 100, Int),
+                ("1.234(0)e44", mpf("1.234e44"), mpf("0"), Flt),
+                ("1.234(56)e44", mpf("1.234e44"), mpf("5.6000000000000011e+42"), Flt),
+                ("1(10000000000000000000000000)e100", mpf("1.0e100"), mpf("1.0000000000000001e+125"), Int),
+                ("-1(10000000000000000000000000)e100", mpf("-1.0e100"), mpf("1.0000000000000001e+125"), Int),
             )
-            for s, nom, stdev in tests:
+            for s, nom, stdev, mytype in tests:
+                Dbg(f"s = {s!r}, nom = {nom!r}, stdev = {stdev!r}")
                 pp = p(s)
                 Assert(pp.real == nom)
                 Assert(pp.re_unc == stdev)
-                Assert(pp.type == NumType.Unc)
+                Assert(pp.type == mytype)
         if 1:   # Complex uncertainty
             # Forms that cause exceptions
             exc = (
@@ -815,6 +822,7 @@ if 1:   # StringParser tests
                 "1+1.234(nan)j",
             )
             for s in exc:
+                Dbg(f"s = {s!r} (testing raises)")
                 with raises(ValueError):
                     p(s)
             # Valid forms
@@ -836,17 +844,28 @@ if 1:   # StringParser tests
                     mpf('2.1999999999999998e-14'), mpf("0.003e-8"), mpf("0.283")),
             )
             for s, re, im, re_unc, im_unc, correl in tests:
-                #print(f"Test case:  {s!r}")
+                Dbg(f"s = {s!r}")
                 pp = p(s)
                 Assert(pp.real == re)
                 Assert(pp.imag == im)
                 Assert(pp.re_unc == re_unc)
                 Assert(pp.im_unc == im_unc)
                 Assert(pp.correl == correl)
-                Assert(pp.type == NumType.UncCpx)
+                Assert(pp.type == NumType.Cpx)
             # Correlation coefficient outside of [-1, 1] is error
             raises(ValueError, Num, "-1.0(2)-1.0(2)j<R=2>")
 # END_CHUNK: NumTestStringParser
+
+if 1:
+    from number import g
+    rho = Num("136.9(5) g/in3")
+    g.dbg = 0
+    new = rho.to("g/L")
+    # Should be 8354.15056656885
+    print(new)
+    new.dump
+    exit()
+
 if __name__ == "__main__":  
     from number import g
     g.dbg = len(sys.argv) > 1

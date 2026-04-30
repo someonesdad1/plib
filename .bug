@@ -1,7 +1,12 @@
 20 Apr 2026 09:59:08 am Mon
 
-- UnitArbiter refactor
-    - Must handle all SI prefixes in unit processing
+- Bug:  rho = Num("136.9(5) g/in3"), rho.to("g/mL") gave 8.35415056656885 (correct), but
+  lost the propagated uncertainty.  Now it gets a syntax error.
+- Add .u property:  shows in short-form uncertainty string form
+- Must handle all SI prefixes in unit processing (include ronto/quecto latest stuff too)
+- Allow Num("3.7M") as a number shorthand (valid SI prefixes only)
+- Add Num.N as a class variable for the mpmath.mp.dps setting.  Can it act as a property
+  or does it need to be a function?  Function is fine if needed.
 
 Important
     - Num("3.45 iu3r") automatically creates a new unit in the dynamic file as "iu3x

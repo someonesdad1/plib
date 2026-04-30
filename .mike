@@ -1,7 +1,9 @@
 # CHUNK:  .mike
 - Most important formatting instructions that the AI context quickly forgets:
     - Put a newline after a ':' in a conditional, class, or function definition.
-    - No empty lines or lines with whitespace only except in docstrings
+    - No empty lines or lines with whitespace only (except in docstrings)
+    - Classes have '''Manifest [N]: method_a method_b ... property_c''' where N is 
+      the current count of methods & properties.
     
 - Declaration of Interdependence:  mitigating AI context drift
     - To combat "Context Displacement"—the architectural tendency of the AI to omit
