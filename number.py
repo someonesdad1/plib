@@ -109,12 +109,11 @@ if 1:  # Header
         pp = pprint.pprint
     if 1:   # Types and enums
         class NumType(enum.IntEnum):
+            'Type enum for class Num'
             Int = 1
             Rat = 2
             Flt = 3
             Cpx = 4
-            Unc = 5
-            UncCpx = 6
         NumericalTypes = ty.Union[
             int , float , complex , decimal.Decimal ,
             fractions.Fraction , mpmath.mpf , mpmath.mpc ,
@@ -1132,8 +1131,6 @@ if 1: # Num
             NumType.Rat: t("brn", "gry1"),
             NumType.Flt: t("ygr", "gry1"),
             NumType.Cpx: t("sky", "gry1"),
-            NumType.Unc: t("viol", "gry1"),
-            NumType.UncCpx: t("red", "gry1"),
         }
         flip = False
         show_color = True
@@ -1567,8 +1564,7 @@ if 1:  # UnitArbiter
                         self.RegisterDynamicUnit(parts[0], parts[1])
         def RegisterDynamicUnit(self, name: str, definition: str) -> None:
             self._registry[name] = definition
-            self._registry_scales.clear()
-            self._registry_signatures.clear()
+            self._cache_clear()
         def ValidatePolicy(self, unit_str: str) -> None:
             if unit_str.count('/') > 1 and not ('(' in unit_str and ')' in unit_str):
                 raise ValueError(f"Ambiguous unit '{unit_str}': use parentheses for multiple slashes.")
@@ -1674,8 +1670,7 @@ if 1:  # UnitArbiter
             '''Check if two units have the same physical dimensions.'''
             if 0:
                 print("CheckConformable has temp cache clear")
-                self._registry_scales.clear()
-                self._registry_signatures.clear()
+                self._cache_clear()
             if have == want:
                 return True, "1.0"
             try:
@@ -1827,6 +1822,10 @@ if 1:  # UnitArbiter
                 
             Dbg(f"  _combine_signatures_from_def: Resulting sig {signature!r}")
             return signature
+        def _cache_clear(self) -> None:
+            'Clear the unit conversion cache structure'
+            self._registry_scales.clear()
+            self._registry_signatures.clear()
 # END_CHUNK: UnitArbiter
 
 if 0:  # StringParser
@@ -2653,7 +2652,7 @@ if 1:   # Default units and global unit_arbiter
             buck                 $
             bucks                $
             '''
-    if 1:
+    if 0:
         # This is for debugging the rho = Num("136.9(5) g/in3") case, which should give 
         # .to("g/L"), but is failing the conversion.
         default_units = '''
