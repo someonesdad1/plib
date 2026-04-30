@@ -416,7 +416,22 @@ if 0: # NumericMixin
 if 1: # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__ _ensure_conformable'''
     class NumericMixin:
-        '''Operator overloading for the Num class, leveraging Fraction arithmetic where appropriate.'''
+        '''
+        An abstract-style mixin providing arithmetic and logic for Num objects.
+
+        NumericMixin implements the Python data model (dunder methods) to
+        handle interaction between Num objects and primitives.
+
+        Key Logic Pillars:
+        1.  Dimensional Validation: Calls arb.AssertConformable() before
+            additive operations.
+        2.  Unit Propagation: Calculates resulting units for multiplicative
+            operations (e.g., m * m = m^2).
+        3.  Uncertainty Propagation: Uses first-order Taylor expansion
+            (Delta Method) for all operations.
+        4.  Type Promotion: Ensures that adding an Int to a Float results
+            in a Float, etc.
+        '''
         def _do_unary_uncertainty(self, op_func: ty.Callable, res_unit: str = "") -> "Num":
             from mpmath import workdps, diff, mpc, sqrt as mp_sqrt
             with workdps(mpmath.mp.dps + 4):
@@ -897,7 +912,24 @@ if 0: # Num
 if 1: # Num
     '''Manifest [20]: __init__ _promote _binary_op _make_result _normalize base help _s _r __str__ __repr__ to approx dump unit raw_value as_mpc as_mpf as_int_or_rat num pi e'''
     class Num(NumericMixin):
-        '''Represent a general number useful for routine calculations'''
+        '''
+        A high-precision, unit-aware physical quantity with error propagation.
+
+        The Num class serves as the primary data structure for the workbench.
+        It leverages mpmath for arbitrary-precision arithmetic and UnitArbiter
+        for dimensional consistency. Every instance can represent a 'measurement'
+        rather than just a 'pure number' (it handles pure numbers too).
+
+        Attributes:
+            raw_value: The underlying numerical value (mpf, mpc, mpq, or int).
+            _unit (str): The string representation of the unit (e.g., 'm/s^2').
+            re_unc (mpf): Standard deviation of the real part (absolute).
+            im_unc (mpf): Standard deviation of the imaginary part (absolute).
+            correl (mpf): Pearson correlation coefficient between real and imag parts.
+            mytype (NumType): Enum indicating the 'highest' internal type
+                            (Int, Rat, Flt, Cpx, Unc, UncCpx).
+            arb (UnitArbiter): Reference to the shared dimensional registry.
+        '''
         type_color = {
             NumType.Int: t("mag", "gry1"),
             NumType.Rat: t("brn", "gry1"),
@@ -911,7 +943,27 @@ if 1: # Num
         active_system = "default"
         fmt = fmt.Fmt()         # Formatter for number strings
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
-            '''Represent a general number useful for routine calculations'''
+            '''
+            Initializes a Num instance.
+            
+            Args:
+                value: Can be a string ("5.2"), a number (5.2), or another Num.
+                    Uncertainty in the number is indicated by the standard short-form 
+                    notation:  "5.20(3)" means "5.20 +/- 0.03".  No other uncertainty
+                    notation is allowed.  If you include a unit in this string, it must
+                    be separated from the number by a space.  No spaces are allowed in
+                    the units portion and there can only be one '/' character unless you
+                    use parentheses:  'm/s/s' not allowed, but 'm/(kg/s)' acceptable.
+                    There are no spaces allowed in the number portion.  You can use 'j'
+                    or 'i' for the complex unit.
+                unit: Optional unit string. If 'value' is a string with units, 
+                    this is overridden by the parsed unit.
+            
+            Notes on Initialization:
+                - Uses StringParser to decompose complex strings like "10 +/- 0.1 kg".
+                - Automatically promotes 'mytype' based on the precision of the input.
+                - Calls UnitArbiter.Parse() to validate the unit string syntax.
+            '''
             self.arb = unit_arbiter
             unit = unit.strip()
             # Set default state
@@ -1017,6 +1069,13 @@ if 1: # Num
             raw_val = op_func(a_val, b_val)
             return self._make_result(raw_val, unit=res_unit)
         def _make_result(self, value: ty.Any, unit: str = "") -> "Num":
+            '''
+            Internal factory method to create a new Num instance while 
+            preserving the current UnitArbiter context and precision.
+            
+            This ensures that when you do 'x + y', the resulting Num 
+            inherits the same registry and 'mpmath' context as the parents.
+            '''
             return Num(value, unit=unit)._promote()
         def _normalize(self, other: "Num", operation: str = "") -> "Num":
             # If units match or it's a multiplicative operation, return as is.
@@ -1237,6 +1296,30 @@ if 1: # ParsedPayload
 # CHUNK: UnitArbiter
 if 1:  # UnitArbiter
     class UnitArbiter:
+        '''
+        The dimensional 'Source of Truth' and recursive resolution engine.
+    
+        UnitArbiter manages a registry of unit definitions and provides the
+        logic to determine if two quantities can be mathematically combined.
+        It uses a recursive resolution strategy to reduce complex units
+        (e.g., 'Newton') to their SI base dimensions (kg * m / s^2).
+    
+        Responsibilities:
+        - Registry Management: Loads and stores unit definitions from external
+          GNU-units style databases or dynamic strings.
+        - Dimensional Reduction: Decomposes tokens into a 'signature'
+          (a dict of base units and their exponents).
+        - Scaling Logic: Calculates the numerical multiplier required to
+          convert a unit to its SI base equivalent (e.g., 'inch' -> 0.0254).
+        - Conformability Validation: Ensures physical correctness (prevents
+          adding 'meters' to 'seconds').
+    
+        Key Internal Attributes:
+            db_path (str): Path to the units database file.
+            _registry (dict): Raw definitions (e.g., {'N': 'kg*m/s**2'}).
+            _registry_signatures (dict): Dict mapping unit names to reduced signatures.
+            _registry_scales (dict): Dict mapping unit names to SI scaling factors.
+        '''
         def __init__(self, db_path: str = "units.db"):
             self.db_path = db_path
             self._registry = {}
@@ -1278,10 +1361,36 @@ if 1:  # UnitArbiter
             if unit_str.count('/') > 1 and not ('(' in unit_str and ')' in unit_str):
                 raise ValueError(f"Ambiguous unit '{unit_str}': use parentheses for multiple slashes.")
         def GetScalingFactorToBaseUnits(self, unit_str: str, _depth: int = 0) -> float:
+            '''
+            Calculates the cumulative multiplier to convert a unit to SI base units.
+    
+            This method recursively traverses unit definitions through the registry.
+            It uses a memoization pattern: if the scale isn't in _registry_scales,
+            it triggers _calculate_scale and caches the result.
+    
+            Args:
+                unit_str: The unit to resolve.
+                _depth: Internal recursion tracker to prevent infinite loops.
+    
+            Returns:
+                A float (or mpmath.mpf) representing the conversion factor to SI.
+            '''
             if unit_str not in self._registry_scales:
                 self._registry_scales[unit_str] = self._calculate_scale(unit_str, _depth)
             return self._registry_scales[unit_str]
         def GetDimensionalitySignature(self, unit_str: str) -> dict:
+            '''
+            Reduces a unit string to its irreducible base-dimension signature.
+    
+            This is the heart of the conformability logic. It handles:
+            1. Parenthetical isolation using recursive regex substitution.
+            2. Placeholder generation for nested groups.
+            3. Structural splitting of numerators and denominators.
+    
+            Returns:
+                A dict (e.g., {'kg': 1, 'm': 1, 's': -2}) representing the
+                physical dimensions.
+            '''
             if unit_str in self._registry_signatures:
                 return self._registry_signatures[unit_str]
             
@@ -1313,6 +1422,21 @@ if 1:  # UnitArbiter
             self._registry_signatures[unit_str] = sig
             return sig
         def AssertConformable(self, unit_a: str, unit_b: str, operation: str) -> None:
+            '''
+            Validates that two units are dimensionally identical for additive operations.
+            
+            Args:
+                unit_a: The unit string of the left operand.
+                unit_b: The unit string of the right operand.
+                operation: The operator symbol (e.g., '+', '-') for error reporting.
+                
+            Raises:
+                ValueError: If the reduced signatures of unit_a and unit_b do not match.
+                
+            Example:
+                AssertConformable('ft', 'm', '+') -> Passes (both are {m: 1})
+                AssertConformable('ft', 's', '+') -> Raises ValueError
+            '''
             if unit_a == unit_b:
                 return
             if not unit_a or not unit_b:
@@ -1466,7 +1590,15 @@ if 1:  # UnitArbiter
 if 1:  # StringParser
     '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
     class StringParser:
-        'Engine to dichotomize numeric strings and units'
+        '''
+        The bridge between human-readable strings and the Num object.
+        
+        Responsibilities:
+        - Tokenizes complicated inputs like "5.20(1)  m/s^2".
+        - Handles scientific notation, rational fractions, and complex numbers.
+        - Isolates unit strings for the UnitArbiter to process.
+        - [Planned]: Handle SI prefixes as numeric suffixes (e.g., '4M').
+        '''
         @staticmethod
         def parse(s: str) -> ParsedPayload:
             s = s.strip()
@@ -2227,6 +2359,3 @@ if __name__ == "__main__":
             expected = {"m": 1, "s": 1, "kg": -1}
             Dbg(f"expected = {expected}")
             #Assert(sig == {"m": 1, "s": 1, "kg": -1})
-
-    if 1:
-        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])

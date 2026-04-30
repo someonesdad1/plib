@@ -850,4 +850,4 @@ if 1:   # StringParser tests
 if __name__ == "__main__":  
     from number import g
     g.dbg = len(sys.argv) > 1
-    exit(run(globals(), regexp=r"^Test_", halt=1, verbose=1)[0])
+    exit(run(globals(), regexp=r"^Test_", halt=1, verbose=0)[0])

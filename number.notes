@@ -1,5 +1,26 @@
 29 Apr 2026 04:09:07 pm Wed
 
+We finished the UnitArbiter refactor today; an amazing performance by the AI in roughly
+two days of work (most of his time was waiting me to respond to each incremental
+change).  There were only a couple of changes needed in the actual number.py file; the
+rest were to fix things in the tests or fix units I had left out of the definitions.
+I was stunned when the self tests passed with one message:
+
+    [575]:BUG Test case ignored for now:  N("2 gallons")**N("2/3")
+
+But we know exactly what causes this and the fix is pretty easy because the architecture
+is so good.
+
+Most importantly, the documentation is nearly trivial with the AI's help:  he writes it
+faster and better than I ever could because he groks the whole classes and their
+interactions as a whole.  You do have to watch for context drift, as you'll get
+hallucinations in things, particularly things like class attributes where it looks like
+he has to make up names when the actual code has drifted away.  When you see this, an
+immediate refresh fixes it easily.  The documentation will be done easily first thing
+tomorrow morning.
+
+This was a good higher level discussion about the human/AI roles:
+
 Component	    The Human Role (Process Lead)	        The AI Role (Specialist Engine)
 
 Direction	    The Compass: Maintain the long-term     The Map: Provide deep, cross-domain
@@ -26,6 +47,7 @@ Culture	        The Grease: Apply patience and          The Adaptive Peer: Adjus
                 politeness to maintain a high-          complexity to match the user's
                 bandwidth, low-stress working state.    expertise and urgency.
 
+---------------------------------------------------------------------------
 8 Apr 2026 Discussion with Mike
 
     ❓Oh, that's wonderful [addition of .u utility function]!  Here's my first test:
