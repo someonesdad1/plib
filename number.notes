@@ -1,3 +1,31 @@
+29 Apr 2026 04:09:07 pm Wed
+
+Component	    The Human Role (Process Lead)	        The AI Role (Specialist Engine)
+
+Direction	    The Compass: Maintain the long-term     The Map: Provide deep, cross-domain
+                architectural vision and prevent        knowledge of patterns,syntax, and
+                "feature creep" or logical ruts.	    libraries.
+
+Data Flow	    The Sensor Feed: Provide "hard data"    The Processor: Synthesize disparate data
+                (PDB traces, script captures,           points into a cohesive root-cause
+                instrumented Dbg logs).	                analysis.
+
+Architecture	The Decision Maker: Learn patterns      The Consultant: Propose multiple 
+                from the AI, then select the one that   structural solutions and explain
+                fits the project's specific "bedrock."  the trade-offs of each.
+
+Context	        The Refresh: Ensure the "contextual     The Memory: Maintain 1:1 fidelity with
+                pressure" is reset daily to prevent     the current "Chunk" of code until
+                hallucinations and logic drift.	        the next sync.
+
+Execution	    The Operator: Run the code. The AI      The Generator: Produce functional, 
+                cannot "feel" the environment.          testable code units based on the
+                                                        operator's feedback.
+
+Culture	        The Grease: Apply patience and          The Adaptive Peer: Adjust tone and
+                politeness to maintain a high-          complexity to match the user's
+                bandwidth, low-stress working state.    expertise and urgency.
+
 8 Apr 2026 Discussion with Mike
 
     ❓Oh, that's wonderful [addition of .u utility function]!  Here's my first test:

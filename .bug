@@ -1,9 +1,8 @@
 20 Apr 2026 09:59:08 am Mon
 
-Major
-    - UnitArbiter refactor:  UnitArbiter is for "what" and UnitsMachinery is for
-      "how".
-        - Must handle all SI prefixes in unit processing
+- UnitArbiter refactor
+    - Must handle all SI prefixes in unit processing
+
 Important
     - Num("3.45 iu3r") automatically creates a new unit in the dynamic file as "iu3x
       !base!".  This is dangerous, as it could have been a typo, but then that unit will
@@ -27,6 +26,10 @@ Minor
     - Num.N Change the decimal precision
     - .f    Set the chosen format:  fix fixed sci eng eng si all
 
+- REPL
+    - ls to show all Num instances
+    - ll:  ditto but details
+
 ---------------------------------------------------------------------------
 
 UnitArbiter refactor
@@ -43,6 +46,38 @@ UnitArbiter refactor
         - __registry_signatures hold the "vector components" in base units.  key: name,
           value: dict of base unit exponents (integers != 0 only)
 
+Should we make the UnitArbiter handle the default GNU units configuration file?  Here,
+by "handle", I don't mean duplicate its functionality, but I mean be able to read and
+digest it for its unit definitions.  Frankly, I don't care about the corner cases like
+nonlinear units (e.g. Fahrenheit to Celsius) or some screwy sheet metal gauge.  But I 
+do care about supporting the usual types of units used in physical calculations.
+
+Taking a quick look at my Sep 2022 version 3.15 copy of the GNU units configuration
+file, I'd write down the following policies:
+
+- First, remove all 'blocks' between and including !var UNITS_SYSTEM and !endvar.
+- Ignore lines starting with r"^!" and r"^\s*#"
+- Process lines like "^token\s+(expression|!|!dimensionless)"
+
+Here are some lines that might be problematic or are just things I noticed that might
+not cross one's mind until you see them:
+
+    gram                    millikg     # Actually is illegal SI usage
+    siliconlattice sqrt(8) silicon_d220
+    mired                   / microK
+    pfu                    / cm^2 sr s
+    solarirradiance     solarluminosity / (4 pi sundist^2)
+    decimalhour             1|10 day    # a|b is a fraction notation
+    "                       arcsec
+    circlearea(r)   units=[m;m^2] range=[0,) pi r^2 ; sqrt(circlearea/pi)
+    spherevolume(r) units=[m;m^3] range=[0,) 4|3 pi r^3 ; \
+                                         cuberoot(spherevolume/4|3 pi)
+    phi                     (sqrt(5)+1)/2
+    wiendisplacement     (h c/k)/4.9651142317442763
+    normaltemp              tempF(70)   # Function call that would fail
+    parsec                  au / tan(arcsec)    # Would require a mpmath function call
+
+Right now, this would take us too far afield and I don't think it's worth pursuing.  
 ---------------------------------------------------------------------------
 Some test examples for fidding in the REPL
 

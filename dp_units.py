@@ -46,10 +46,10 @@ data = '''
     2   metre                m
     2   meters               m
     2   metres               m
-    1   inch                 0.0254*m
+    0   inch                 0.0254*m
     1   in                   inch
     2   inches               inch
-    1   ft                   12*inch
+    0   ft                   12*inch
     2   foot                 ft
     2   feet                 ft
     1   mi                   5280*ft
