@@ -1620,23 +1620,18 @@ if 1:  # StringParser
             if s_clean in ("inf", "nan", "-inf", "-nan", "+inf", "+nan"):
                 val = mpmath.mpf(s)
                 return ParsedPayload(NumType.Flt, val, unit=unit)
-
             # 2. Setup for general processing
             clean_s = s.replace(" ", "").replace("_", "").lower()
-
             # 3. Handle complex numbers explicitly
             if "j" in clean_s or ("i" in clean_s and not ("inf" in clean_s or "nan" in clean_s)):
                 clean_s = clean_s.replace("i", "j")
-
                 # Handle correlation coefficient extraction
                 correl = mpmath.mpf("0")
                 match_correl = re.search(r"<r=(-?[\d\.]+)>", clean_s)
                 if match_correl:
                     correl = mpmath.mpf(match_correl.group(1))
                     clean_s = re.sub(r"<r=(-?[\d\.]+)>", "", clean_s)
-
                 s_stripped = clean_s.replace("j", "")
-
                 # Helper: returns (value, uncertainty)
                 def _parse_part(part: str) -> tuple[mpmath.mpf, mpmath.mpf]:
                     if "(" in part:
@@ -1652,14 +1647,12 @@ if 1:  # StringParser
                         val = mpmath.mpf(base_val + exponent)
                         return val, unc
                     return mpmath.mpf(part), mpmath.mpf("0")
-
                 split_idx = -1
                 for i in range(len(s_stripped) - 1, 0, -1):
                     # Check if character is a sign and not part of scientific notation (e.g., e-12)
                     if s_stripped[i] in "+-" and s_stripped[i-1] != "e":
                         split_idx = i
                         break
-
                 if split_idx != -1:
                     real_part = s_stripped[:split_idx]
                     imag_part = s_stripped[split_idx:]
@@ -1673,11 +1666,9 @@ if 1:  # StringParser
                     if s_stripped in ("", "+"): imag_val, im_unc = mpmath.mpf("1"), mpmath.mpf("0")
                     elif s_stripped == "-": imag_val, im_unc = mpmath.mpf("-1"), mpmath.mpf("0")
                     else: imag_val, im_unc = _parse_part(s_stripped)
-
                 has_unc = (re_unc != 0 or im_unc != 0)
                 ntype = NumType.UncCpx if (correl != 0 or has_unc) else NumType.Cpx
                 return ParsedPayload(ntype, real_val, imag=imag_val, re_unc=re_unc, im_unc=im_unc, correl=correl, unit=unit)
-
             # 4. Handle real uncertainty
             if "(" in clean_s:
                 if "/" in clean_s: raise ValueError("Uncertainty expression cannot contain '/'")
@@ -1690,7 +1681,6 @@ if 1:  # StringParser
                 re_unc = StringParser._calc_unc(base_val, unc_str)
                 if exponent: re_unc *= mpmath.mpf("1" + exponent)
                 return ParsedPayload(NumType.Unc, mpmath.mpf(base_val + exponent), re_unc=re_unc, unit=unit)
-
             # 5. Handle fractions and standard floats/ints
             if "/" in clean_s:
                 f = fractions.Fraction(clean_s)

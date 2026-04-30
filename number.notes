@@ -1,3 +1,95 @@
+
+
+
+30 Apr 2026 07:11:55 am Thu
+
+Yesterday I mentioned to Mike that hooking up Num to numpy would allow me to have a
+vector and matrix computing environment like I used with minitab and would let me e.g.
+write an updated version of the tools in xfmpy.  In particular, the ability to perform
+a multiple linear regression and print an ANOVA table with the calculations done with
+linear uncertainty propagation would be stunningly useful.
+
+This thought woke me up around 6 am this morning and it occurred to me that all string
+initializations of Num objects can naturally include an uncertainty measure if it's not
+included; just do what uncertainties.ufloat_fromstr does:  "1.0" is converted to
+"1.0(1)" (i.e., ±1 unit in the LSD).  A different policy would let you choose "1.0" ->
+"1.00(5)" if you wished (i.e., ±1/2 unit in the LSD).  Then all calculations proceed
+with uncertainty propagation, but you only see the uncertainty part if you e.g. ask for
+the .u attribute or the number's type is Unc or UncCpx.
+
+I sent this message to Mike:
+
+    Good morning!  I had an interesting epiphany this morning around 6 am.  Yesterday I
+    mentioned how I wanted to see the Num class become numpy-aware so that I could get
+    vector and matrix calculations using Num instances.  This, in turn, enables a
+    multiple linear regression tool I wrote a couple of decades ago in python that is
+    handy for modeling and its default output is the usual ANOVA report with actual and
+    predicted residuals, a useful report to have.
+
+    Then I mentioned that if the MLR calculation was initialized with Num objects
+    containing uncertainty, the ANOVA report would then be printed using the python
+    uncertainties library's ":.1uS" string interpolation, the short-form uncertainties
+    notation I prefer.  Imagine how useful that would be.
+
+    The epiphany this morning was "why not make all entered numbers have uncertainty?".
+    Note a couple of things.
+
+        - This eliminates the need for the NumType Unc and UncCpx enums; now we just
+          have Int, Rat, Flt and Cpx.
+        - The uncertainty propagation is already being done in all binary operation and
+          function calls
+
+    Remember I mandated that the only allowed input notation for uncertainty to the Num
+    constructor was in the usual "1.23(4)" and "1.23(4)e-8" short form notation.  I
+    chose this because 1) it's the only notation I regularly use and 2) it makes parsing
+    easier.  The StringParse class you wrote handles this notation nicely.
+
+    Now, the only remaining policy to decide is "what is the default uncertainty?".
+    This doesn't have a definitive scientific answer, so we let the user decide:  in the
+    Num class, we add the class variable unc_lsd, a python float.  It's the uncertainty
+    in units of the least sigificant digit and defaults to 1, the same convention that
+    uncertainties.ufloat_fromstr() uses.  The only other common conventional assumption
+    I've seen for that number is 0.5.  It's up to the user's judgment.
+
+    This epiphany has two real benefits I can see:
+
+        - It makes the code a little simpler (I get to delete two lines in an Enum
+          definition <smile>)
+        - The Num class can have a .u attribute that gives you the short-form
+          uncertainty string of the instance.
+
+    Of course, at a deeper level, what's really going on is that the system is
+    implicitly calculating things with the "real" information in the stuff the user
+    typed in.  It's like the notorious "sigificant figures" stuff often taught in basic
+    chemistry classes, which is really a tool to allow freshman students make rough
+    propagation of uncertainty calculations -- but unlike the incorrect "significant
+    figures" approximation (it's fundamentally flawed at a deep level because it doesn't
+    have the group property), it propagates uncertaintly correctly if the derivatives
+    aren't too large.
+
+    Here's the real epiphany in the persistent lab notebook vision:
+
+        - This Num class in a REPL does the lab notebook type calculations for you and
+          most people just use it like they would an electronic calculator.  They'll be
+          happy to see that Num(1.23) + Num(3) gives Num(4.23), just like they expect
+          (default string interpolation is to 3 figures).
+
+        - For a more-aware user, he'll know enough to calculate Num("1.23 apples") +
+          Num("3 oranges"), then realize he made a semantic units error when he gets an
+          exception message.
+
+        - An engineer/scientist can calculate Num("1.23 ft") + Num("3 m") and get
+          Num("11.1 ft").
+
+        - That same engineer/scientist can calculate Num("1.23(2) ft") + Num("3.00(1)
+          m") and get "11.0725196850394 +/- 0.0384238342916343 ft".  <smile>  That's
+          what the Num code does at the moment, so this is really working stuff; I've
+          got uncertainty string interpolation on the todo list.  Really, it will be
+          Num("11.07(4) ft") when it's working.
+
+    How about them apples?
+
+---------------------------------------------------------------------------
 29 Apr 2026 04:09:07 pm Wed
 
 We finished the UnitArbiter refactor today; an amazing performance by the AI in roughly
