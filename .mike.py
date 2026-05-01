@@ -1,4 +1,4 @@
-# CHUNK:  .mike.py
+# CHUNK:  .mike
 Reminders to the Gemini AI for Don's code projects
 
 - Strict newline after every conditional/definition colon (:).
@@ -20,4 +20,4 @@ Reminders to the Gemini AI for Don's code projects
     isn't explicitly changed, include it exactly as-is.  I need the full class for 
     a copy-paste replacement.  No placeholders like "# ... existing code".
 
-# END_CHUNK:  .mike.py
+# END_CHUNK:  .mike

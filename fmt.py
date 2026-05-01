@@ -1585,7 +1585,9 @@ if 0:   # Old TakeApart and Fmt implementation
             @comp.setter
             def comp(self, value):
                 self._comp = bool(value)
-else:   # New TakeApart/Fmt
+
+# CHUNK: Fmt
+if 1:   # New TakeApart/Fmt
     class DecomposedNumber(ty.NamedTuple):
         sign: str
         digits: str
@@ -1925,6 +1927,8 @@ else:   # New TakeApart/Fmt
                 has_sign = im_str.startswith("-") or im_str.startswith("+")
                 sep = "+" if not has_sign else ""
                 return re_str + sep + im_str + self.imag_unit
+# END_CHUNK: Fmt
+
 if 1:   # Public convenience instance of Fmt()
     fmt = Fmt()
 

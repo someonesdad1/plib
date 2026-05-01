@@ -1407,19 +1407,20 @@ if 1: # Num
         @property
         def dump(self) -> None:
             indent = " "*0
-            d = {1: "Int", 2: "Rat", 3: "Flt", 4: "Cpx", 5: "Unc", 6: "UncCpx"}
+            d = {1: "Int", 2: "Rat", 3: "Flt", 4: "Cpx"}
             print(f"{indent}Num(id({hex(id(self))})) core attributes:")
-            print(f"{indent}    self._val.numerator   {self._val.numerator}")
-            print(f"{indent}    self._val.denominator {self._val.denominator}")
-            print(f"{indent}    self._real            {self._real}")
-            print(f"{indent}    self._imag            {self._imag}")
-            print(f"{indent}    self.re_unc           {self.re_unc}")
-            print(f"{indent}    self.im_unc           {self.im_unc}")
-            print(f"{indent}    self.correl           {self.correl}")
-            print(f"{indent}    self._unit             {self._unit!r}")
-            print(f"{indent}    self.mytype           {self.mytype} {d[self.mytype]}")
+            print(f"{indent}    _val.numerator   {self._val.numerator}")
+            print(f"{indent}    _val.denominator {self._val.denominator}")
+            print(f"{indent}    _real            {self._real}")
+            print(f"{indent}    _imag            {self._imag}")
+            print(f"{indent}    re_unc           {self.re_unc}")
+            print(f"{indent}    im_unc           {self.im_unc}")
+            print(f"{indent}    correl           {self.correl}")
+            print(f"{indent}    _unit            {self._unit!r}")
+            print(f"{indent}    mytype           {d[self.mytype]} ({self.mytype})")
         @property
         def unit(self) -> str:
+            'Return the unit string'
             return self._unit.strip()
         @property
         def raw_value(self) -> ty.Any:
@@ -1441,21 +1442,26 @@ if 1: # Num
             return self._val
         @property
         def num(self) -> "Num":
+            'Return numerical magnitude as a Num'
             res = Num(self)
             res._unit = ""
             return res
         @property
-        def pi(self) -> "Num": return Num(+mpmath.pi)
+        def pi(self) -> "Num":
+            return Num(+mpmath.pi)
         @property
-        def e(self) -> "Num": return Num(+mpmath.e)
+        def e(self) -> "Num":
+            return Num(+mpmath.e)
         @property
         def mytype(self) -> NumType: return self._mytype
         @mytype.setter
         def mytype(self, new_type: NumType) -> None:
-            if hasattr(self, "_mytype") and self._mytype == new_type: return
+            if hasattr(self, "_mytype") and self._mytype == new_type:
+                return
             old_type = getattr(self, "_mytype", None)
             if old_type in (NumType.Int, NumType.Rat) and new_type.value >= NumType.Flt.value:
-                if self._real == 0: self._real = self.as_mpf
+                if self._real == 0:
+                    self._real = self.as_mpf
             if old_type is not None and new_type.value < old_type.value:
                 if new_type == NumType.Flt:
                     self._real, self._imag = abs(self.as_mpc), mpmath.mpf("0")
@@ -1467,23 +1473,6 @@ if 1: # Num
                 if new_type.value < NumType.Unc.value:
                     self.re_unc = self.im_unc = self.correl = mpmath.mpf("0")
             self._mytype = new_type
-        @property
-        def r(self) -> "Num":
-            'Reduce to base units'
-            # 1. Get reduction factor from the arbiter
-            # Note: Arbiter method needs to handle the double newline: f"{self._unit}\n\n"
-            factor, base_unit = self.arb.reduce_to_base(self._unit)
-            # 2. Use the existing Num arithmetic to scale the value.
-            # By multiplying a Num object by a scalar (mpf), your __mul__ 
-            # should already be handling the uncertainty propagation.
-            new_num = self * factor
-            # 3. Update the unit string
-            # We manually overwrite the unit string of the result. 
-            # This keeps the uncertainty (propagated by self * factor) 
-            # while correcting the dimensionality.
-            new_num._unit = base_unit
-            return new_num
-    # Goodbye from the Mike & Don comedy show
 # END_CHUNK: Num
 
 # CHUNK: ParsedPayload
@@ -1502,8 +1491,7 @@ if 1: # ParsedPayload
         unit: str = ""
 # END_CHUNK: ParsedPayload
 
-# CHUNK: UnitArbiter
-if 1:  # UnitArbiter
+if 0:  # UnitArbiter
     class UnitArbiter:
         '''
         The dimensional 'Source of Truth' and recursive resolution engine.
@@ -1826,6 +1814,280 @@ if 1:  # UnitArbiter
             'Clear the unit conversion cache structure'
             self._registry_scales.clear()
             self._registry_signatures.clear()
+# FILE: number.py
+# CHUNK: UnitArbiter
+if 1:  # UnitArbiter
+    class UnitArbiter:
+        '''
+        Manifest [26]: __init__ Parse LoadRegistryString LoadRegistry RegisterDynamicUnit
+        ValidatePolicy GetScalingFactorToBaseUnits GetDimensionalitySignature AssertConformable
+        CheckConformable _calculate_scale _resolve_definition_value _resolve_token _split_prefix
+        _get_unit_sig _update_sig _temp_sigs _store_temp_sig _decomposed_token _is_number
+        _combine_signatures_from_def _cache_clear _si_prefixes _long_si_prefixes
+        '''
+        def __init__(self, db_path: str = "units.db"):
+            self.db_path = db_path
+            self._registry = {}
+            self._registry_scales = {}
+            self._registry_signatures = {}
+        def Parse(self, unit_str: str) -> str:
+            # 1. Validate Syntax/Policy
+            self.ValidatePolicy(unit_str)
+            # 2. Verify existence and dimensional consistency (Warm the cache)
+            self.GetDimensionalitySignature(unit_str)
+            # 3. Final acceptance
+            return unit_str
+        def LoadRegistryString(self, registry_str: str) -> None:
+            '''Parses a multiline string in GNU units format'''
+            f = io.StringIO(registry_str)
+            for line in f:
+                line = line.split("#")[0].strip() # Handle comments
+                if not line:
+                    continue
+                parts = line.split(maxsplit=1)
+                if len(parts) == 2:
+                    self.RegisterDynamicUnit(parts[0], parts[1])
+        def LoadRegistry(self, file_path: str) -> None:
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Registry file {file_path} not found.")
+            with open(file_path, "r") as f:
+                for line in f:
+                    line = line.split("#")[0].strip() # GNU units use # for comments
+                    if not line:
+                        continue
+                    parts = line.split(maxsplit=1)
+                    if len(parts) == 2:
+                        self.RegisterDynamicUnit(parts[0], parts[1])
+        def RegisterDynamicUnit(self, name: str, definition: str) -> None:
+            self._registry[name] = definition
+            self._cache_clear()
+        def ValidatePolicy(self, unit_str: str) -> None:
+            if unit_str.count('/') > 1 and not ('(' in unit_str and ')' in unit_str):
+                raise ValueError(f"Ambiguous unit '{unit_str}': use parentheses for multiple slashes.")
+        def GetScalingFactorToBaseUnits(self, unit_str: str, _depth: int = 0) -> float:
+            if not unit_str: return 1.0
+            if unit_str in self._registry_scales:
+                return self._registry_scales[unit_str]
+            # 1. Handle structure (slashes and dots/stars)
+            import re
+            if '(' in unit_str:
+                pass
+            parts = unit_str.split('/')
+            numerator_str = parts[0]
+            denominator_str = parts[1] if len(parts) > 1 else ""
+            def get_list_scale(s):
+                if not s: return 1.0
+                tokens = s.replace("**", "__POW__").split('*')
+                final_tokens = []
+                for t in tokens:
+                    final_tokens.extend(t.split())
+                res = 1.0
+                for token in final_tokens:
+                    token = token.strip().replace("__POW__", "**")
+                    if not token: continue
+                    if self._is_number(token):
+                        res *= float(token)
+                    else:
+                        res *= self._calculate_scale(token, _depth + 1)
+                return res
+            num_scale = get_list_scale(numerator_str)
+            den_scale = get_list_scale(denominator_str)
+            final_scale = num_scale / den_scale
+            self._registry_scales[unit_str] = final_scale
+            return final_scale
+        def GetDimensionalitySignature(self, unit_str: str) -> dict:
+            '''Reduces a unit string to its irreducible base-dimension signature.'''
+            if unit_str in self._registry_signatures:
+                return self._registry_signatures[unit_str]
+            Dbg(f"GDS: Processing {unit_str!r}")
+            import re
+            def repl(match):
+                return f"_{self._store_temp_sig(self._combine_signatures_from_def(match.group(1)))}_"
+            processed_str = unit_str
+            while '(' in processed_str:
+                processed_str = re.sub(r'\(([^()]+)\)', repl, processed_str)
+            parts = processed_str.split('/')
+            numerator = parts[0].split('*')
+            denominator = parts[1].split('*') if len(parts) > 1 else []
+            sig = {}
+            for t in numerator:
+                if t: self._update_sig(sig, self._resolve_token(t), 1)
+            for t in denominator:
+                if t: self._update_sig(sig, self._resolve_token(t), -1)
+            Dbg(f"  GDS: Result for {unit_str!r} is {sig!r}")
+            self._registry_signatures[unit_str] = sig
+            return sig
+        def AssertConformable(self, unit_a: str, unit_b: str, operation: str) -> None:
+            if unit_a == unit_b:
+                return
+            if not unit_a or not unit_b:
+                raise ValueError(f"Operation '{operation}' failed: Incompatible dimensions ({unit_a!r} vs {unit_b!r})")
+            is_ok, msg = self.CheckConformable(unit_a, unit_b)
+            if not is_ok:
+                raise ValueError(f"Operation '{operation}' failed: {unit_a} and {unit_b} are incompatible. ({msg})")
+        def CheckConformable(self, have: str, want: str) -> tuple[bool, str]:
+            '''Check if two units have the same physical dimensions.'''
+            if 0:
+                print("CheckConformable has temp cache clear")
+                self._cache_clear()
+            if have == want:
+                return True, "1.0"
+            try:
+                sig_have = self.GetDimensionalitySignature(have)
+                sig_want = self.GetDimensionalitySignature(want)
+                if sig_have == sig_want:
+                    scale_have = self.GetScalingFactorToBaseUnits(have)
+                    scale_want = self.GetScalingFactorToBaseUnits(want)
+                    factor = scale_have / scale_want
+                    return True, str(factor)
+                else:
+                    return False, f"Dimension mismatch: {sig_have} vs {sig_want}"
+            except Exception as e:
+                return False, str(e)
+        def _calculate_scale(self, unit_str: str, depth: int) -> float:
+            if unit_str.startswith('(') and unit_str.endswith(')'):
+                return self._resolve_definition_value(unit_str[1:-1], depth)
+            name, exponent = self._decomposed_token(unit_str)
+            prefix_val = 1.0
+            if name not in self._registry and name != "!":
+                p_val, p_name = self._split_prefix(name)
+                if p_name:
+                    prefix_val = p_val
+                    name = p_name
+            definition = self._registry.get(name, "")
+            if not definition or definition == "!":
+                base_scale = 1.0
+            else:
+                base_scale = self._resolve_definition_value(definition, depth + 1)
+            return (float(base_scale) * prefix_val) ** exponent
+        def _resolve_definition_value(self, definition: str, depth: int) -> float:
+            safe_def = definition.replace("**", "__POW__")
+            parts = []
+            for p in safe_def.split('*'):
+                parts.extend(p.split())
+            total_scale = 1.0
+            for p in parts:
+                p = p.strip().replace("__POW__", "**")
+                if not p: continue
+                if self._is_number(p):
+                    total_scale *= float(p)
+                else:
+                    total_scale *= self.GetScalingFactorToBaseUnits(p, depth)
+            return total_scale
+        def _resolve_token(self, token: str) -> dict:
+            if token.startswith("_") and token.endswith("_"):
+                uid = token.strip("_")
+                return self._temp_sigs().get(uid, {})
+            name, exponent = self._decomposed_token(token)
+            if name not in self._registry and name != "!":
+                p_val, p_name = self._split_prefix(name)
+                if p_name:
+                    name = p_name
+            definition = self._registry.get(name)
+            if definition == "!" or name not in self._registry:
+                return {name: exponent}
+            base = self._combine_signatures_from_def(definition)
+            result =  {k: v * exponent for k, v in base.items()}
+            return result
+        def _split_prefix(self, name: str) -> tuple[float, str]:
+            '''Identifies SI prefix and returns (multiplier, base_unit_name).'''
+            if name == "kg": return 1.0, ""
+            for p_name, p_val in self._long_si_prefixes().items():
+                if name.startswith(p_name):
+                    base = name[len(p_name):]
+                    if base in self._registry or base == "!":
+                        if base == "kg": raise ValueError(f"SI Policy: Prefixes not allowed on 'kg' ({name})")
+                        return p_val, base
+            for p_char, p_val in self._si_prefixes().items():
+                if name.startswith(p_char) and len(name) > len(p_char):
+                    base = name[len(p_char):]
+                    if base in self._registry or base == "!":
+                        if base == "kg": raise ValueError(f"SI Policy: Prefixes not allowed on 'kg' ({name})")
+                        return p_val, base
+            return 1.0, ""
+        def _get_unit_sig(self, token: str) -> dict:
+            if token.startswith("_SIG_"):
+                uid = token.replace("_SIG_", "").replace("_", "")
+                return self._temp_sigs().get(uid, {})
+            return self.GetDimensionalitySignature(token)
+        def _update_sig(self, base_sig: dict, add_sig: dict, multiplier: int):
+            for unit, exponent in add_sig.items():
+                base_sig[unit] = base_sig.get(unit, 0) + (exponent * multiplier)
+                if base_sig[unit] == 0: del base_sig[unit]
+        def _temp_sigs(self):
+            if not hasattr(self, '_t_sigs'): self._t_sigs = {}
+            return self._t_sigs
+        def _store_temp_sig(self, sig: dict) -> str:
+            uid = str(len(self._temp_sigs()))
+            self._temp_sigs()[uid] = sig
+            return uid
+        def _decomposed_token(self, token: str) -> tuple[str, int]:
+            for op in ["**", "^"]:
+                if op in token:
+                    parts = token.split(op)
+                    name = parts[0].strip()
+                    exp = int(parts[1]) if len(parts) > 1 and parts[1] else 1
+                    return name, exp
+            name = token
+            exp_str = ""
+            for i in range(len(token) - 1, -1, -1):
+                if token[i].isdigit():
+                    exp_str = token[i:] + exp_str
+                    name = token[:i]
+                else:
+                    break
+            if exp_str:
+                return name, int(exp_str)
+            return token, 1
+        def _is_number(self, s: str) -> bool:
+            try:
+                float(s)
+                return True
+            except ValueError:
+                return False
+        def _combine_signatures_from_def(self, definition: str) -> dict:
+            if not definition: return {}
+            safe_def = definition.replace("**", "__POW__")
+            parts = safe_def.split('/')
+            num_tokens = []
+            for p in parts[0].split('*'):
+                num_tokens.extend(p.split())
+            den_tokens = []
+            if len(parts) > 1:
+                for p in parts[1].split('*'):
+                    den_tokens.extend(p.split())
+            signature = {}
+            for token in num_tokens:
+                token = token.strip().replace("__POW__", "**")
+                if not token or self._is_number(token): continue
+                name, exponent = self._decomposed_token(token)
+                self._update_sig(signature, self._resolve_token(name), exponent)
+            for token in den_tokens:
+                token = token.strip().replace("__POW__", "**")
+                if not token or self._is_number(token): continue
+                name, exponent = self._decomposed_token(token)
+                self._update_sig(signature, self._resolve_token(name), -exponent)
+            return signature
+        def _cache_clear(self) -> None:
+            self._registry_scales.clear()
+            self._registry_signatures.clear()
+        def _si_prefixes(self) -> dict:
+            return {
+                "q": 1e-30, "r": 1e-27, "y": 1e-24, "z": 1e-21, "a": 1e-18,
+                "f": 1e-15, "p": 1e-12, "n": 1e-9, "u": 1e-6, "m": 1e-3,
+                "c": 1e-2, "d": 1e-1, "h": 1e2, "k": 1e3, "M": 1e6,
+                "G": 1e9, "T": 1e12, "P": 1e15, "E": 1e18, "Z": 1e21,
+                "Y": 1e24, "R": 1e27, "Q": 1e30
+            }
+        def _long_si_prefixes(self) -> dict:
+            return {
+                "quecto": 1e-30, "ronto": 1e-27, "yocto": 1e-24, "zepto": 1e-21,
+                "atto": 1e-18, "femto": 1e-15, "pico": 1e-12, "nano": 1e-9,
+                "micro": 1e-6, "milli": 1e-3, "centi": 1e-2, "deci": 1e-1,
+                "hecto": 1e2, "kilo": 1e3, "mega": 1e6, "giga": 1e9,
+                "tera": 1e12, "peta": 1e15, "exa": 1e18, "zetta": 1e21,
+                "yotta": 1e24, "ronna": 1e27, "quetta": 1e30
+            }
 # END_CHUNK: UnitArbiter
 
 if 0:  # StringParser
@@ -1943,9 +2205,7 @@ if 0:  # StringParser
             if "." in val_str: decimal_places = len(val_str.split(".")[1])
             return mpmath.mpf(unc_str) / (10**decimal_places)
     # Goodbye from the Mike & Don comedy show
-# FILE: number.py
-# CHUNK: StringParser
-if 1:  # StringParser
+if 0:  # StringParser
     '''Manifest [4]: parse _split_input _parse_number _calc_explicit_unc _calc_implied_unc'''
     class StringParser:
         '''
@@ -2061,6 +2321,186 @@ if 1:  # StringParser
             else:
                 val_int = int(clean_s)
                 return ParsedPayload(NumType.Int, mpmath.mpf(val_int), numer=val_int, denom=1, unit=unit)
+# FILE: number.py
+# CHUNK: StringParser
+if 1:  # StringParser
+    '''Manifest [6]: parse _split_input _parse_number _calc_explicit_unc _calc_implied_unc _apply_suffix _get_suffix_map'''
+    class StringParser:
+        '''
+        The bridge between human-readable strings and the Num object.
+        - Tokenizes strings like "5.20(1) m/s^2".
+        - Implements the '6 AM Epiphany': All floating-point inputs receive
+          either explicit (n) or implied (unc_lsd) uncertainty.
+        - Enforces standard metrological notation: significand(unc)exponent.
+        - Supports engineer suffixes: "4.2M" becomes 4,200,000.
+        '''
+        @staticmethod
+        def parse(s: str, unc_lsd: float = 1.0) -> ParsedPayload:
+            s = s.strip()
+            if not s:
+                return ParsedPayload(NumType.Int, mpmath.mpf("0"), numer=0, denom=1, unit="")
+            num_str, unit_str = StringParser._split_input(s)
+            return StringParser._parse_number(num_str if num_str else s, unit_str, unc_lsd)
+        @staticmethod
+        def _split_input(s: str) -> ty.Tuple[str, str]:
+            if " " not in s:
+                return s, ""
+            return s.rsplit(" ", 1)
+        @staticmethod
+        def _calc_explicit_unc(val_str: str, unc_str: str) -> mpmath.mpf:
+            '''Calculates uncertainty from explicit (n) notation relative to decimal places.'''
+            places = 0
+            if "." in val_str:
+                places = len(val_str.split(".")[1])
+            return mpmath.mpf(unc_str) / (10**places)
+        @staticmethod
+        def _calc_implied_unc(val_str: str, unc_lsd: float) -> mpmath.mpf:
+            '''Calculates uncertainty based on the precision of the string representation.'''
+            if "." not in val_str:
+                return mpmath.mpf("0")
+            decimal_part = val_str.split(".")[1]
+            decimal_part = re.split(r'[eE]', decimal_part)[0]
+            places = len(decimal_part)
+            return mpmath.mpf(unc_lsd) / (10**places)
+        @staticmethod
+        def _get_suffix_map() -> dict:
+            return {
+                "f": 1e-15, "p": 1e-12, "n": 1e-9, "u": 1e-6, "m": 1e-3,
+                "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12, "P": 1e15, "E": 1e18, "e": 1e18
+            }
+        # FILE: number.py
+# CHUNK: StringParser
+        @staticmethod
+        def _parse_number(s: str, unit: str, unc_lsd: float) -> ParsedPayload:
+            # 1. Pre-process: Remove visual separators but KEEP CASE for suffix check
+            work_s = s.replace(" ", "").replace("_", "")
+            # 2. Extract Engineering Suffix (Case-Sensitive: M != m)
+            work_s, multiplier = StringParser._apply_suffix(work_s)
+            mult_mpf = mpmath.mpf(str(multiplier))
+            # 3. Now safe to lowercase for numeric parsing (inf, nan, e, j)
+            clean_s = work_s.lower()
+            # Handle special float literals
+            if clean_s in ("inf", "nan", "-inf", "-nan", "+inf", "+nan"):
+                return ParsedPayload(NumType.Flt, mpmath.mpf(clean_s) * mult_mpf, unit=unit)
+            # mpmath sanitizer for bare dots or signs
+            if clean_s.startswith("."):
+                clean_s = "0" + clean_s
+            elif clean_s.startswith("-."):
+                clean_s = clean_s.replace("-.", "-0.")
+            elif clean_s.startswith("+."):
+                clean_s = clean_s.replace("+.", "+0.")
+            if clean_s.endswith("."):
+                clean_s += "0"
+            # Complex Number Path
+            if "j" in clean_s or ("i" in clean_s and "inf" not in clean_s):
+                clean_s = clean_s.replace("i", "j")
+                correl = mpmath.mpf("0")
+                match_correl = re.search(r"<r=(-?[\d\.]+)>", clean_s)
+                if match_correl:
+                    correl = mpmath.mpf(match_correl.group(1))
+                    clean_s = re.sub(r"<r=(-?[\d\.]+)>", "", clean_s)
+                s_stripped = clean_s.replace("j", "")
+                def _parse_part(part: str):
+                    if "(" in part:
+                        m = re.fullmatch(r"([+-]?\d*\.?\d+)\(([\d\.]+)\)(e[+-]?\d+)?", part)
+                        if not m:
+                            raise ValueError("Invalid complex uncertainty format")
+                        v_base, u_val, exp = m.groups()
+                        val = mpmath.mpf(v_base + (exp if exp else "")) * mult_mpf
+                        unc = StringParser._calc_explicit_unc(v_base, u_val) * mult_mpf
+                        if exp:
+                            unc *= mpmath.mpf("1" + exp)
+                        return val, unc
+                    else:
+                        val = mpmath.mpf(part) * mult_mpf
+                        unc = StringParser._calc_implied_unc(part, unc_lsd) * mult_mpf
+                        return val, unc
+                # Split real and imaginary parts
+                split_idx = -1
+                for i in range(len(s_stripped) - 1, 0, -1):
+                    if s_stripped[i] in "+-" and s_stripped[i-1] != "e":
+                        split_idx = i
+                        break
+                if split_idx != -1:
+                    r_val, r_unc = _parse_part(s_stripped[:split_idx])
+                    i_part = s_stripped[split_idx:]
+                    if i_part == "+":
+                        i_val, i_unc = mult_mpf, mpmath.mpf("0")
+                    elif i_part == "-":
+                        i_val, i_unc = -mult_mpf, mpmath.mpf("0")
+                    else:
+                        i_val, i_unc = _parse_part(i_part.replace("+", ""))
+                else:
+                    r_val, r_unc = mpmath.mpf("0"), mpmath.mpf("0")
+                    i_val, i_unc = _parse_part(s_stripped)
+                return ParsedPayload(NumType.Cpx, r_val, imag=i_val, re_unc=r_unc, im_unc=i_unc, correl=correl, unit=unit)
+            # Fraction Path
+            if "/" in clean_s:
+                if "(" in clean_s:
+                    raise ValueError("Fractions cannot have explicit uncertainty")
+                f = fractions.Fraction(clean_s)
+                if multiplier != 1.0:
+                    # Suffixes force a float conversion for fractions
+                    val = (mpmath.mpf(f.numerator) / mpmath.mpf(f.denominator)) * mult_mpf
+                    return ParsedPayload(NumType.Flt, val, re_unc=mpmath.mpf("0"), unit=unit)
+                return ParsedPayload(NumType.Rat, mpmath.mpf("0"), numer=f.numerator, denom=f.denominator, unit=unit)
+            # Explicit Uncertainty Path (e.g., 1.23(4))
+            if "(" in clean_s:
+                match = re.fullmatch(r"([+-]?\d*\.?\d+)\(([\d\.]+)\)(e[+-]?\d+)?", clean_s)
+                if not match:
+                    raise ValueError("Invalid format. Use 1.23(4) or 1.23(4)e-5")
+                v_base, u_val, exp = match.groups()
+                val = mpmath.mpf(v_base + (exp if exp else "")) * mult_mpf
+                re_unc = StringParser._calc_explicit_unc(v_base, u_val) * mult_mpf
+                if exp:
+                    re_unc *= mpmath.mpf("1" + exp)
+                # If there's a suffix or a decimal, it's a float; otherwise, treat as integer
+                ntype = NumType.Int if ("." not in v_base and multiplier == 1.0) else NumType.Flt
+                return ParsedPayload(ntype, val, re_unc=re_unc, unit=unit)
+            # Standard Float/Scientific Path
+            if "." in clean_s or "e" in clean_s or multiplier != 1.0:
+                val = mpmath.mpf(clean_s) * mult_mpf
+                re_unc = StringParser._calc_implied_unc(clean_s, unc_lsd) * mult_mpf
+                return ParsedPayload(NumType.Flt, val, re_unc=re_unc, unit=unit)
+            # Simple Integer Path
+            else:
+                val_int = int(clean_s)
+                # Apply integer multiplier if applicable, else keep as pure Int
+                final_val = mpmath.mpf(val_int) * mult_mpf
+                return ParsedPayload(NumType.Int, final_val, numer=int(val_int * multiplier), denom=1, unit=unit)
+        @staticmethod
+        def _split_input(s: str) -> ty.Tuple[str, str]:
+            '''
+            Splits "4.2M V" into ("4.2M", "V") or "4M" into ("4M", "").
+            '''
+            if not s: return "", ""
+            # If there's a space, the right side is definitely the unit.
+            if " " in s:
+                return s.rsplit(" ", 1)
+            # If no space, check if the string ends with a known unit or a number.
+            # We look for the first alphabetic character that ISN'T a numeric suffix.
+            # However, a cleaner way is to use a regex to find the numeric/paren/suffix block.
+            import re
+            # This regex captures: (digits, dots, signs, parens, and ONE trailing suffix)
+            # followed by any remaining string (the unit).
+            match = re.match(r'^([+-]?[\d._]+(?:\([\d.]+\))?[eEfpunmkMGTPE]?)(.*)$', s)
+            if match:
+                num_part, unit_part = match.groups()
+                # If the 'unit_part' is empty, the whole thing was a suffixed number.
+                return num_part, unit_part
+            return s, ""
+        @staticmethod
+        def _apply_suffix(s: str) -> ty.Tuple[str, float]:
+            suffixes = StringParser._get_suffix_map()
+            if not s or s[-1] not in suffixes:
+                return s, 1.0
+            char = s[-1]
+            # If it's 'e' or 'E', only treat as suffix if it's NOT scientific notation
+            if char.lower() == 'e':
+                # If it matches something like 1e5, it's NOT a suffix, it's the number
+                if re.search(r'\d[eE][+-]?\d+$', s):
+                    return s, 1.0
+            return s[:-1], suffixes[char]
 # END_CHUNK: StringParser
 
 # CHUNK: NumFunctionPopulation

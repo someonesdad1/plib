@@ -13,7 +13,6 @@ import dptypes
 assert mpmath.mp.dps == 15
 if 1:   # Type abbreviations
     Int, Rat, Flt, Cpx = NumType.Int, NumType.Rat, NumType.Flt, NumType.Cpx
-    Unc, UncCpx = NumType.Unc, NumType.UncCpx
     Fr = fractions.Fraction
     mpf = mpmath.mpf
     mpc = mpmath.mpc
@@ -143,16 +142,16 @@ if 1:   # Numeric tests
         the calculation.
         '''
         ptypes = (
-            (1, NumType.Int), 
-            (1.0, NumType.Int),
-            (1+0j, NumType.Int),    # Gets downcast
-            (1+1j, NumType.Cpx),
-            (fractions.Fraction(1, 1), NumType.Int),    # Gets downcast
-            (fractions.Fraction(1, 2), NumType.Rat),
-            (decimal.Decimal("1"), NumType.Int)
+            (1, Int), 
+            (1.0, Int),
+            (1+0j, Int),    # Gets downcast
+            (1+1j, Cpx),
+            (fractions.Fraction(1, 1), Int),    # Gets downcast
+            (fractions.Fraction(1, 2), Rat),
+            (decimal.Decimal("1"), Int)
         )
         y = Num("1")
-        Assert(y.mytype == NumType.Int)
+        Assert(y.mytype == Int)
         def _Check(cond, op, types, got="", expected="", stop=False):
             if cond:
                 return
@@ -168,8 +167,8 @@ if 1:   # Numeric tests
             No-stop Assert[number.py:4384]:
             op       = "Fraction(1, 1) + Num('1.0')"
             types    = "Rat + Flt"  # <--- Added this
-            got      = <NumType.Flt: 3>
-            expected = <NumType.Int: 1>
+            got      = <Flt: 3>
+            expected = <Int: 1>
             '''
             if 1:
                 z = x + y
@@ -211,7 +210,7 @@ if 1:   # Numeric tests
                 op = f"{y!r} / {x!r}"
                 types = f"{d[y.mytype]} / {d[Num(x).mytype]}"
                 if x == fractions.Fraction(1, 2):
-                    mytype = NumType.Int
+                    mytype = Int
                 _Check(z.mytype == mytype, op, types, got=d[z.mytype], expected=d[mytype])
             y += x
             Assert(isinstance(y, Num))
@@ -228,11 +227,11 @@ if 1:   # Constructor, new unit, uncertainty tests
     def Test_Constructor_Strings():
         zero = 0
         ndigits = min(max(1, 7*mpmath.mp.dps//8), mpmath.mp.dps)
-        test_cases = [("1", NumType.Int),
-                        ("1/2", NumType.Rat),
-                        ("1.2", NumType.Flt),
-                        ("1.2e3", NumType.Flt),
-                        ("1+2j", NumType.Cpx)]
+        test_cases = [("1", Int),
+                        ("1/2", Rat),
+                        ("1.2", Flt),
+                        ("1.2e3", Flt),
+                        ("1+2j", Cpx)]
         for s, typ in test_cases:
             x = Num(s)
             Assert(x.mytype == typ, expected=typ, got=x.mytype)
@@ -269,10 +268,10 @@ if 1:   # Constructor, new unit, uncertainty tests
         if 1:   # No input
             num = Num()
             Assert(num._real == 0 and num._imag == 0)
-            Assert(num.mytype == NumType.Int)
+            Assert(num.mytype == Int)
         if 1:   # int
             if 1:   # Positive
-                x, T = 30957357, NumType.Int
+                x, T = 30957357, Int
                 num = Num(x)
                 Assert(num._val.numerator == x and num._val.denominator == 1)
                 Assert(num.mytype == T)
@@ -281,7 +280,7 @@ if 1:   # Constructor, new unit, uncertainty tests
                 Assert(num._val.numerator == x and num._val.denominator == 1)
                 Assert(num.mytype == T)
             if 1:   # Negative
-                x, T = -30957357, NumType.Int
+                x, T = -30957357, Int
                 num = Num(x)
                 Assert(num._val.numerator == x and num._val.denominator == 1)
                 Assert(num.mytype == T)
@@ -290,13 +289,13 @@ if 1:   # Constructor, new unit, uncertainty tests
                 Assert(num._val.numerator == x and num._val.denominator == 1)
                 Assert(num.mytype == T)
         if 1:   # Rational
-            x, T = "-3/8", NumType.Rat
+            x, T = "-3/8", Rat
             num = Num(x)
             Assert(num._val.numerator == -3 and num._val.denominator == 8)
             Assert(num.mytype == T)
             Assert(num == Num("-0.375"))
         if 1:   # float
-            x, T = 3095.7357, NumType.Flt
+            x, T = 3095.7357, Flt
             num = Num(x)
             Assert(num._real == x and num._imag == 0)
             Assert(num.mytype == T)
@@ -305,7 +304,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             Assert(num.mytype == T)
         if 1:   # Decimal
             s = "3095.7357"
-            x, T = decimal.Decimal(s), NumType.Flt
+            x, T = decimal.Decimal(s), Flt
             num = Num(x)
             Assert(num._real == mpmath.mpf(s) and num._imag == zero)
             Assert(num.mytype == T)
@@ -313,7 +312,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             Assert(num._real == -x and num._imag == zero)
             Assert(num.mytype == T)
         if 1:   # mpmath.mpf
-            s, T = "3095.7357", NumType.Flt
+            s, T = "3095.7357", Flt
             x = mpmath.mpf(s)
             num = Num(x)
             Assert(num._real == x and num._imag == zero)
@@ -322,7 +321,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             Assert(num._real == -x and num._imag == zero)
             Assert(num.mytype == T)
         if 1:   # Complex
-            x, T = -1+3j, NumType.Cpx
+            x, T = -1+3j, Cpx
             num = Num(x)
             Assert(num._real == mpmath.mpf(-1) and num._imag == mpmath.mpf(3))
             Assert(num.mytype == T)
@@ -330,7 +329,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             Assert(num._real == mpmath.mpf(1) and num._imag == mpmath.mpf(-3))
             Assert(num.mytype == T)
         if 1:   # mpmath.mpc
-            x, T = mpmath.mpc(-1, 3), NumType.Cpx
+            x, T = mpmath.mpc(-1, 3), Cpx
             num = Num(x)
             Assert(num._real == mpmath.mpf(-1) and num._imag == mpmath.mpf(3))
             Assert(num.mytype == T)
@@ -404,7 +403,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             self.im_unc: mpmath.mpf = mpmath.mpf("0")
             self.correl: mpmath.mpf = mpmath.mpf("0")
             self._unit = ""
-            self.mytype: NumType = NumType.Int
+            self.mytype: NumType = Int
         '''
         from number import sqrt
         mpf, mpc = mpmath.mpf, mpmath.mpc
@@ -414,8 +413,8 @@ if 1:   # Constructor, new unit, uncertainty tests
         # Manually convert to Unc instances
         x1.re_unc = mpf("0.1")
         x2.re_unc = x1.re_unc
-        x1.mytype = NumType.Unc
-        x2.mytype = NumType.Unc
+        x1.mytype = Unc
+        x2.mytype = Unc
         if 1:   # Addition
             result = x1 + x2
             if 0:   # Dump values for debugging
@@ -458,7 +457,7 @@ if 1:   # Constructor, new unit, uncertainty tests
         if 0:   # Cosine law example
             theta = Num(radians(60))    # 60°±2° 
             theta.re_unc = radians(mpf(2))
-            theta.mytype = NumType.Unc
+            theta.mytype = Unc
             result = sqrt(x1*x1 + x2*x2 - 2*x1*x2*cos(theta))
             if 0:   # Dump
                 print("theta dump")
@@ -468,7 +467,7 @@ if 1:   # Constructor, new unit, uncertainty tests
         if 1:   # Large derivative
             x = Num("0")
             x.re_unc = mpf(1)
-            x.mytype = NumType.Unc
+            x.mytype = Unc
             f = io.StringIO()
             with contextlib.redirect_stderr(f):
                 result = sqrt(x)
@@ -491,7 +490,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             Assert(x.re_unc == mpmath.mpf("0"))
             Assert(x.im_unc == mpmath.mpf("0"))
             Assert(x.correl == mpmath.mpf("0"))
-            Assert(x.mytype == NumType.Flt)
+            Assert(x.mytype == Flt)
 # END_CHUNK: NumTestConstructor
 
 # CHUNK: NumTestCorner
@@ -528,7 +527,7 @@ if 1:   # Corner cases, Noether invariant
             Assert(N("1+0i m")*N("1 m") == N("1+0j m2"))
         if 1:   # Test core properties: as_mpf, etc.
             x = Num("10")
-            Assert(x.mytype == NumType.Int)
+            Assert(x.mytype == Int)
             Assert(isinstance(x.as_mpf, mpmath.mpf) and x.as_mpf == mpmath.mpf("10"))
             Assert(isinstance(x.as_mpc, mpmath.mpc) and x.as_mpc == mpmath.mpc("10", 0))
             x = Num("10/20")
@@ -586,9 +585,9 @@ if 1:   # Corner cases, Noether invariant
             Assert(x == Num("3/16") == Num("0.1875"))
         if 1:   # Downcasting
             x = Num("1+i")*Num("1-i")
-            Assert(x == Num("2") and x.mytype == NumType.Int)
+            Assert(x == Num("2") and x.mytype == Int)
             x = Num("3/2")*Num("2/3")
-            Assert(x == Num("1") and x.mytype == NumType.Int)
+            Assert(x == Num("1") and x.mytype == Int)
         if 1:   # inf and nan
             x = Num("inf m")
             Assert(x._real == mpmath.mpf("inf") and x.unit == "m")
@@ -671,7 +670,7 @@ if 1:   # StringParser tests
                 Dbg(f"s = {s!r}, expected = {expected!r}")
                 pl = p(s)
                 Assert(pl.numer == expected)
-                Assert(pl.type == NumType.Int)
+                Assert(pl.type == Int)
         if 1:   # Rational
             raises(ZeroDivisionError, Num, "0/0")
             raises(ZeroDivisionError, Num, "-0/0")
@@ -692,7 +691,7 @@ if 1:   # StringParser tests
                 pl = p(s)
                 Assert(pl.numer == numer)
                 Assert(pl.denom == denom)
-                Assert(pl.type == NumType.Rat)
+                Assert(pl.type == Rat)
         if 1:   # Real
             s = "398579387349375937593749379385740684095840."
             u = "398579387_3493759375937493793857_40684095840."
@@ -721,14 +720,14 @@ if 1:   # StringParser tests
                 Dbg(f"s = {s!r}, expected = {expected!r}")
                 pl = p(s)
                 Assert(pl.real == expected)
-                Assert(pl.type == NumType.Flt)
+                Assert(pl.type == Flt)
             pl = p("nan")
             Assert(mpmath.isnan(pl.real))
-            Assert(pl.type == NumType.Flt)
+            Assert(pl.type == Flt)
             if 0:   # It's not important to support this test case even though python does
                 pl = p("-nan")
                 Assert(mpmath.isnan(pl.real))
-                Assert(pl.type == NumType.Flt)
+                Assert(pl.type == Flt)
         if 1:   # Complex
             tests = (
                 ("0j", 0, 0),
@@ -747,7 +746,7 @@ if 1:   # StringParser tests
                 pl = p(s)
                 Assert(pl.real == re)
                 Assert(pl.imag == im)
-                Assert(pl.type == NumType.Cpx)
+                Assert(pl.type == Cpx)
         if 1:   # Uncertainty
             # Forms that cause exceptions
             exc = (
@@ -781,14 +780,14 @@ if 1:   # StringParser tests
             x = p(s)
             Assert(x.real == mpf('1.234'))
             Assert(x.unit == '(12345678)')
-            Assert(x.type == NumType.Flt)
+            Assert(x.type == Flt)
             x = Num(s)
             y = Num("3 (12345678)")
             x + y
             x - y
             x*y
             x/y
-            Int, Flt = NumType.Int, NumType.Flt
+            Int, Flt = Int, NumType.Flt
             tests = (
                 ("0(0)", 0, 0, Int),
                 ("1(0)", 1, 0, Int),
@@ -851,7 +850,7 @@ if 1:   # StringParser tests
                 Assert(pp.re_unc == re_unc)
                 Assert(pp.im_unc == im_unc)
                 Assert(pp.correl == correl)
-                Assert(pp.type == NumType.Cpx)
+                Assert(pp.type == Cpx)
             # Correlation coefficient outside of [-1, 1] is error
             raises(ValueError, Num, "-1.0(2)-1.0(2)j<R=2>")
 # END_CHUNK: NumTestStringParser
