@@ -1,5 +1,7 @@
 20 Apr 2026 09:59:08 am Mon
 
+- Test cases for "4M" and SI prefixes
+- Test cases for all Num properties (document properties if needed)
 - Add .u property:  shows in short-form uncertainty string form
 - Add Num.N as a class variable for the mpmath.mp.dps setting.  Can it act as a property
   or does it need to be a function?  Function is fine if needed.
