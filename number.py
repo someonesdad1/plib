@@ -1,6 +1,6 @@
 '''
 
-Abstract number class with units and linear uncertainty propagation
+Abstract number class with units and linear uncertainty propagation 
     - Persistence in REPL
         - Mike has a 50 line vision of an SQLite db persistence connection for the REPL
         using the memento pattern.
@@ -172,85 +172,180 @@ if 1:  # Header
             print(*p, **k)
             print(f"{t.n}", end="", file=sys.stderr)
 if 0:   # Documentation
-    '''Represent a general number useful for routine calculations
+    if 1:   # Main file
+        '''Represent a general number useful for routine calculations
+            Dependencies
+                - mpmath:  https://mpmath.org/
+                - GNU units:  https://www.gnu.org/software/units/
+                
+            The Num class is an abstract container of numbers intended to model the routine
+            calculations we do in the real world.  The primary features of the class are
+                - Integers, fractions, real, and complex numbers are supported.  Just type
+                  them in with simple notation:
+                    - Num(1), Num("1") -> integer
+                    - Num(3/8), Num("3/8") -> fraction
+                    - Num(1.0), Num("1.0") -> real
+                    - Num(1-4.2j), Num("1-4.2j") -> complex
+                    - Num("1.00(5)") -> real number with uncertainty
+                    - Num("1.00(5)+2.0(1)j") -> complex number with uncertainty
+                    - Num("1.00(5)+2.0(1)j<R=0.77>") -> complex number with uncertainty and
+                      correlation between the real and imaginary parts (linear uncertainty
+                      propagation)
+                - Physical units can be attached to the numbers:  x = Num("1.2 m/s")
+                    - You can define new units:  x.base("dogs"); x.base("cats")
+                - Num objects with units document your intent and prevent
+                - Many special functions are supported
+                - Infection model:  a binary operation with a Num results in another Num
+    
+            Architecture:  The num class is a wrapper for mpmath numbers and the special
+            functions of the mpmath library.  The GNU units program is run as a coprocess to
+            provide the dimensional algebra support.
+    
+            Example:  suppose gasoline costs $5/gallon and your vehicle averages 50
+            miles/gallon.  Using the Num class in the python REPL, the equivalent
+            calculation is
+    
+                >>> from number import Num
+                >>> cost_per_mile = Num("5 $/gal")/Num("50 mi/gal")
+                >>> cost_per_mile
+                0.100 ($/gal)/(mi/gal)
+                >>> cost_per_mile.to("$/km")
+                0.0621 $/km
+                >>> cost_per_mile.to("$/mi")
+                0.100 $/mi
+    
+            You can't see it here, but the terminal printout shows the 0.100 in a color that
+            represents a fraction, as the actual computed number is the ratio of two
+            integers, which is the fraction 1/10.  Most of the time we want to see the
+            decimal form, but the .frac property can be used to see the fractional results.
+    
+            An important feature is that the cost_per_mile display shows the units as a
+            division of two other units, indicating that an operation was performed (here,
+            division).
+    
+            The Num class reduces the number to its simplest representation (here, a
+            rational number).  This units representation shows the computational history;
+            the current example shows that a cost per unit volume was divided by a mileage
+            per unit volume, giving a result with units of cost per unit length.  The last
+            step shows you can see it in the reduced units if you wish.
+    
+            The units of the first argument in a binary expression are retained in the
+            expression's result.
+    
+            --------------------------------------------------------------------------- 
+    
+            Parser mandates
+                - Unit string separated from numeric string by one or more spaces
+                - No spaces allowed in unit string
+                - All space characters in the numerical portion are stripped before parsing
+                - Underscores can be used per the python float/int convention
+                - Parser uses x.rsplit(" ", 1) to check for a unit.  If the right-hand part
+                  is a valid unit (verified via UnitArbiter), it is treated as a unit.
+                  Otherwise, the entire string is treated as a numeric expression.
+                - Complex numbers must follow standard python syntax: <re>j, <im>j, or
+                  <re><sign><im>j.  No spaces are allowed within the complex expression.
+                - Uncertainty:  only the short-form string form is allowed:  "1.234(5)" or
+                  "1.234(5)e-12".  No "/" allowed in the expression.  The uncertainty
+                  parenthetical expression can only contain digits (it's an arbitrary
+                  positive integer or zero).
+                - Rational numbers are indicated by a '/' in the string.  Only improper
+                  fractional forms are allowed.
+    
+        '''
+    if 1:   # NumericMixin
+        '''
+        An abstract-style mixin providing arithmetic and logic for Num objects.
 
-        Dependencies
-            - mpmath:  https://mpmath.org/
-            - GNU units:  https://www.gnu.org/software/units/
-            
-        The Num class is an abstract container of numbers intended to model the routine
-        calculations we do in the real world.  The primary features of the class are
-            - Integers, fractions, real, and complex numbers are supported.  Just type
-              them in with simple notation:
-                - Num(1), Num("1") -> integer
-                - Num(3/8), Num("3/8") -> fraction
-                - Num(1.0), Num("1.0") -> real
-                - Num(1-4.2j), Num("1-4.2j") -> complex
-                - Num("1.00(5)") -> real number with uncertainty
-                - Num("1.00(5)+2.0(1)j") -> complex number with uncertainty
-                - Num("1.00(5)+2.0(1)j<R=0.77>") -> complex number with uncertainty and
-                  correlation between the real and imaginary parts (linear uncertainty
-                  propagation)
-            - Physical units can be attached to the numbers:  x = Num("1.2 m/s")
-                - You can define new units:  x.base("dogs"); x.base("cats")
-            - Num objects with units document your intent and prevent
-            - Many special functions are supported
-            - Infection model:  a binary operation with a Num results in another Num
+        NumericMixin implements the Python data model (dunder methods) to
+        handle interaction between Num objects and primitives.
 
-        Architecture:  The num class is a wrapper for mpmath numbers and the special
-        functions of the mpmath library.  The GNU units program is run as a coprocess to
-        provide the dimensional algebra support.
+        Key Logic Pillars:
+        1.  Dimensional Validation: Calls arb.AssertConformable() before
+            additive operations.
+        2.  Unit Propagation: Calculates resulting units for multiplicative
+            operations (e.g., m * m = m^2).
+        3.  Uncertainty Propagation: Uses first-order Taylor expansion
+            (Delta Method) for all operations.
+        4.  Type Promotion: Ensures that adding an Int to a Float results
+            in a Float, etc.
+        '''
+    if 1:   # Num
+        '''
+        A class that will hold a numerical value, a unit string, and provide uncertainty
+        propagation.  It is intended to be a "one-stop" tool for working with physical
+        measurements.  It should be considered an immutable object, although auxiliary
+        information like a documentation attribute instance.doc can be changed as
+        desired.
 
-        Example:  suppose gasoline costs $5/gallon and your vehicle averages 50
-        miles/gallon.  Using the Num class in the python REPL, the equivalent
-        calculation is
+        Arbitrary precision is supplied for integer, rational, real, and complex numbers
+        by the mpmath library.  mpmath's rich supply of special functions can be used
+        with Num arguments.
 
-            >>> from number import Num
-            >>> cost_per_mile = Num("5 $/gal")/Num("50 mi/gal")
-            >>> cost_per_mile
-            0.100 ($/gal)/(mi/gal)
-            >>> cost_per_mile.to("$/km")
-            0.0621 $/km
-            >>> cost_per_mile.to("$/mi")
-            0.100 $/mi
+        A mental model for these number/unit objects is how we do calculations on paper
+        by hand, such as in a lab notebook.  We easily move between the different number
+        types and pay attention to the physical units of the problem, ensuring they
+        follow correct dimensional algebra.  The lab notebook provides a permanent
+        record of ideas, calculations, etc., so a persistence mechanism has been added
+        to support this mental model.  You can e.g. perform a calculation in a python
+        REPL and your calculations are persisted for later viewing.
 
-        You can't see it here, but the terminal printout shows the 0.100 in a color that
-        represents a fraction, as the actual computed number is the ratio of two
-        integers, which is the fraction 1/10.  Most of the time we want to see the
-        decimal form, but the .frac property can be used to see the fractional results.
+        The Num class follows an infection model:  if you combine Num instances with
+        other python numeric types using a binary operation, the result will be another
+        Num instance.
 
-        An important feature is that the cost_per_mile display shows the units as a
-        division of two other units, indicating that an operation was performed (here,
-        division).
+        Linear uncertainty propagation is used in all binary operations and function
+        calls.  For complex numbers, you have the ability to specify the correlation
+        coefficient between the uncertainty of the real and imaginary parts.  You can
+        specify the uncertainty using the standard short-form notation
+        Num("3.45(2)e-4").  Integers and rational numbers have zero uncertainty by
+        default.  You can use the short-form uncertainty notation for integers too:
+        Num("1245(10)").  For real numbers, the uncertainty is set to Num.unc_lsd times
+        the value of the least significant digit in the initializer in the constructor.
 
-        The Num class reduces the number to its simplest representation (here, a
-        rational number).  This units representation shows the computational history;
-        the current example shows that a cost per unit volume was divided by a mileage
-        per unit volume, giving a result with units of cost per unit length.  The last
-        step shows you can see it in the reduced units if you wish.
-
-        The units of the first argument in a binary expression are retained in the
-        expression's result.
-
-        --------------------------------------------------------------------------- 
-
-        Parser mandates
-            - Unit string separated from numeric string by one or more spaces
-            - No spaces allowed in unit string
-            - All space characters in the numerical portion are stripped before parsing
-            - Underscores can be used per the python float/int convention
-            - Parser uses x.rsplit(" ", 1) to check for a unit.  If the right-hand part
-              is a valid unit (verified via UnitArbiter), it is treated as a unit.
-              Otherwise, the entire string is treated as a numeric expression.
-            - Complex numbers must follow standard python syntax: <re>j, <im>j, or
-              <re><sign><im>j.  No spaces are allowed within the complex expression.
-            - Uncertainty:  only the short-form string form is allowed:  "1.234(5)" or
-              "1.234(5)e-12".  No "/" allowed in the expression.  The uncertainty
-              parenthetical expression can only contain digits (it's an arbitrary
-              positive integer or zero).
-            - Rational numbers are indicated by a '/' in the string.  Only improper
-              fractional forms are allowed.
-
+        Attributes:
+            raw_value: The underlying numerical value (mpf, mpc, mpq, or int).
+            _unit (str): The string representation of the unit (e.g., 'm/s^2').
+            re_unc (mpf): Standard deviation of the real part (absolute).
+            im_unc (mpf): Standard deviation of the imaginary part (absolute).
+            correl (mpf): Pearson correlation coefficient between real and imag parts.
+            mytype (NumType): Enum indicating the 'highest' internal type
+                            (Int, Rat, Flt, Cpx, Unc, UncCpx).
+            arb (UnitArbiter): Reference to the shared dimensional registry.
+        '''
+    if 1:   # UnitArbiter
+        '''
+        The dimensional 'Source of Truth' and recursive resolution engine.
+    
+        UnitArbiter manages a registry of unit definitions and provides the
+        logic to determine if two quantities can be mathematically combined.
+        It uses a recursive resolution strategy to reduce complex units
+        (e.g., 'Newton') to their SI base dimensions (kg * m / s^2).
+    
+        Responsibilities:
+        - Registry Management: Loads and stores unit definitions from external
+          GNU-units style databases or dynamic strings.
+        - Dimensional Reduction: Decomposes tokens into a 'signature'
+          (a dict of base units and their exponents).
+        - Scaling Logic: Calculates the numerical multiplier required to
+          convert a unit to its SI base equivalent (e.g., 'inch' -> 0.0254).
+        - Conformability Validation: Ensures physical correctness (prevents
+          adding 'meters' to 'seconds').
+    
+        Key Internal Attributes:
+            db_path (str): Path to the units database file.
+            _registry (dict): Raw definitions (e.g., {'N': 'kg*m/s**2'}).
+            _registry_signatures (dict): Dict mapping unit names to reduced signatures.
+            _registry_scales (dict): Dict mapping unit names to SI scaling factors.
+        '''
+    if 1:   # StringParser
+        '''
+        The bridge between human-readable strings and the Num object.
+        
+        Responsibilities:
+        - Tokenizes complicated inputs like "5.20(1)  m/s^2".
+        - Handles scientific notation, rational fractions, and complex numbers.
+        - Isolates unit strings for the UnitArbiter to process.
+        - [Planned]: Handle SI prefixes as numeric suffixes (e.g., '4M').
         '''
 
 if 0: # NumericMixin
@@ -415,22 +510,6 @@ if 0: # NumericMixin
 if 1: # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__ _ensure_conformable'''
     class NumericMixin:
-        '''
-        An abstract-style mixin providing arithmetic and logic for Num objects.
-
-        NumericMixin implements the Python data model (dunder methods) to
-        handle interaction between Num objects and primitives.
-
-        Key Logic Pillars:
-        1.  Dimensional Validation: Calls arb.AssertConformable() before
-            additive operations.
-        2.  Unit Propagation: Calculates resulting units for multiplicative
-            operations (e.g., m * m = m^2).
-        3.  Uncertainty Propagation: Uses first-order Taylor expansion
-            (Delta Method) for all operations.
-        4.  Type Promotion: Ensures that adding an Int to a Float results
-            in a Float, etc.
-        '''
         def _do_unary_uncertainty(self, op_func: ty.Callable, res_unit: str = "") -> "Num":
             from mpmath import workdps, diff, mpc, sqrt as mp_sqrt
             with workdps(mpmath.mp.dps + 4):
@@ -909,48 +988,6 @@ if 0: # Num
 if 1: # Num
     '''Manifest [20]: __init__ _promote _binary_op _make_result _normalize base help _s _r __str__ __repr__ to approx dump unit raw_value as_mpc as_mpf as_int_or_rat num pi e'''
     class Num(NumericMixin):
-        '''
-        A class that will hold a numerical value, a unit string, and provide uncertainty
-        propagation.  It is intended to be a "one-stop" tool for working with physical
-        measurements.  It should be considered an immutable object, although auxiliary
-        information like a documentation attribute instance.doc can be changed as
-        desired.
-
-        Arbitrary precision is supplied for integer, rational, real, and complex numbers
-        by the mpmath library.  mpmath's rich supply of special functions can be used
-        with Num arguments.
-
-        A mental model for these number/unit objects is how we do calculations on paper
-        by hand, such as in a lab notebook.  We easily move between the different number
-        types and pay attention to the physical units of the problem, ensuring they
-        follow correct dimensional algebra.  The lab notebook provides a permanent
-        record of ideas, calculations, etc., so a persistence mechanism has been added
-        to support this mental model.  You can e.g. perform a calculation in a python
-        REPL and your calculations are persisted for later viewing.
-
-        The Num class follows an infection model:  if you combine Num instances with
-        other python numeric types using a binary operation, the result will be another
-        Num instance.
-
-        Linear uncertainty propagation is used in all binary operations and function
-        calls.  For complex numbers, you have the ability to specify the correlation
-        coefficient between the uncertainty of the real and imaginary parts.  You can
-        specify the uncertainty using the standard short-form notation
-        Num("3.45(2)e-4").  Integers and rational numbers have zero uncertainty by
-        default.  You can use the short-form uncertainty notation for integers too:
-        Num("1245(10)").  For real numbers, the uncertainty is set to Num.unc_lsd times
-        the value of the least significant digit in the initializer in the constructor.
-
-        Attributes:
-            raw_value: The underlying numerical value (mpf, mpc, mpq, or int).
-            _unit (str): The string representation of the unit (e.g., 'm/s^2').
-            re_unc (mpf): Standard deviation of the real part (absolute).
-            im_unc (mpf): Standard deviation of the imaginary part (absolute).
-            correl (mpf): Pearson correlation coefficient between real and imag parts.
-            mytype (NumType): Enum indicating the 'highest' internal type
-                            (Int, Rat, Flt, Cpx, Unc, UncCpx).
-            arb (UnitArbiter): Reference to the shared dimensional registry.
-        '''
         type_color = {
             NumType.Int: t("mag", "gry1"),
             NumType.Rat: t("brn", "gry1"),
@@ -1264,10 +1301,12 @@ if 1: # Num
         def mytype(self) -> NumType: return self._mytype
         @mytype.setter
         def mytype(self, new_type: NumType) -> None:
-            if hasattr(self, "_mytype") and self._mytype == new_type: return
+            if hasattr(self, "_mytype") and self._mytype == new_type:
+                return
             old_type = getattr(self, "_mytype", None)
             if old_type in (NumType.Int, NumType.Rat) and new_type.value >= NumType.Flt.value:
-                if self._real == 0: self._real = self.as_mpf
+                if self._real == 0:
+                    self._real = self.as_mpf
             if old_type is not None and new_type.value < old_type.value:
                 if new_type == NumType.Flt:
                     self._real, self._imag = abs(self.as_mpc), mpmath.mpf("0")
@@ -1316,30 +1355,6 @@ if 1: # ParsedPayload
 # CHUNK: UnitArbiter
 if 1:  # UnitArbiter
     class UnitArbiter:
-        '''
-        The dimensional 'Source of Truth' and recursive resolution engine.
-    
-        UnitArbiter manages a registry of unit definitions and provides the
-        logic to determine if two quantities can be mathematically combined.
-        It uses a recursive resolution strategy to reduce complex units
-        (e.g., 'Newton') to their SI base dimensions (kg * m / s^2).
-    
-        Responsibilities:
-        - Registry Management: Loads and stores unit definitions from external
-          GNU-units style databases or dynamic strings.
-        - Dimensional Reduction: Decomposes tokens into a 'signature'
-          (a dict of base units and their exponents).
-        - Scaling Logic: Calculates the numerical multiplier required to
-          convert a unit to its SI base equivalent (e.g., 'inch' -> 0.0254).
-        - Conformability Validation: Ensures physical correctness (prevents
-          adding 'meters' to 'seconds').
-    
-        Key Internal Attributes:
-            db_path (str): Path to the units database file.
-            _registry (dict): Raw definitions (e.g., {'N': 'kg*m/s**2'}).
-            _registry_signatures (dict): Dict mapping unit names to reduced signatures.
-            _registry_scales (dict): Dict mapping unit names to SI scaling factors.
-        '''
         def __init__(self, db_path: str = "units.db"):
             self.db_path = db_path
             self._registry = {}
@@ -1660,15 +1675,6 @@ if 1:  # UnitArbiter
 if 1:  # StringParser
     '''Manifest [4]: parse _split_input _parse_number _calc_unc'''
     class StringParser:
-        '''
-        The bridge between human-readable strings and the Num object.
-        
-        Responsibilities:
-        - Tokenizes complicated inputs like "5.20(1)  m/s^2".
-        - Handles scientific notation, rational fractions, and complex numbers.
-        - Isolates unit strings for the UnitArbiter to process.
-        - [Planned]: Handle SI prefixes as numeric suffixes (e.g., '4M').
-        '''
         @staticmethod
         def parse(s: str) -> ParsedPayload:
             s = s.strip()
@@ -1855,75 +1861,66 @@ if 1:   # Global namespace function population
     floor = NoetherWrap("floor", logic="dimensionless")
 # END_CHUNK: NumFunctionPopulation
 
-# CHUNK: NumFunctions
-if 1:  # Functions
-    def RegisterUnit(unit_name: str) -> None:
-        '''Global helper for the Num class to ensure units are registered.'''
-        UnitArbiter()._register_unit(unit_name)
-    def e(n: "Num"):
-        '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
-        import tempfile, os, subprocess
-        initial_text = f"Unit: {n._unit}\nValue: {n._real}\nDoc: {n.d}"
-        with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tf:
-            tf.write(initial_text)
-            temp_path = tf.name
-        # Fire up vi/vim/nano
-        editor = os.environ.get('EDITOR', 'vi')
-        subprocess.call([editor, temp_path])
-        # ... logic to read the file back and update n.d ...
-        print(f"Updated {n._unit} metadata.")
-# END_CHUNK: NumFunctions
 
-if 1:  # Help 
-    class Help:
-        'Adds the help() function (singleton class)'
-        _instance = None
-        def __new__(cls) -> "Help":
-            if cls._instance is None:
-                cls._instance = super(Help, cls).__new__(cls)
-                cls._instance._initialized = False
-            return cls._instance
-        def __init__(self) -> None:
-            if self._initialized:
-                return
-            self._initialized = True
-        def __call__(self, *p, **kw) -> None:
-            if not p:
-                print(wrap.dedent(f'''
-                Num class topics:  use numinstance.help("topic"):
-                    overview    Basic example of use
-                    init        Getting it to work
-                '''))
-                return
-            if p[0] == "overview":
-                wall_length = Num("50 m")
-                wall_length.base("nails")
-                nails_per_m = Num("20 nails/m")
-                print(wrap.dedent(f'''
-                Num class help
-                    The Num class is a number used for routine calculations in the
-                    python REPL.  You can use integers, fractions, floats, and complex
-                    numbers.  The numbers can also include units.  Here's a sample
-                    calculation for how many nails will be needed for a long wall:
-                    
-                        wall_length = Num("50 m")
-                        wall_length.base("nails")
-                        nails_per_m = Num("20 nails/m")
-                        print(f"Need {{wall_length*nails_per_m}} for the wall")
-                    
-                    This will print the answer
-                    
-                        Need {wall_length*nails_per_m} for the wall
-                    
-                    You can define these "semantic units" dynamically as your problem's
-                    solution develops.  These units can help keep the calculation's
-                    logic correct.
-                '''))
-if 1:   # Set up config files   ∞∞2 This needs to move out of the main code area
-    UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
-    UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
-    UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
-
+if 1:   # Miscellaneous stuff
+    if 1:  # Help 
+        class Help:
+            'Adds the help() function (singleton class)'
+            _instance = None
+            def __new__(cls) -> "Help":
+                if cls._instance is None:
+                    cls._instance = super(Help, cls).__new__(cls)
+                    cls._instance._initialized = False
+                return cls._instance
+            def __init__(self) -> None:
+                if self._initialized:
+                    return
+                self._initialized = True
+            def __call__(self, *p, **kw) -> None:
+                if not p:
+                    print(wrap.dedent(f'''
+                    Num class topics:  use numinstance.help("topic"):
+                        overview    Basic example of use
+                        init        Getting it to work
+                    '''))
+                    return
+                if p[0] == "overview":
+                    wall_length = Num("50 m")
+                    wall_length.base("nails")
+                    nails_per_m = Num("20 nails/m")
+                    print(wrap.dedent(f'''
+                    Num class help
+                        The Num class is a number used for routine calculations in the
+                        python REPL.  You can use integers, fractions, floats, and complex
+                        numbers.  The numbers can also include units.  Here's a sample
+                        calculation for how many nails will be needed for a long wall:
+                        
+                            wall_length = Num("50 m")
+                            wall_length.base("nails")
+                            nails_per_m = Num("20 nails/m")
+                            print(f"Need {{wall_length*nails_per_m}} for the wall")
+                        
+                        This will print the answer
+                        
+                            Need {wall_length*nails_per_m} for the wall
+                        
+                        You can define these "semantic units" dynamically as your problem's
+                        solution develops.  These units can help keep the calculation's
+                        logic correct.
+                    '''))
+    if 1:  # Functions
+        def e(n: "Num"):
+            '''The "Editor" command. Spawns your $EDITOR with the Num's state.'''
+            import tempfile, os, subprocess
+            initial_text = f"Unit: {n._unit}\nValue: {n._real}\nDoc: {n.d}"
+            with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tf:
+                tf.write(initial_text)
+                temp_path = tf.name
+            # Fire up vi/vim/nano
+            editor = os.environ.get('EDITOR', 'vi')
+            subprocess.call([editor, temp_path])
+            # ... logic to read the file back and update n.d ...
+            print(f"Updated {n._unit} metadata.")
 if 1:   # Default units and global unit_arbiter
     default_units = '''
         # This is a set of units using the GNU units configuration file syntax.
