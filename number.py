@@ -1375,8 +1375,7 @@ if 1:  # UnitArbiter
                         self.RegisterDynamicUnit(parts[0], parts[1])
         def RegisterDynamicUnit(self, name: str, definition: str) -> None:
             self._registry[name] = definition
-            self._registry_scales.clear()
-            self._registry_signatures.clear()
+            self._cache_clear()
         def ValidatePolicy(self, unit_str: str) -> None:
             if unit_str.count('/') > 1 and not ('(' in unit_str and ')' in unit_str):
                 raise ValueError(f"Ambiguous unit '{unit_str}': use parentheses for multiple slashes.")
@@ -1466,6 +1465,9 @@ if 1:  # UnitArbiter
                 raise ValueError(f"Operation '{operation}' failed: {unit_a} and {unit_b} are incompatible. ({msg})")
         def CheckConformable(self, have: str, want: str) -> tuple[bool, str]:
             '''Check if two units have the same physical dimensions.'''
+            if 0:
+                print("CheckConformable has temp cache clear")
+                self._cache_clear()
             if have == want:
                 return True, "1.0"
             try:
@@ -1557,7 +1559,6 @@ if 1:  # UnitArbiter
                 if op in token:
                     name, exp = token.split(op)
                     return name.strip(), int(exp)
-
             # Handle m3 (trailing digits)
             # We walk backwards to find where the digits start
             name = token
@@ -1568,7 +1569,6 @@ if 1:  # UnitArbiter
                     name = token[:i]
                 else:
                     break
-
             if exp_str:
                 return name, int(exp_str)
             return token, 1
@@ -1604,6 +1604,56 @@ if 1:  # UnitArbiter
                     self._update_sig(signature, self._get_unit_sig(unit), -1)
             Dbg(f"  _combine_signatures_from_def: Resulting sig {signature!r}")
             return signature
+        def _cache_clear(self) -> None:
+            self._registry_scales.clear()
+            self._registry_signatures.clear()
+        def check_registry(self) -> list[str]:
+            '''
+            Performs a structural validation of the registry (equivalent to 'units -c').
+            Identifies circular definitions and orphaned dependencies.
+            '''
+            errors = []
+            # State: 0 = unvisited, 1 = visiting (current path), 2 = visited (safe)
+            state = {name: 0 for name in self._registry}
+            def get_dependencies(definition: str) -> list[str]:
+                # Flatten the expression to isolate unit names
+                clean_def = definition
+                for char in "()*/^":
+                    clean_def = clean_def.replace(char, " ")
+                clean_def = clean_def.replace("**", " ")
+                deps = []
+                for part in clean_def.split():
+                    token = part.strip()
+                    # Filter out numbers and known math constants
+                    if token and not self._is_number(token) and token != 'mpmathpi':
+                        name, _ = self._decomposed_token(token)
+                        deps.append(name)
+                return deps
+            def find_cycle(name: str, path: list[str]):
+                state[name] = 1 # Mark as visiting
+                path.append(name)
+                definition = self._registry.get(name)
+                # Primitives ('!') have no dependencies
+                if definition and definition != "!" and definition != "!dimensionless":
+                    for dep in get_dependencies(definition):
+                        # Orphan Check
+                        if dep not in self._registry:
+                            errors.append(f"Orphan Error: '{name}' depends on undefined unit '{dep}'")
+                            continue
+                        # Circularity Check
+                        if state[dep] == 1:
+                            cycle = " -> ".join(path[path.index(dep):] + [dep])
+                            errors.append(f"Circular Definition: {cycle}")
+                        elif state.get(dep, 0) == 0:
+                            find_cycle(dep, path)
+                path.pop()
+                state[name] = 2 # Mark as visited
+            # Evaluate every unit in the registry
+            for unit_name in list(self._registry.keys()):
+                if state.get(unit_name, 0) == 0:
+                    find_cycle(unit_name, [])
+            # De-duplicate and organize for a clean report
+            return sorted(list(set(errors)))
 # END_CHUNK: UnitArbiter
 
 # CHUNK: StringParser
@@ -1873,6 +1923,7 @@ if 1:   # Set up config files   ∞∞2 This needs to move out of the main code 
     UnitArbiter.main_config = "/home/don/.0rc/bin/definitions.units"
     UnitArbiter.dynamic_config = "/home/don/.units_dynamic"
     UnitArbiter.units_bin = "/home/don/.0rc/bin/units"
+
 if 1:   # Default units and global unit_arbiter
     default_units = '''
         # This is a set of units using the GNU units configuration file syntax.
@@ -2316,6 +2367,12 @@ if 1:   # Default units and global unit_arbiter
     unit_arbiter = UnitArbiter()
     # Load these default units
     unit_arbiter.LoadRegistryString(default_units)
+    errors = unit_arbiter.check_registry()
+    if errors:
+        print("Errors in default_units string:")
+        for item in errors:
+            print(f"  {item}")
+        exit(1)
     Num.unit_arbiter = unit_arbiter
 
 if __name__ == "__main__":  
