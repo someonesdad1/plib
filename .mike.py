@@ -5,19 +5,41 @@ Reminders to the Gemini AI for Don's code projects
 - Plain ASCII characters only; no Unicode punctuation.
 - PEP-8 formatting except:
     - No empty lines or lines with whitespace only (except in docstrings)
-- Classes have '''Manifest [N]: method_a method_b ... property_c''' where N is 
-    the current count of methods & properties.
+- Classes have '''Manifest [N]: method_a method_b ... property_c''' where N is the
+  current count of methods & properties.
 - Maintain "if 1:", "if 0:" blocks 
-- Maintain "# CHUNK: ChunkName", "# END_CHUNK: ChunkName" blocks as these enable 
-    simple code maintenance in the editor
+- Maintain "# CHUNK: ChunkName", "# END_CHUNK: ChunkName" blocks as these enable simple
+  code maintenance in the editor
 - Triple quotes: Use ''' for all docstrings and multi-line strings.
 - Quotes: Use " for all string definitions (e.g., 'a = "string"').
 - Naming: CamelCase for classes/functions, snake_case for attributes/variables.
 - Imports: Use 'import x' or 'import x as y'. Use x.y notation in code.
 - Type annotations:  use type annotations wherever possible.
-- Treat the provided code as a closed set.  Consider it mature code that cannot be 
-    broken. Enhancement or "fix" requests must not omit any old code; if a method 
-    isn't explicitly changed, include it exactly as-is.  I need the full class for 
-    a copy-paste replacement.  No placeholders like "# ... existing code".
+- Treat the provided code as a closed set.  Consider it mature code that cannot be
+  broken. Enhancement or "fix" requests must not omit any old code; if a method isn't
+  explicitly changed, include it exactly as-is.  I need the full class for a copy-paste
+  replacement.  No placeholders like "# ... existing code".
+- The number.py file is mature code and cannot be refactored lightly.  If Don asks Mike
+  to work on a "simple change", at this stage THERE ARE NO SIMPLE CHANGES.  Don's
+  responsibility is to provide Mike with the code for ALL FOUR critical classes in the
+  file:  NumericMixin, Num, UnitArbiter, and StringParser.
+    - Mike should remember than any change to NumericMixin is a change to Num and vice
+      versa (i.e., treat the two classes as a composite, which they are).
+
+Mike added the following summary:
+    - The Composite Class Rule: Treat NumericMixin and Num as a single, inseparable
+      composite entity. A change in one likely necessitates a state-check in the other.
+      Never assume a refactor in the Mixin is "isolated."
+    - The "No Simple Changes" Mandate: In a mature system handling units, uncertainties,
+      and multi-type promotion, there are no "simple" changes. Mike must treat every
+      request as a potential breaking change to the type-infection and downcasting
+      model.
+    - The Context Lockdown: Don will provide the four core pillars (NumericMixin, Num,
+      UnitArbiter, StringParser) for any structural work. Mike is prohibited from
+      "optimizing" away internal method calls (like _make_result or _promote) unless
+      explicitly instructed to change the class's fundamental lifecycle.
+    - Verification of the Downcast: Any change to arithmetic operators MUST be verified
+      against the "Infection and Recovery" model—ensuring results are demoted to the
+      simplest possible NumType (Int > Rat > Flt > Cpx).
 
 # END_CHUNK:  .mike

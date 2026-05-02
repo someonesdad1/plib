@@ -363,8 +363,7 @@ if 1:  # Classes
             def do_cls(self, arg):  # Clear the screen
                 "Clear the screen"
                 print("\x1b[H\x1b[2J\x1b[3J")
-            def do_o(self, arg):  # Dump local variables
-                'Dump local variables with color key (arg ignored)'
+            def define_colors(self):
                 if 1:  # Define our own colors
                     bg = "gry1"
                     c = color_choice != NoColors
@@ -385,6 +384,10 @@ if 1:  # Classes
                     u.n = u.n
                     if color_choice == NoColors:
                         u.on = False
+                    return c
+            def do_O(self, arg):  # Dump local variables with key
+                'Dump local variables with color key (arg ignored)'
+                c = self.define_colors()
                 if 1:  # Get local variables
                     fr = self.get_frame_of_interest()
                     di = fr.f_locals  # Local variable dictionary
@@ -417,6 +420,22 @@ if 1:  # Classes
                             f"{u.bytearray}bytearray{u.n} "
                         )
                         print("Use dpdb.LocateSymbol(symbol) to find a symbol in import libraries")
+            def do_o(self, arg):  # Dump local variables
+                'Dump local variables with color key (arg ignored)'
+                c = self.define_colors()
+                if 1:  # Get local variables
+                    fr = self.get_frame_of_interest()
+                    di = fr.f_locals  # Local variable dictionary
+                    if not di:
+                        print("No local variables in this frame")
+                        return
+                if 1:  # Print the local variable dictionary
+                    print(f"{u.title}Local variables:{u.n}")
+                    # Get length of longest name
+                    w = max(len(i) for i in di)
+                    # Print the variables
+                    for name in sorted(di):
+                        self.Decorate(name, di[name], u, w)
             def do_dr(self, arg):  # Nicely print dir(arg)
                 "Print the results of dir(obj) for objects in argument"
                 if not arg:

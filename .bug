@@ -504,6 +504,13 @@ xyzimmutable
     def __hash__(self):
         return int(self._hash)
 
+    If you do need to override the immutability for e.g. a late-bound .doc attribute,
+    you can call the parent method:
+
+        def set_doc(self, text: str):
+            # This bypasses the logic in Num.__setattr__
+            object.__setattr__(self, "_doc", text)
+
 ---------------------------------------------------------------------------
 xxpytest Using pytest to test number.py
 
