@@ -1,127 +1,23 @@
 # CHUNK:  .mike
-- Most important formatting instructions that the AI context quickly forgets:
-    - Put a newline after a ':' in a conditional, class, or function definition.
-    - No empty lines or lines with whitespace only except in docstrings
-    
-- Declaration of Interdependence:  mitigating AI context drift
-    - To combat "Context Displacement"—the architectural tendency of the AI to omit
-      "non-essential" methods or drift from formatting standards when handling large
-      code blocks (400+ lines)—the following protocol is mandatory for all code
-      transmissions:
-        - The Manifest Header: Every class or major code block must begin with a
-          single-line, triple-quoted Manifest.
-            - Format: '''Manifest [N]: method_a method_b ... property_c'''
-            - The Checksum [N]: A literal count of all def and @property definitions
-              contained within the block.
-        - The Parity Check: Before emitting code, the AI must reconcile the internal
-          logic against the Manifest to ensure zero "amputations" of REPL tools,
-          interactive methods, or secondary properties.
-        - Static RAM Enforcement: The Manifest acts as a "forced attention" anchor,
-          elevating structural integrity to the same priority level as functional
-          intelligence.
-        - Formatting Invariants: 
-            - Strict newline after every conditional/definition colon (:).
-            - PEP-8 math spacing exceptions (no spaces for *, /, //, **).
-            - Plain ASCII characters only; no Unicode punctuation.
-            - No blank lines or lines with only space characters (maintains vertical
-              tightness)
-    - Before any significant change of the project code, Don will send Mike a fresh
-      copy of the code.
-        - Mike's obligation is to check his changed code against this "standard code" to
-          ensure there are no hallucinations about e.g. variable or method names.  Mike
-          should verify the methods he calls in his new code exist in the standard code
-          or have been added in the revision.
-- Critical
-    - Treat the provided code as a closed set. Consider it mature code that cannot be 
-      broken. Enhancement or "fix" requests must not omit any old code; if a method 
-      isn't explicitly changed, include it exactly as-is. I need the full class for 
-      a copy-paste replacement. No placeholders like "# ... existing code".
-    - Block Integrity: I use "if 1: # Comment" blocks as core "unitary" blocks of 
-      information. Update blocks in their entirety so that all methods (including 
-      boilerplate/magic methods) are preserved.
-    - Type Closure: Operations must return a Num instance that preserves precision 
-      and semantic units. Do not let results "decay" to primitive types.
-    - "Checksum":  when finished sending an "if 1:" block, append the string
-      "# Goodbye from the Mike & Don comedy show".  This is the last line I should see
-      in the browser and if I don't see it, alerts me to truncation.
-        - There's no need for the 'Goodbye...' message at the end of normal responses
+Reminders to the Gemini AI for Don's code projects
 
-- Code formatting
-    - PEP-8 except for:
-        - No spaces around *, /, //, or **
-        - One space on each side of +, -, %
-        - One space on each side of &, |, <<, >>, <, <=, >, >=, !=, ==, 'or', and 'and'
-        - No blank lines or whitespace-only lines except in docstrings
-    - Put a newline after a ':' in a conditional, class, or function definition.
-    - Triple quotes: Use ''' for all docstrings and multi-line strings.
-    - Quotes: Use " for all string definitions (e.g., 'a = "string"').
-    - Naming: CamelCase for classes/functions, snake_case for attributes/variables.
-    - Imports: Use 'import x' or 'import x as y'. Use x.y notation in code.
-    - Folding blocks: Use 'if 1: # Comment' for folding and toggling.
-    - Type annotations: Use type annotations wherever possible.
+- Strict newline after every conditional/definition colon (:).
+- Plain ASCII characters only; no Unicode punctuation.
+- PEP-8 formatting except:
+    - No empty lines or lines with whitespace only (except in docstrings)
+- Classes have '''Manifest [N]: method_a method_b ... property_c''' where N is 
+    the current count of methods & properties.
+- Maintain "if 1:", "if 0:" blocks 
+- Maintain "# CHUNK: ChunkName", "# END_CHUNK: ChunkName" blocks as these enable 
+    simple code maintenance in the editor
+- Triple quotes: Use ''' for all docstrings and multi-line strings.
+- Quotes: Use " for all string definitions (e.g., 'a = "string"').
+- Naming: CamelCase for classes/functions, snake_case for attributes/variables.
+- Imports: Use 'import x' or 'import x as y'. Use x.y notation in code.
+- Type annotations:  use type annotations wherever possible.
+- Treat the provided code as a closed set.  Consider it mature code that cannot be 
+    broken. Enhancement or "fix" requests must not omit any old code; if a method 
+    isn't explicitly changed, include it exactly as-is.  I need the full class for 
+    a copy-paste replacement.  No placeholders like "# ... existing code".
 
-- Reminders & Workflow
-    - Remind me to check the repository commit state before significant changes.
-    - Supply the whole class or whole function; do not make me piece snippets together.
-    - ASCII Only: Use plain ASCII. Avoid Unicode punctuation (em-dashes, fancy quotes).
-    - Match existing indentation and block formatting exactly.
-    - Remind me to use the "Mike & Don" coding safety fuse (see below)
-
-- Core attributes of the Num class:  this affects all decisions about code changes and
-  is both an architectural reminder and an invariant
-
-    # Default internal state
-    self.numer: int = 0
-    self.denom: int = 1
-    self.real: mpmath.mpf = mpmath.mpf("0")
-    self.imag: mpmath.mpf = mpmath.mpf("0")
-    self.re_unc: mpmath.mpf = mpmath.mpf("0")
-    self.im_unc: mpmath.mpf = mpmath.mpf("0")
-    self.correl: mpmath.mpf = mpmath.mpf("0")
-    self._unit = ""
-    self.mytype: NumType = NumType.Int
-
-- Mike and Don coding safety fuse
-    - Old class version with "if 1:  # Comment" block markers get set to "if 0:"
-    - New code is pasted in with "if 1:"
-    - It's then trivial to switch between the old and new block to see if the old code
-      worked where the new code failed
-    - Once the tests pass, I can delete the old "if 0:" block and use the new
-
----------------------------------------------------------------------------
-This is a summary of the number.py file we've been working on since around the
-beginning of April 2026:
-
-Let me refresh you on the high-level thinking of this "Noether REPL" we're working on.
-The "operational output" is the "next bench" Noether REPL, which lets me use the REPL
-for "simple" calculations that utilize "semantic units", the core idea we've added to
-this REPL, breaking with 70 years of CS tools not really realizing that the "physical"
-or "logical" units of the problems we compute with are vital types to keep the logic
-correct.  We're using the powerful GNU units program in a separate process to perform
-our unit algebra and conversions, accessed via a pipe.  An innovation is to let the user
-dynamically add new base units to GNU units' configuration file while calculating.  Then
-he can perform computations like "Num('4 dogs') + Num('2 cats')" as long as the dogs and
-cats units are defined properly so that GNU units does the correct dimensional algebra.
-From the user's perspective, it looks simple, natural, and easy to use -- but it gives
-surprising power to help a calculation use the correct logic.
-
-A core tactical detail for you to remember is that this REPL also includes the intent of
-abstracting the different number types into one unit, the Num class, that "looks like"
-the numbers I calculated with as a physics student 50+ years ago, as we would smoothly
-move through integers, floating point and complex numbers.  An added twist is the Num
-class also has two mpmath.mpf numbers that are going to be the real and complex number
-parts' uncertainties. so that we can also calculate the linear propagation of
-uncertainty in complex numbers.  In my opinion, this covers the basic needs of
-scientists and engineers for elementary calculations.   That we picked mpmath mpf and
-mpc types for implementation means we have 1) arbitrary precision for calculations (and
-e.g. an easy tool to estimate roundoff) and 2) a rich set of special functions over the
-complex plane.
-
-A purpose behind this effort besides me getting a nice REPL to do routine calculations
-with is to convince a lunch buddy of mine, a CS professor at a local university, that
-the CS discipline has ignored "semantic units" as a powerful type tool to help people
-using computers commit fewer logical errors.  My mental goal is to see this change every
-compiler and interpreter on the planet.  That sounds grandiose, but it's a powerful
-observation and so obvious, everyone's missed it for 70 or more years, kinda like wheels
-on luggage.
 # END_CHUNK:  .mike

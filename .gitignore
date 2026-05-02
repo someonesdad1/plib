@@ -13,6 +13,9 @@
 .~lock*#
 *.pickle
 
+tmp.*
+.chunk
+.pdbrc
 policy
 .chunk_index.json
 .mike.py

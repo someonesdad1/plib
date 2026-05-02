@@ -1,24 +1,62 @@
-20 Apr 2026 09:59:08 am Mon
+1 May 2026 04:31:28 pm Fri
 
-- UnitArbiter refactor
-    - Must handle all SI prefixes in unit processing
+- Attributes & properties
+    - Num.unc_lsd: float    Default number of LSD for uncertainty
+    - Num.flip: bool    Exchange behavior of str() and repr()
+    - .n: int           Change number of displayed digits
+    - 
 
-Important
-    - Num("3.45 iu3r") automatically creates a new unit in the dynamic file as "iu3x
-      !base!".  This is dangerous, as it could have been a typo, but then that unit will
-      exist until the user deletes it.  The default units behavior is 'iu3r\n' will
-      return "Unknown unit 'iu3r'"
-        - Num.base() should be the only way to register a new unit, as it calls
-          UnitArbiter._register_unit()
+- Constructor change:  Num(value: ty.Optional[ty.Any] = None, unit: str = "", unc:
+  ty.Optional[ty.Any] = None, correl: ty.Optional[ty.Any] = 0) -> None:
+    - value
+        - int/float/complex, Fraction, Decimal, mpf, or mpc:  value converted to
+          internal storage, uncertainty of both components zero
+        - ufloat:  gives real part nominal value & uncertainty
+        - str:  supported types via StringParser; uncertainty in short-form notation. If
+          no uncertainty given, then it's Num.unc_lsd times the LSD in the string.
+          This is a practical heuristic; if someone doesn't like it, they can set it to
+          what they want, even 0.
+    - unit
+        - If supplied in both the value string and the unit keyword, the latter
+          overrides the former
+    - unc
+        - Type logic:
+            - If value is real, then unc must be real
+            - If value is complex, then unc must be complex or a tuple of two numbers.
+              If unc is a scalar means a ValueError.
+            - If value is complex, unc must be a complex or a tuple
+        - A use case is you're reading a CSV file with value and uncertainty in
+          different columns
+    - correl:  any type like value that can be converted an mpf on [-1, 1]
+    - Once the constructor is finished, a core need is that a Num instance is hashable,
+      meaning it's immutable.  See xyzimmutable below.
+    - Summary of Num type:
+        - Num is the one-and-only numeric type, carrying its own variance.
+        - Immutable Core: Once a Num is born, it’s locked. This makes it safe for hashes
+          and keeps your "Provenance Engine" from being corrupted by accidental
+          mid-session edits.
+        - Scalar/Complex Strictness: If the value is complex, the uncertainty must be
+          explicit (complex or 2-tuple).
+        - Measurement Shorthand: 1.23 implies an uncertainty of 1 in the LSD, honoring
+          the way humans actually communicate precision.
+    - Mike and I discussed the tortuous road to where we are and how obvious it is once
+      you see it.  He commented:  The reason it feels "obvious" now is the classic
+      hallmark of great design: it’s the simplicity that lives on the other side of
+      complexity.
+
+take one argument; it's either a string or a number type like 
+  int/float/complex, Fraction, Decimal, ufloat, mpf, or mpc.  All number types except
+  ufloat will have zero uncertainty.  The string form will either have the stated
+  uncertainty or will be given the default uncertainty.  The string/ufloat form is
+  intended to handle inherent uncertainty; the numerical forms are for convenient
+  interoperation with existing numerical data.
+    - No, the ufloat case shows you also need to be able to pass in a unit, as there's
+      no other way.
+    - Keyword arguments for constructor:  unit, unc.
 
 Minor
     - rho = Num("136.9(5) g/in3")
         - rho.to("g/mL") gave 8.35415056656885 (correct), but lost the propagated uncertainty
-
-- Feature changes
-    - Add the ability to cuddle an SI prefix as a shorthand: Num("3.7M"), which is the
-      same as Num("3.7e6").  While not critically needed, it's a handy tool for folks
-      who are familiar with working with SI units.
 
 - Things I'll probably want
     - Like SHOW in the HP42s:  show the full number form
@@ -444,6 +482,33 @@ Mike:
 
     (Also, I am delighted by the irony that you're using a physics-grade tool to
     engineer a better way to do physics—it's very recursive, and very "physicist"!)
+
+---------------------------------------------------------------------------
+xyzimmutable 
+
+    Here's how to make Num (nearly) immutable:
+
+    class Num:
+    def __init__(self, value=None, unit="", unc=None, correl=0.0):
+        # ... logic to resolve _real, _imag, re_unc, im_unc, etc. ...
+
+        # Internal state assignment
+        object.__setattr__(self, '_real', resolved_real)
+        object.__setattr__(self, '_imag', resolved_imag)
+        # ... and so on ...
+
+        # Final lock: The hash string
+        h_val = hash((self._real, self._imag, self.re_unc, self.im_unc, self.correl, self._unit))
+        object.__setattr__(self, '_hash', str(h_val))
+        object.__setattr__(self, '_initialized', True)
+
+    def __setattr__(self, name, value):
+        if getattr(self, '_initialized', False):
+            raise TypeError(f"Num objects are immutable. Cannot modify '{name}'.")
+        object.__setattr__(self, name, value)
+
+    def __hash__(self):
+        return int(self._hash)
 
 ---------------------------------------------------------------------------
 xxpytest Using pytest to test number.py

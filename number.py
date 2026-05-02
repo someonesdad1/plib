@@ -411,7 +411,6 @@ if 0: # NumericMixin
         def __complex__(self) -> complex:
             s = self.as_mpc
             return complex(float(s.real), float(s.imag))
-    # Goodbye from the Mike & Don comedy show
 # CHUNK: NumericMixin
 if 1: # NumericMixin
     '''Manifest [17]: __add__ __sub__ __mul__ __truediv__ __pow__ _do_uncertainty_math _check_ordering __lt__ __le__ __gt__ __ge__ __eq__ __abs__ __neg__ __radd__ __rsub__ __rmul__ __rtruediv__ _ensure_conformable'''
@@ -651,7 +650,6 @@ if 1: # NumericMixin
                 return mpmath.mpf(s)
             except:
                 return val
-    # Goodbye from the Mike & Don comedy show
 # END_CHUNK: NumericMixin
 
 if 0: # Num
@@ -907,18 +905,41 @@ if 0: # Num
                 if new_type.value < NumType.Unc.value:
                     self.re_unc = self.im_unc = self.correl = mpmath.mpf("0")
             self._mytype = new_type
-    # Goodbye from the Mike & Don comedy show
 # CHUNK: Num
 if 1: # Num
     '''Manifest [20]: __init__ _promote _binary_op _make_result _normalize base help _s _r __str__ __repr__ to approx dump unit raw_value as_mpc as_mpf as_int_or_rat num pi e'''
     class Num(NumericMixin):
         '''
-        A high-precision, unit-aware physical quantity with error propagation.
+        A class that will hold a numerical value, a unit string, and provide uncertainty
+        propagation.  It is intended to be a "one-stop" tool for working with physical
+        measurements.  It should be considered an immutable object, although auxiliary
+        information like a documentation attribute instance.doc can be changed as
+        desired.
 
-        The Num class serves as the primary data structure for the workbench.
-        It leverages mpmath for arbitrary-precision arithmetic and UnitArbiter
-        for dimensional consistency. Every instance can represent a 'measurement'
-        rather than just a 'pure number' (it handles pure numbers too).
+        Arbitrary precision is supplied for integer, rational, real, and complex numbers
+        by the mpmath library.  mpmath's rich supply of special functions can be used
+        with Num arguments.
+
+        A mental model for these number/unit objects is how we do calculations on paper
+        by hand, such as in a lab notebook.  We easily move between the different number
+        types and pay attention to the physical units of the problem, ensuring they
+        follow correct dimensional algebra.  The lab notebook provides a permanent
+        record of ideas, calculations, etc., so a persistence mechanism has been added
+        to support this mental model.  You can e.g. perform a calculation in a python
+        REPL and your calculations are persisted for later viewing.
+
+        The Num class follows an infection model:  if you combine Num instances with
+        other python numeric types using a binary operation, the result will be another
+        Num instance.
+
+        Linear uncertainty propagation is used in all binary and function operations.
+        For complex numbers, you have the ability to specify the correlation coefficient
+        between the real and imaginary parts.  You can specify the uncertainty using the
+        standard short-form notation Num("3.45(2)e-4").  Integers and rational numbers
+        have zero uncertainty by default.  You can use the short-form uncertainty
+        notation for integers too:  Num("1245(10)").  For real numbers, the uncertainty
+        is set to Num.unc_lsd times the value of the least significant digit in the 
+        initializer in the constructor.
 
         Attributes:
             raw_value: The underlying numerical value (mpf, mpc, mpq, or int).
@@ -1274,7 +1295,6 @@ if 1: # Num
             # while correcting the dimensionality.
             new_num._unit = base_unit
             return new_num
-    # Goodbye from the Mike & Don comedy show
 # END_CHUNK: Num
 
 # CHUNK: ParsedPayload
@@ -1701,7 +1721,6 @@ if 1:  # StringParser
             decimal_places = 0
             if "." in val_str: decimal_places = len(val_str.split(".")[1])
             return mpmath.mpf(unc_str) / (10**decimal_places)
-    # Goodbye from the Mike & Don comedy show
 # END_CHUNK: StringParser
 
 # CHUNK: NumFunctionPopulation
