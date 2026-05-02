@@ -932,14 +932,14 @@ if 1: # Num
         other python numeric types using a binary operation, the result will be another
         Num instance.
 
-        Linear uncertainty propagation is used in all binary and function operations.
-        For complex numbers, you have the ability to specify the correlation coefficient
-        between the real and imaginary parts.  You can specify the uncertainty using the
-        standard short-form notation Num("3.45(2)e-4").  Integers and rational numbers
-        have zero uncertainty by default.  You can use the short-form uncertainty
-        notation for integers too:  Num("1245(10)").  For real numbers, the uncertainty
-        is set to Num.unc_lsd times the value of the least significant digit in the 
-        initializer in the constructor.
+        Linear uncertainty propagation is used in all binary operations and function
+        calls.  For complex numbers, you have the ability to specify the correlation
+        coefficient between the uncertainty of the real and imaginary parts.  You can
+        specify the uncertainty using the standard short-form notation
+        Num("3.45(2)e-4").  Integers and rational numbers have zero uncertainty by
+        default.  You can use the short-form uncertainty notation for integers too:
+        Num("1245(10)").  For real numbers, the uncertainty is set to Num.unc_lsd times
+        the value of the least significant digit in the initializer in the constructor.
 
         Attributes:
             raw_value: The underlying numerical value (mpf, mpc, mpq, or int).

@@ -13,9 +13,9 @@
           internal storage, uncertainty of both components zero
         - ufloat:  gives real part nominal value & uncertainty
         - str:  supported types via StringParser; uncertainty in short-form notation. If
-          no uncertainty given, then it's Num.unc_lsd times the LSD in the string.
-          This is a practical heuristic; if someone doesn't like it, they can set it to
-          what they want, even 0.
+          no uncertainty given, then it's Num.unc_lsd times the LSD in the string.  This
+          is a practical heuristic; if someone doesn't like it, they can set it to what
+          they want, even 0.
     - unit
         - If supplied in both the value string and the unit keyword, the latter
           overrides the former
@@ -39,20 +39,14 @@
           explicit (complex or 2-tuple).
         - Measurement Shorthand: 1.23 implies an uncertainty of 1 in the LSD, honoring
           the way humans actually communicate precision.
-    - Mike and I discussed the tortuous road to where we are and how obvious it is once
-      you see it.  He commented:  The reason it feels "obvious" now is the classic
-      hallmark of great design: it’s the simplicity that lives on the other side of
-      complexity.
-
-take one argument; it's either a string or a number type like 
-  int/float/complex, Fraction, Decimal, ufloat, mpf, or mpc.  All number types except
-  ufloat will have zero uncertainty.  The string form will either have the stated
-  uncertainty or will be given the default uncertainty.  The string/ufloat form is
-  intended to handle inherent uncertainty; the numerical forms are for convenient
-  interoperation with existing numerical data.
-    - No, the ufloat case shows you also need to be able to pass in a unit, as there's
-      no other way.
-    - Keyword arguments for constructor:  unit, unc.
+- Mike and I discussed the tortuous road to where we are and how obvious it is once you
+  see it.  He commented:  The reason it feels "obvious" now is the classic hallmark of
+  great design: it’s the simplicity that lives on the other side of complexity.
+- Needed:  a formatter for Num objects.  There are two types:  with and without
+  uncertainty.  Without uncertainty display as usual no-color numbers.  Num objects with 
+  uncertainty are a different color and display to their uncertainty level.  There
+  probably needs to be a notation using ⋯ that limits to e.g. 6 or 8 digits for very
+  small uncertainties.
 
 Minor
     - rho = Num("136.9(5) g/in3")
