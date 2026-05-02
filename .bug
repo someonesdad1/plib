@@ -1,11 +1,17 @@
 1 May 2026 04:31:28 pm Fri
 
+- Make number.py a standalone file:  fix the formatting
+- Bugs
+    - Num("60 mi/hr").to("ft/s") -> 60 (should be 88)
+    - Now I'm getting AttributeError: 'UnitArbiter' object has no attribute '_register_unit'
+
 - Attributes & properties
     - Num.unc_lsd: float    Default number of LSD for uncertainty
     - Num.flip: bool    Exchange behavior of str() and repr()
     - .n: int           Change number of displayed digits
     - 
 
+---------------------------------------------------------------------------
 - Constructor change:  Num(value: ty.Optional[ty.Any] = None, unit: str = "", unc:
   ty.Optional[ty.Any] = None, correl: ty.Optional[ty.Any] = 0) -> None:
     - value
@@ -30,6 +36,7 @@
     - correl:  any type like value that can be converted an mpf on [-1, 1]
     - Once the constructor is finished, a core need is that a Num instance is hashable,
       meaning it's immutable.  See xyzimmutable below.
+
     - Summary of Num type:
         - Num is the one-and-only numeric type, carrying its own variance.
         - Immutable Core: Once a Num is born, it’s locked. This makes it safe for hashes

@@ -171,6 +171,53 @@ if 1:  # Header
             print(f"{t.red}[{fname}:{line}]:  ", end="", file=sys.stderr)
             print(*p, **k)
             print(f"{t.n}", end="", file=sys.stderr)
+if 1:   # Lightweight string formatter
+    class MiniFmt:
+        '''Lightweight standalone formatter with uncertainty-shaving and Pythonic complex signs.'''
+        def __init__(self, n=3, low=1e-4, high=1e6):
+            self.n = n
+            self.low = low
+            self.high = high
+        def __call__(self, x, n=None, fmt='auto'):
+            if x is None: return "None"
+            n = n if n is not None else self.n
+            # Handle Complex
+            if hasattr(x, 'imag') and x.imag != 0:
+                re_str = self._fmt_val(x.real, n, fmt)
+                im_str = self._fmt_val(x.imag, n, fmt)
+                # Ensure the sign is handled correctly: "-7j" instead of "+ -7j"
+                sign = "" if im_str.startswith(("-", "+")) else "+"
+                return f"({re_str}{sign}{im_str}j)"
+            return self._fmt_val(x, n, fmt)
+        def _fmt_val(self, val, n, fmt):
+            # 1. Determine the format string
+            if fmt == 'auto':
+                abs_v = abs(float(val))
+                current_fmt = 'e' if (0 < abs_v < self.low or abs_v >= self.high) else 'g'
+            else:
+                current_fmt = 'e' if fmt == 'sci' else 'g'
+            # 2. Leverage uncertainties library for "The Shave"
+            # We use '1u' to get the standard 1-digit uncertainty rounding,
+            # then 'S' for the shorthand (1.23(4)) format.
+            try:
+                # We use a dummy uncertainty of 0 to get the rounding logic
+                # OR pass the actual uncertainty if the Num object has it.
+                # For a general formatter, we'll assume we just want 'n' sig-figs.
+                u_obj = ufloat(float(val), 0)
+                # Format to 'n' significant figures in shorthand
+                raw_s = f"{u_obj:.{n}uS{current_fmt}}"
+                # The "Killer" Step: Regex out the parenthetical uncertainty
+                return re.sub(r"\(.*?\)", "", raw_s)
+            except:
+                # Fallback if uncertainties library behaves unexpectedly
+                return f"{float(val):,.{n}{current_fmt}}"
+        def sci(self, x, n=None): return self(x, n=n, fmt='sci')
+        def fix(self, x, n=None): return self(x, n=n, fmt='fix')
+        def eng(self, x, n=None): return self.sci(x, n)
+        def engsi(self, x, n=None): return self.sci(x, n)
+        def engsic(self, x, n=None): return self.sci(x, n)
+    # Plug it into the class variable
+    # Num.fmt = MiniFmt(n=3)
 if 0:   # Documentation
     if 1:   # Main file
         '''Represent a general number useful for routine calculations
@@ -999,7 +1046,8 @@ if 1: # Num
         flip = False
         show_color = True
         active_system = "default"
-        fmt = fmt.Fmt()         # Formatter for number strings
+        #fmt = fmt.Fmt()      # Formatter for number strings
+        fmt = MiniFmt(n=3)   # Formatter for number strings
         def __init__(self, value: ty.Optional[ty.Any] = None, unit: str = "") -> None:
             '''
             Initializes a Num instance.
@@ -1334,6 +1382,16 @@ if 1: # Num
             # while correcting the dimensionality.
             new_num._unit = base_unit
             return new_num
+        @property
+        def n(self) -> int:
+            'Number of decimal digits'
+            return self._n
+        @n.setter
+        def n(self, value: int) -> None:
+            n = int(value)
+            if n < 1:
+                raise ValueError("value must be >= 1")
+            self.fmt.n = self._n = n
 # END_CHUNK: Num
 
 # CHUNK: ParsedPayload
