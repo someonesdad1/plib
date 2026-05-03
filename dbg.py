@@ -1,81 +1,103 @@
 '''
-Provides a debug printing class Debug that is called like print()
-    Typical usage:
-        from dbg import Debug
-        Dbg = Debug()       # Get a class instance
-        Debug.dbg = True    # Enable debug printing
-        Dbg("This is a debugging message")
-        # Debug print in a different color
-        Dbg("In a different color", color=t.grn)
-    Run this script for a demo.
-    
-    Since Debug is a class, you can have multiple instances that can
-    print messages in different colors.
+Debug printing messages
+
+    Dbg:  utility debugging messages
+    Bug:  bug reminder; only prints once per location
+
+    from dbg import Dbg, Bug
+    Dbg.on = True               # Turn debug printing on
+    Dbg.stream = sys.stderr     # stdout is default
+    Dbg("This is a debugging message")  # Same syntax as print()
+        -> '[file.py:123]:DBG This is a debugging message'
+    Bug("Remember this bug")    # Always printed; same syntax as print()
+        -> '[file.py:123]:BUG Remember this bug'
+
+    The t instance is a trm.TrmDP() instance which provides color printing to the
+    terminal; the functions should still work if 'import trm' fails for some reason.
+    Here's how to output a message in a yellow color:
+
+        Dbg(f"{t.yel}This message is in color")
+
+    The DBG and file/line number portion won't be colorized.
+
+    Use case:  for developing code, you can sprinkle Dbg() calls throughout your code
+    and leave them in place.  There's not much overhead, as if Dbg.on is False, the code
+    quickly exits.  At some point in your code's execution where a problem is occuring,
+    set Dbg.on to True and you'll start seeing the debug messages, letting you see how
+    the state of things changes over time.  If you redirect to a file, the colorizing
+    escape sequences won't be emitted; if you want them to be there, set t.always to
+    True.
+
 '''
 if 1:  # Header
-    _pgminfo = '''
-        <oo gist ∞ Provides a debug printing class Debug that is called like print() oo>
-        <oo desc ∞ oo>
-        <oo copy ∞ Copyright © 2022 Don Peterson oo>
-        <oo lic ∞ MIT License
-            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-        oo>
-        <oo ind ∞ 8 indent oo>
-        <oo cat ∞ utility oo>
-        <oo test ∞ notest oo>
-        <oo todo ∞ oo>
-    '''
     if 1:  # Standard imports
+        import inspect
+        import os
         import sys
     if 1: # Custom imports
-        import trm
+        try:
+            import trm
+            _have_trm = True
+        except Exception:
+            _have_trm = False
     if 1: # Global variables
-        t = trm.Trm()
-        __all__ = "Debug".split()
+        if _have_trm:
+            # Print messages colorized
+            t = trm.TrmDP()
+        else:
+            # Use a class to swallow colorizing commands
+            class T:
+                def __setattr__(self, value):
+                    pass
+                def __getattr__(self, name):
+                    return ""
+                def __call__(self, *args, **kw):
+                    return ""
+            t = T()
+        __all__ = "Dbg Bug".split()
+    if 1:   # File gist information
+        __gist__      = "Debug printing"
+        __copyright__ = "Copyright © 2026 Don Peterson"
+        __license__   = "MIT License (see /plib/_lic.mit)"
+        __test__      = "notest"
+        __history__   = ''' '''
+        __category__  = "utility"
+        __todo__      = ''' '''
 if 1:  # Core functionality
-    class Debug:
-        dbg = False  # Debug printing is off by default
-        def __init__(self, fg="cyn", bg=None, attr=None, leader="", file=sys.stdout):
-            self.fg = fg
-            self.bg = bg
-            self.attr = attr
-            self.leader = leader
-            self.file = file
-            self.esc = t(fg, bg, attr)
-            self.color = t(fg, bg, attr)  # Generates needed escape codes
-        def __bool__(self):
-            "Return True if printing is on"
-            return bool(Debug.dbg)
-        def __call__(self, *p, **kw):
-            '''Print to the debug stream if the Debug.dbg class variable is
-            True.  The syntax is the same as print() except there's an
-            additional keyword 'color' which must be a color instance; if
-            it's present, it changes the color printed.
-            '''
-            if not Debug.dbg:
-                return
-            # Make a copy of kw so we don't change user's copy
-            kwc = kw.copy()
-            clr = self.esc
-            # If user passed in a color keyword, it must be an escape
-            # string.
-            if "color" in kwc:
-                clr = kwc["color"]
-                assert isinstance(clr, str)
-                del kwc["color"]
-            print(f"{clr}", file=self.file, end="")
-            print(self.leader, file=self.file, end="")
-            print(*p, **kwc)
-            print(f"{t.n}", file=self.file, end="")
+    def Dbg(*p, **kw):
+        '''Simple debugging command with the same syntax as print
+        Attributes:
+            .on     Set to True to see the messages
+        '''
+        if not hasattr(Dbg, "on"):
+            Dbg.on = False
+        if not Dbg.on:
+            return
+        frame = inspect.stack()[1]
+        fi = os.path.basename(frame.filename)
+        ln = frame.lineno
+        print(f"DBG [{fi}:{ln}]: ", end="")
+        print(*p, **kw)
+    def Bug(*p, **kw):
+        '''Print a bug you want to remember
+        Only list it once for each call at a specific file and line number so you're not
+        inundated with messages.  Printed in a very visible color.
+        '''
+        if not hasattr(Bug, "buglist"):
+            Bug.buglist = set()
+        frame = inspect.stack()[1]
+        fi = os.path.basename(frame.filename)
+        ln = frame.lineno
+        if (fi, ln) not in Bug.buglist:
+            print(f"{t.ygr}BUG [{fi}:{ln}]: ", end="")
+            t.print(*p, **kw)
+            Bug.buglist.add((fi, ln))
 
 if __name__ == "__main__":
     # Dbg demo
-    D = Debug()
-    Debug.dbg = False
-    D("You shouldn't see this message")
-    Debug.dbg = True
-    D("You should see this message")
-    D = Debug("ornl", None, "it")
-    D("This should be in orange italics")
+    Dbg("You shouldn't see this message")
+    Dbg.on = True
+    Dbg("You should see this message")
+    for i in range(10):
+        Bug("You should see this Bug message, but only once")
+    

@@ -1,56 +1,22 @@
 '''
 
+Task:  get MiniFmt working on uncertainty
+
 Abstract number class with units and linear uncertainty propagation 
     - Persistence in REPL
         - Mike has a 50 line vision of an SQLite db persistence connection for the REPL
-        using the memento pattern.
-            - A memento is a class that the Originator (Num class instance) saves its state
-            to.  The memento is passed to a Caretaker that e.g. persists it with block
-            chaining to establish provenance.  When restoring old state is needed, the
-            Originator is given back the memento and uses memento.GetState() to restore
-            the Num's state.  https://refactoring.guru/design-patterns/memento
-            - He also feels we can get this implemented in a single day, so it's worth the
-            effort.  This gives me persistence without losing my development context that
-            remembers the twisted paths of development and where the problems are; this
-            lets me continue to try the whole thing out as a real prototype with
-            persistence.
-
-    - .flip:  property used to flip the output of str() and repr().  Use case:  in the REPL
-    and the debugger, you usually see the repr() form; this allows you to see the str()
-    form
-    - .frac:  property used to show fractional form.  
-        - None:  always show number as mpf
-            - The formatter shows it as a float, but italicizes it to tell you it's actually
-            a fraction
-        - "i":  show number as improper fraction, denominator limited to 100000
-        - "p":  show as proper fraction, but denominator limited to 100000
-        - "I":  show number as improper fraction to full resolution
-        - "P":  show as proper fraction to full resolution
-
-    - Loss of linear uncertainty
-
-        - An important idea was in the UnitArbiter.inject_math(self) function which was an
-        early form of the currently-use NoetherWrap() function.  This is in the revisions
-        before about 84073ed2678a5f8bc for a week or two.  This was the core code:
-
-            with workdps(mp.dps + 4):
-                h_base = mp.power(10, -(mp.dps // 2))
-                d1 = diff(mp_func, x.as_mpc, h=h_base)
-                d2 = diff(mp_func, x.as_mpc, h=h_base / 2)
-                sens = abs(d1)
-                sens2 = abs(d2)
-                if abs(sens - sens2) / (sens + 1e-30) > 0.01:
-                    print(f"Warning: Possible singularity suspected in {func_name} at {x.raw_value}."
-                        f"\nUncertainty propagation may be non-physical.", file=sys.stderr)
-                new_re_unc = sens * x.re_unc
-                new_im_unc = sens * x.im_unc
-
-        - This looked at the relative change of the sensitivity (absolute value of the
-        slope) and if it was above a threshold, a warning about uncertainty propagation
-        was made.  Note the default mp.dps is 15, so this uses an h of around 1e-7, then
-        h/2.  This is a practical strategy to detect steep derivatives that invalidate
-        linear uncertainty propagation.  I think it should be added back into the existing
-        closure factory.
+          using the memento pattern.
+            - A memento is a class that the Originator (Num class instance) saves its
+              state to.  The memento is passed to a Caretaker that e.g. persists it with
+              block chaining to establish provenance.  When restoring old state is
+              needed, the Originator is given back the memento and uses
+              memento.GetState() to restore the Num's state.
+              https://refactoring.guru/design-patterns/memento
+            - He also feels we can get this implemented in a single day, so it's worth
+              the effort.  This gives me persistence without losing my development
+              context that remembers the twisted paths of development and where the
+              problems are; this lets me continue to try the whole thing out as a real
+              prototype with persistence.
 
 '''
 if 1:  # Header
@@ -119,17 +85,27 @@ if 1:  # Header
             uncertainties.UFloat , "Num" , str , None]
     if 1:   # Utility stuff
         def Dbg(*p, **kw):
-            # Simple debugging command
-            if not g.dbg:
+            'Debugging print; set Dbg.on to True to see messages'
+            if not hasattr(Dbg, "on"):
+                Dbg.on = False
+            if not Dbg.on:
                 return
-            _, lineno = get_caller_info()
-            print(f"[{lineno}]:DEBUG ", end="")
+            frame = inspect.stack()[1]
+            file = os.path.basename(frame.filename)
+            ln = frame.lineno
+            print(f"DBG [{file}:{ln}]: ", end="")
             print(*p, **kw)
         def Bug(*p, **kw):
-            # Flag a bug you want to remember
-            _, lineno = get_caller_info()
-            print(f"{t.ygr}[{lineno}]:BUG ", end="")
-            t.print(*p, **kw)
+            # Flag a bug you want to remember; only list it once
+            if not hasattr(Bug, "buglist"):
+                Bug.buglist = set()
+            frame = inspect.stack()[1]
+            file = os.path.basename(frame.filename)
+            ln = frame.lineno
+            if (file, ln) not in Bug.buglist:
+                print(f"BUG [{file}:{ln}]: ", end="")
+                t.print(*p, **kw)
+                Bug.buglist.add((file, ln))
         def _Dbg(*p, **kw):
             if not hasattr(Dbg, "file"):
                 Dbg.file = sys.stdout
@@ -150,27 +126,6 @@ if 1:  # Header
             # frame 2 is the code that called Warn
             frame = inspect.stack()[2]
             return os.path.basename(frame.filename), frame.lineno
-        def Warn(*p, **kw):
-            '''Write a message to stderr in red color with location from where called.
-            To minimize the number of messages, you can set single=True and the message
-            will be printed only once.
-            '''
-            if not hasattr(Warn, "single"):
-                Warn.single = False
-                Warn.already_printed = set()
-            fname, line = get_caller_info()
-            k = kw.copy()   # Only modify a copy of kw
-            k["file"] = sys.stderr
-            Warn.single = bool(k.get("single", False))  # See if only print once
-            if "single" in k:
-                del k["single"]
-            if Warn.single and p in Warn.already_printed:
-                return
-            Warn.already_printed.add(p)
-            # Print the warning
-            print(f"{t.red}[{fname}:{line}]:  ", end="", file=sys.stderr)
-            print(*p, **k)
-            print(f"{t.n}", end="", file=sys.stderr)
 if 1:   # Lightweight string formatter
     class MiniFmt:
         '''Lightweight standalone formatter with uncertainty-shaving and Pythonic complex signs.'''
@@ -581,8 +536,8 @@ if 1: # NumericMixin
                     propagation is unphysical.
                     '''
                     sensitivity = abs(slope)
-                    if ((value and abs(sensitivity*uncertainty/value) > 100)
-                        or sensitivity > 1e5):
+                    #print(f"{op_func} sensitivity = {sensitivity}")
+                    if ((value and abs(sensitivity*uncertainty/value) > 100) or sensitivity > 1e4):
                         # Most stdev/mean is typically < 1, meaning the above implies a
                         # slope around 100, which is pretty steep.
                         return True
@@ -906,7 +861,8 @@ if 0: # Num
             return adjusted
         def base(self, unit: str = "") -> None:
             target = unit if unit else self._unit
-            if target: print(self.arb._register_unit(target))
+            if target:
+                print(self.arb._register_unit(target))
         def help(self, topic: str = "") -> None:
             h = Help()
             h(topic) if topic else h()
@@ -1040,8 +996,6 @@ if 1: # Num
             NumType.Rat: t("brn", "gry1"),
             NumType.Flt: t("ygr", "gry1"),
             NumType.Cpx: t("sky", "gry1"),
-            NumType.Unc: t("viol", "gry1"),
-            NumType.UncCpx: t("red", "gry1"),
         }
         flip = False
         show_color = True
@@ -1074,6 +1028,7 @@ if 1: # Num
             unit = unit.strip()
             # Set default state
             self._doc = ""
+            self._init = ""
             self._val: fractions.Fraction = fractions.Fraction(0)
             self._real: mpmath.mpf = mpmath.mpf("0")
             self._imag: mpmath.mpf = mpmath.mpf("0")
@@ -1086,8 +1041,11 @@ if 1: # Num
             if value is None and not unit:
                 return
             elif isinstance(value, str):
+                self._init = value
                 payload = StringParser.parse(value)
                 target = unit if unit else payload.unit
+                if unit:
+                    self._init += f" ; {unit}"
                 self._unit = self.arb.Parse(target) if target else ""
                 if payload.type in (NumType.Int, NumType.Rat):
                     self._val = fractions.Fraction(payload.numer, payload.denom)
@@ -1097,6 +1055,8 @@ if 1: # Num
                     self.correl = payload.correl
                 self.mytype = payload.type
             elif isinstance(value, Num):
+                self._init = f"Num(id({hex(id(self))}))"
+                self._init += f" ; {unit}" if unit else ""
                 self._val = value._val
                 self._real, self._imag = value._real, value._imag
                 self.re_unc, self.im_unc = value.re_unc, value.im_unc
@@ -1105,26 +1065,38 @@ if 1: # Num
                 self._unit = self.arb.Parse(target) if target else ""
                 self.mytype = value.mytype
             elif isinstance(value, int):
+                self._init = repr(value)
+                self._init += f" ; {unit}" if unit else ""
                 self._val = fractions.Fraction(value)
                 self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Int
             elif isinstance(value, fractions.Fraction):
+                self._init = repr(value)
+                self._init += f" ; {unit}" if unit else ""
                 self._val = value
                 self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Rat
             elif isinstance(value, (float, decimal.Decimal)):
+                self._init = repr(value)
+                self._init += f" ; {unit}" if unit else ""
                 self._real = mpmath.mpf(str(value))
                 self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Flt
             elif isinstance(value, complex):
+                self._init = repr(value)
+                self._init += f" ; {unit}" if unit else ""
                 self._real, self._imag = mpmath.mpf(str(value.real)), mpmath.mpf(str(value.imag))
                 self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Cpx
             elif hasattr(value, "_mpf_") or isinstance(value, mpmath.mpf):
+                self._init = repr(value)
+                self._init += f" ; {unit}" if unit else ""
                 self._real = value
                 self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Flt
             elif isinstance(value, mpmath.mpc):
+                self._init = repr(value)
+                self._init += f" ; {unit}" if unit else ""
                 self._real, self._imag = value.real, value.imag
                 self._unit = self.arb.Parse(unit) if unit else ""
                 self.mytype = NumType.Cpx
@@ -1223,10 +1195,6 @@ if 1: # Num
                 s = Num.fmt(self.as_mpf)
             elif self.mytype == NumType.Cpx:
                 s = Num.fmt(self.as_mpc)
-            elif self.mytype == NumType.Unc:
-                s = f"{self._real} +/- {self.re_unc}"
-            elif self.mytype == NumType.UncCpx:
-                s = f"{self.as_mpc} +/- {self.re_unc} + {self.im_unc}i <R={self.correl}>"
             else:
                 raise TypeError("Bug in type(self)")
             unit_string = f" {t.whtl}{self._unit}{t.n}" if self._unit else ""
@@ -1302,19 +1270,39 @@ if 1: # Num
             else:
                 return mpmath.almosteq(m1, m2)
         @property
-        def dump(self) -> None:
+        def du(self) -> None:
             indent = " "*0
-            d = {1: "Int", 2: "Rat", 3: "Flt", 4: "Cpx", 5: "Unc", 6: "UncCpx"}
-            print(f"{indent}Num(id({hex(id(self))})) core attributes:")
-            print(f"{indent}    self._val.numerator   {self._val.numerator}")
-            print(f"{indent}    self._val.denominator {self._val.denominator}")
-            print(f"{indent}    self._real            {self._real}")
-            print(f"{indent}    self._imag            {self._imag}")
-            print(f"{indent}    self.re_unc           {self.re_unc}")
-            print(f"{indent}    self.im_unc           {self.im_unc}")
-            print(f"{indent}    self.correl           {self.correl}")
-            print(f"{indent}    self._unit             {self._unit!r}")
-            print(f"{indent}    self.mytype           {self.mytype} {d[self.mytype]}")
+            d = {1: "Int", 2: "Rat", 3: "Flt", 4: "Cpx"}
+            if 0:
+                # Simple printing with no colorizing
+                print(f"{indent}Num(id({hex(id(self))})) core attributes:")
+                print(f"{indent}    _val.numerator   {self._val.numerator}")
+                print(f"{indent}    _val.denominator {self._val.denominator}")
+                print(f"{indent}    _real            {self._real}")
+                print(f"{indent}    _imag            {self._imag}")
+                print(f"{indent}    re_unc           {self.re_unc}")
+                print(f"{indent}    im_unc           {self.im_unc}")
+                print(f"{indent}    correl           {self.correl}")
+                print(f"{indent}    _unit            {self._unit!r}")
+                print(f"{indent}    mytype           {self.mytype} {d[self.mytype]}")
+            else:
+                # Colorized printing that's more collapsed
+                c = Num.type_color[self.mytype]
+                print(f"{indent}Num(id({hex(id(self))} {c}<{self.mytype} {d[self.mytype]}{t.n}))")
+                is_int = self.mytype in (NumType.Int, NumType.Rat)
+                is_flt = self.mytype == NumType.Flt
+                is_cpx = self.mytype == NumType.Cpx
+                c_int = c if is_int else ""
+                c_flt = c if is_flt else ""
+                c_cpx = c if is_cpx else ""
+                print(f"{indent}    init: {self._init!r}")
+                print(f"{indent}    {c_int}frac: {self._val.numerator}/{self._val.denominator}{t.n}")
+                if is_flt:
+                    print(f"{indent}    {c_flt}real: {self._real} ± {self.re_unc} {self._unit!r}{t.n}")
+                if is_cpx:
+                    print(f"{indent}    {c_cpx}real: {self._real} ± {self.re_unc} {self._unit!r}{t.n}")
+                    print(f"{indent}    {c_cpx}imag: {self._imag} ± {self.im_unc} {self._unit!r}{t.n}")
+                print(f"{indent}    correl: {self.correl}")
         @property
         def unit(self) -> str:
             return self._unit.strip()
@@ -1322,12 +1310,11 @@ if 1: # Num
         def raw_value(self) -> ty.Any:
             if self.mytype in (NumType.Int, NumType.Rat):
                 return self._val
-            return self.as_mpc if self.mytype in (NumType.Cpx, NumType.Unc, NumType.UncCpx) else self._real
+            return self.as_mpc if self.mytype in (NumType.Cpx,) else self._real
         @property
         def as_mpc(self) -> mpmath.mpc:
             return (mpmath.mpc(self._real, self._imag) 
-                    if self.mytype in (NumType.Cpx, NumType.Unc, NumType.UncCpx) else
-                    mpmath.mpc(self.as_mpf, 0))
+                    if self.mytype in (NumType.Cpx,) else mpmath.mpc(self.as_mpf, 0))
         @property
         def as_mpf(self) -> mpmath.mpf:
             if self.mytype in (NumType.Int, NumType.Rat):
@@ -1363,8 +1350,6 @@ if 1: # Num
                     self._val = f
                 elif new_type == NumType.Int and old_type != NumType.Rat:
                     self._val = fractions.Fraction(int(abs(self.as_mpf)), 1)
-                if new_type.value < NumType.Unc.value:
-                    self.re_unc = self.im_unc = self.correl = mpmath.mpf("0")
             self._mytype = new_type
         @property
         def r(self) -> "Num":
@@ -1564,10 +1549,6 @@ if 1:  # UnitArbiter
             if not definition: return 1.0 ** exponent
             return (self._resolve_definition_value(definition, depth + 1)) ** exponent
         def _resolve_definition_value(self, definition: str, depth: int) -> float:
-            parts = definition.split(" ", 1)
-            if len(parts) == 1: return self.GetScalingFactorToBaseUnits(parts[0], depth)
-            return float(parts[0]) * self.GetScalingFactorToBaseUnits(parts[1], depth)
-        def _resolve_definition_value(self, definition: str, depth: int) -> float:
             # If the definition contains '*', we split and multiply the parts
             if '*' in definition:
                 parts = definition.split('*')
@@ -1682,7 +1663,7 @@ if 1:  # UnitArbiter
             self._registry_signatures.clear()
         def check_registry(self) -> list[str]:
             '''
-            Performs a structural validation of the registry (equivalent to 'units -c').
+            Performs a structural validation of the registry (equivalent to GNU 'units -c').
             Identifies circular definitions and orphaned dependencies.
             '''
             errors = []
@@ -1791,30 +1772,38 @@ if 1:  # StringParser
                     real_part = s_stripped[:split_idx]
                     imag_part = s_stripped[split_idx:]
                     real_val, re_unc = _parse_part(real_part)
-                    if imag_part == "+": imag_val, im_unc = mpmath.mpf("1"), mpmath.mpf("0")
-                    elif imag_part == "-": imag_val, im_unc = mpmath.mpf("-1"), mpmath.mpf("0")
+                    if imag_part == "+":
+                        imag_val, im_unc = mpmath.mpf("1"), mpmath.mpf("0")
+                    elif imag_part == "-":
+                        imag_val, im_unc = mpmath.mpf("-1"), mpmath.mpf("0")
                     else:
                         imag_val, im_unc = _parse_part(imag_part.replace("+", ""))
                 else:
                     real_val, re_unc = mpmath.mpf("0"), mpmath.mpf("0")
-                    if s_stripped in ("", "+"): imag_val, im_unc = mpmath.mpf("1"), mpmath.mpf("0")
-                    elif s_stripped == "-": imag_val, im_unc = mpmath.mpf("-1"), mpmath.mpf("0")
-                    else: imag_val, im_unc = _parse_part(s_stripped)
+                    if s_stripped in ("", "+"):
+                        imag_val, im_unc = mpmath.mpf("1"), mpmath.mpf("0")
+                    elif s_stripped == "-":
+                        imag_val, im_unc = mpmath.mpf("-1"), mpmath.mpf("0")
+                    else:
+                        imag_val, im_unc = _parse_part(s_stripped)
                 has_unc = (re_unc != 0 or im_unc != 0)
-                ntype = NumType.UncCpx if (correl != 0 or has_unc) else NumType.Cpx
-                return ParsedPayload(ntype, real_val, imag=imag_val, re_unc=re_unc, im_unc=im_unc, correl=correl, unit=unit)
+                return ParsedPayload(NumType.Cpx, real_val, imag=imag_val, re_unc=re_unc, im_unc=im_unc, correl=correl, unit=unit)
             # 4. Handle real uncertainty
             if "(" in clean_s:
-                if "/" in clean_s: raise ValueError("Uncertainty expression cannot contain '/'")
+                if "/" in clean_s:
+                    raise ValueError("Uncertainty expression cannot contain '/'")
                 match = re.fullmatch(r"([+-]?\d*\.?\d+)\(([\d\.]+)\)(.*)", clean_s)
-                if not match: raise ValueError("Invalid uncertainty format")
+                if not match:
+                    raise ValueError("Invalid uncertainty format")
                 base_val = match.group(1)
                 unc_str = match.group(2)
                 exponent = match.group(3)
-                if any(c in unc_str for c in "infnan"): raise ValueError("Uncertainty cannot be inf or nan")
+                if any(c in unc_str for c in "infnan"):
+                    raise ValueError("Uncertainty cannot be inf or nan")
                 re_unc = StringParser._calc_unc(base_val, unc_str)
-                if exponent: re_unc *= mpmath.mpf("1" + exponent)
-                return ParsedPayload(NumType.Unc, mpmath.mpf(base_val + exponent), re_unc=re_unc, unit=unit)
+                if exponent:
+                    re_unc *= mpmath.mpf("1" + exponent)
+                return ParsedPayload(NumType.Flt, mpmath.mpf(base_val + exponent), re_unc=re_unc, unit=unit)
             # 5. Handle fractions and standard floats/ints
             if "/" in clean_s:
                 f = fractions.Fraction(clean_s)
@@ -1856,11 +1845,12 @@ if 1:   # Global namespace function population
                 n_args = [arg if isinstance(arg, Num) else Num(arg) for arg in args]
                 is_iterable = False
             # 2. Uncertainty/Correlation Alert
-            for i, a in enumerate(n_args):
-                if a.mytype in (NumType.Unc, NumType.UncCpx):
-                    Dbg(f"{func_name} received uncertainty for arg {i}. "
-                        f"Propagation not yet implemented. Uncertainty will be lost.",
-                        file=sys.stderr)
+            pass
+            #for i, a in enumerate(n_args):
+            #    if a.mytype in (NumType.Unc, NumType.UncCpx):
+            #        Dbg(f"{func_name} received uncertainty for arg {i}. "
+            #            f"Propagation not yet implemented. Uncertainty will be lost.",
+            #            file=sys.stderr)
             # 3. Apply Unit Logic Gates
             res_unit = ""
             if logic == "dimensionless":

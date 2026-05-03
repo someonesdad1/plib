@@ -3,7 +3,7 @@
 This module extends the python debugger pdb.py Features:
 
     - Added commands
-        - o         Dump local variables
+        - o, O      Dump local variables
         - dr obj    Prints dir() output in columns
         - cls       Clears the screen
         - clr       Set the colorizing state
@@ -94,7 +94,7 @@ if 1:  # Header
             u.function      = u.pnkl
             u.error         = u.red
             u.ret           = u.yel
-            u.interactive   = u("blk", "yel")
+            u.interactive   = u.ygr
         def LineNumOnly():
             "Minimal set of colors"
             u.current_line  = u.sky
@@ -104,7 +104,7 @@ if 1:  # Header
             u.function      = u.wht
             u.error         = u.red
             u.ret           = u.yel
-            u.interactive   = u("blk", "yel")
+            u.interactive   = u.ygr
         def NoColors():
             u.current_line  = ""
             u.directory     = ""
@@ -226,26 +226,28 @@ if 1:  # Classes
                 breaklist = self.get_file_breaks(filename)
                 try:
                     lines = linecache.getlines(filename, self.curframe.f_globals)
-                    self._print_lines(
-                        lines[first - 1 : last], first, breaklist, self.curframe
-                    )
+                    self._print_lines(lines[first - 1 : last], first, breaklist, self.curframe)
                     self.lineno = min(last, len(lines))
                     if len(lines) < last:
                         self.message("[EOF]")
                 except KeyboardInterrupt:
                     pass
             do_l = do_list
-            def do_interact(self, arg):
+            def do_repl(self, arg):
+                'Enter a REPL; press ctrl-D to return to debugger'
                 ns = self.curframe.f_globals.copy()
                 ns.update(self.curframe_locals)
+                i = "---- Interactive ---- (^D back to debugger)"
                 if color_choice == NoColors:
-                    code.interact("*Interactive*", local=ns)
+                    code.interact(f"{i}", local=ns)
                 else:
-                    # Leave interactive code in the brnl foreground color,
-                    # which alerts you that you're in the REPL
-                    code.interact(f"{u.interactive}*Interactive*{u.n}{u('lill')}", local=ns)
+                    code.interact(f"{u.interactive}{i}{u.n}{u('whtl')}", local=ns)
                 # Go back to standard screen colors
                 print(f"{u.n}", end="")
+            def do_h(self, arg):
+                print("hi")
+                if 1 or arg:
+                    super().do_h(arg)
         if 1:  # New helper methods
             def current_stopped_line(self, file, linenum, func, remainder):
                 print("> ", end="")
@@ -364,29 +366,28 @@ if 1:  # Classes
                 "Clear the screen"
                 print("\x1b[H\x1b[2J\x1b[3J")
             def define_colors(self):
-                if 1:  # Define our own colors
-                    bg = "gry1"
-                    c = color_choice != NoColors
-                    u.title = u.wht
-                    u.bool = u.lipl
-                    u.float = u("ygr", bg)
-                    u.flt = u("red", bg)
-                    u.cpx = u("cyn", bg)
-                    u.int = u("mag", bg)
-                    u.Decimal = u("yonl", bg)
-                    u.Fraction = u("brn", bg)
-                    u.string = u.lwn
-                    u.bytes = u.orn
-                    u.bytearray = u.olv
-                    u.lst = u.yel
-                    u.tuple = u.den
-                    u.none = u.gry
-                    u.n = u.n
-                    if color_choice == NoColors:
-                        u.on = False
-                    return c
+                bg = "gry1"
+                c = color_choice != NoColors
+                u.title = u.wht
+                u.bool = u.lipl
+                u.float = u("ygr", bg)
+                u.flt = u("red", bg)
+                u.cpx = u("cyn", bg)
+                u.int = u("mag", bg)
+                u.Decimal = u("yonl", bg)
+                u.Fraction = u("brn", bg)
+                u.string = u.lwn
+                u.bytes = u.orn
+                u.bytearray = u.olv
+                u.lst = u.yel
+                u.tuple = u.den
+                u.none = u.gry
+                u.n = u.n
+                if color_choice == NoColors:
+                    u.on = False
+                return c
             def do_O(self, arg):  # Dump local variables with key
-                'Dump local variables with color key (arg ignored)'
+                'Dump local variables with color key'
                 c = self.define_colors()
                 if 1:  # Get local variables
                     fr = self.get_frame_of_interest()
@@ -421,7 +422,7 @@ if 1:  # Classes
                         )
                         print("Use dpdb.LocateSymbol(symbol) to find a symbol in import libraries")
             def do_o(self, arg):  # Dump local variables
-                'Dump local variables with color key (arg ignored)'
+                'Dump local variables'
                 c = self.define_colors()
                 if 1:  # Get local variables
                     fr = self.get_frame_of_interest()
@@ -436,29 +437,30 @@ if 1:  # Classes
                     # Print the variables
                     for name in sorted(di):
                         self.Decorate(name, di[name], u, w)
-            def do_dr(self, arg):  # Nicely print dir(arg)
-                "Print the results of dir(obj) for objects in argument"
-                if not arg:
-                    print("Need an argument")
-                    return
-                fr = self.get_frame_of_interest()
-                # Get locals and globals
-                di = fr.f_locals  # Local variable dictionary
-                args = arg.split()
-                def Pr(s):
-                    "Print item of interest s if in locals or globals"
-                    if s in di:
-                        obj = di[s]
-                    elif s in globals():
-                        obj = globals()[s]
-                    else:
-                        print(f"'{s}' not found")
+            if 0:
+                def do_dr(self, arg):  # Nicely print dir(arg)
+                    "Print the results of dir(obj) for objects in argument"
+                    if not arg:
+                        print("Need an argument")
                         return
-                    print(f"{s} ({type(obj)})")  # Show object's name and type
-                    for i in columnize.Columnize(dir(obj), indent="  "):
-                        print(i)
-                for i in args:
-                    Pr(i)
+                    fr = self.get_frame_of_interest()
+                    # Get locals and globals
+                    di = fr.f_locals  # Local variable dictionary
+                    args = arg.split()
+                    def Pr(s):
+                        "Print item of interest s if in locals or globals"
+                        if s in di:
+                            obj = di[s]
+                        elif s in globals():
+                            obj = globals()[s]
+                        else:
+                            print(f"'{s}' not found")
+                            return
+                        print(f"{s} ({type(obj)})")  # Show object's name and type
+                        for i in columnize.Columnize(dir(obj), indent="  "):
+                            print(i)
+                    for i in args:
+                        Pr(i)
 if 1:  # Core functionality
     def set_trace(*, header=None):
         pdb = DPdb()

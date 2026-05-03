@@ -8,12 +8,12 @@ import io
 import sys
 import mpmath
 from number import Num, NumType, StringParser, unit_arbiter, Dbg, Bug
+from number import sqrt, radians, cos
 from lwtest import Assert, raises, run
 import dptypes
 assert mpmath.mp.dps == 15
 if 1:   # Type abbreviations
     Int, Rat, Flt, Cpx = NumType.Int, NumType.Rat, NumType.Flt, NumType.Cpx
-    Unc, UncCpx = NumType.Unc, NumType.UncCpx
     Fr = fractions.Fraction
     mpf = mpmath.mpf
     mpc = mpmath.mpc
@@ -379,6 +379,9 @@ if 1:   # Constructor, new unit, uncertainty tests
             x1*x2 = 15000(18)
             x1/x2 = 0.66667(80)
         Problematic:
+            # The square root at zero doesn't have a derivative that exists, so it's a
+            # good example of nontrivial uncertainty propagation.  The python
+            # uncertainties library returns a NaN for the derivative.
             sqrt(ufloat(0, 1)) = 0.0+/-nan
             ufloat(0, 1)/ufloat(0.0001, 1) = (0.0+/-1.0)e+04
         Trig:
@@ -406,25 +409,26 @@ if 1:   # Constructor, new unit, uncertainty tests
             self._unit = ""
             self.mytype: NumType = NumType.Int
         '''
-        from number import sqrt
         mpf, mpc = mpmath.mpf, mpmath.mpc
         indent = " "*4
-        x1 = Num("100 ft")
-        x2 = Num("150 ft")
-        # Manually convert to Unc instances
-        x1.re_unc = mpf("0.1")
-        x2.re_unc = x1.re_unc
-        x1.mytype = NumType.Unc
-        x2.mytype = NumType.Unc
+        x1 = Num("100.0(1) ft")
+        x2 = Num("150.0(1) ft")
+
+        a = Num("100 ft")
+        b = Num("100/303 ft")
+        c = Num("107.3(3) ft")
+        d = Num("150(3)-42(4)j<R=-0.62> ft")
+        a.du;b.du;c.du;d.du;exit()
+
         if 1:   # Addition
             result = x1 + x2
             if 0:   # Dump values for debugging
                 print("x1 dump")
-                x1.dump(indent)
+                x1.du
                 print("\nx2 dump")
-                x2.dump(indent)
+                x2.du
                 print("\nresult dump")
-                result.dump(indent)
+                result.du
             Assert(result == Num("250 ft"))
             myresult = Num(str(result.re_unc))
             expected = mpf("0.1")*mpmath.sqrt(2)
@@ -433,11 +437,11 @@ if 1:   # Constructor, new unit, uncertainty tests
             result = x1 * x2
             if 0:   # Dump values for debugging
                 print("x1 dump")
-                x1.dump(indent)
+                x1.du
                 print("\nx2 dump")
-                x2.dump(indent)
+                x2.du
                 print("\nresult dump")
-                result.dump(indent)
+                result.du
             Assert(result == Num("15000 (ft)*(ft)"))
             myresult = Num(str(result.re_unc))
             expected = mpf("18")
@@ -446,44 +450,49 @@ if 1:   # Constructor, new unit, uncertainty tests
             result = x1 / x2
             if 0:   # Dump values for debugging
                 print("x1 dump")
-                x1.dump(indent)
+                x1.du
                 print("\nx2 dump")
-                x2.dump(indent)
+                x2.du
                 print("\nresult dump")
-                result.dump(indent)
+                result.du
             Assert(result.approx(2/3, 14))
             myresult = Num(str(result.re_unc))
             expected = mpf("0.00080")
             Assert(myresult.approx(expected, 2))
-        if 0:   # Cosine law example
+        if 1:   # Cosine law example
             theta = Num(radians(60))    # 60°±2° 
             theta.re_unc = radians(mpf(2))
-            theta.mytype = NumType.Unc
+            theta.mytype = NumType.Flt
             result = sqrt(x1*x1 + x2*x2 - 2*x1*x2*cos(theta))
             if 0:   # Dump
                 print("theta dump")
-                theta.dump(indent)  # 1.0472 radians
+                theta.du  # 1.0472 radians
                 print("result dump")
-                result.dump(indent)
-        if 1:   # Large derivative
+                result.du
+        if 0:   # Large derivative
+            # This test case tries to evaluate the sqrt(0) with a nonzero uncertainty.
+            # The derivative is problematic at zero (i.e., the derivative doesn't
+            # exist), so this technically should return an infinite slope.  Numerical
+            # differentiation returns a large number.  The python uncertainties library
+            # returns a NaN.
+            #
+            # The code used to have a heuristic that changed the step size for the
+            # derivative to estimate the slope change and, if large, issue a warning to
+            # stdout.  This is useful functionality that should be added back in (it got 
+            # removed by the AI in a refactor).
             x = Num("0")
             x.re_unc = mpf(1)
-            x.mytype = NumType.Unc
+            x.mytype = NumType.Flt
             f = io.StringIO()
             with contextlib.redirect_stderr(f):
                 result = sqrt(x)
             s = f.getvalue()
-            if 1:
-                Assert("Warning" in s)
-            else:
-                Bug(f'Test case ignored for now:  Warning missing about large derivative')
-            # Note:  the numerical differentiation gives a large number (1.9e11 for
-            # the default diff, but we're using a heuristic to select the step size
-            # h) sensitivity sens in inject_math.wrapped().  However, it of course
-            # doesn't result in a NaN like the python uncertainties library gets.
+            Assert("Warning" in s)
             Assert(result == Num(0))
             y = Num(result.re_unc)
             Assert(y.approx(22360, 4))
+        else:
+            Bug(f'Test case ignored:  Warning missing about large derivative')
         if 1:   # Zero uncertainty
             x = Num("1.23(0)")
             Assert(x._real == mpmath.mpf("1.23"))
@@ -491,7 +500,7 @@ if 1:   # Constructor, new unit, uncertainty tests
             Assert(x.re_unc == mpmath.mpf("0"))
             Assert(x.im_unc == mpmath.mpf("0"))
             Assert(x.correl == mpmath.mpf("0"))
-            Assert(x.mytype == NumType.Unc)
+            Assert(x.mytype == NumType.Flt)
 # END_CHUNK: NumTestConstructor
 
 # CHUNK: NumTestCorner
@@ -565,14 +574,14 @@ if 1:   # Corner cases, Noether invariant
             result = x**a
             expected = Num("0.0385563058736576 m^2")
             if 0:
-                result.dump()
-                expected.dump()
+                result.du
+                expected.du
                 print("Are they equal?  ", result == expected)
                 print(f"result.raw_value   = {result.raw_value} {type(result.raw_value)}")
                 print(f"expected.raw_value = {expected.raw_value} {type(expected.raw_value)}")
             Assert(result == expected)
         else:
-            Bug(f'Test case ignored for now:  N("2 gallons")**N("2/3")')
+            Bug(f'Test case ignored:  N("2 gallons")**N("2/3")')
         if 1:   # In-place scaling    
             a = Num("1 m")
             a += Num("50 cm")
@@ -784,22 +793,24 @@ if 1:   # StringParser tests
             x*y
             x/y
             tests = (
-                ("0(0)", 0, 0),
-                ("1(0)", 1, 0),
-                ("-1(0)", -1, 0),
-                ("0(100)", 0, 100),
-                ("1(100)", 1, 100),
-                ("-1(100)", -1, 100),
-                ("1.234(0)e44", mpf("1.234e44"), mpf("0")),
-                ("1.234(56)e44", mpf("1.234e44"), mpf("5.6000000000000011e+42")),
-                ("1(10000000000000000000000000)e100", mpf("1.0e100"), mpf("1.0000000000000001e+125")),
-                ("-1(10000000000000000000000000)e100", mpf("-1.0e100"), mpf("1.0000000000000001e+125")),
+                ("0(0)", 0, 0, Flt),
+                ("1(0)", 1, 0, Flt),
+                ("-1(0)", -1, 0, Flt),
+                ("0(100)", 0, 100, Flt),
+                ("1(100)", 1, 100, Flt),
+                ("-1(100)", -1, 100, Flt),
+                ("1.234(0)e44", mpf("1.234e44"), mpf("0"), Flt),
+                ("1.234(56)e44", mpf("1.234e44"), mpf("5.6000000000000011e+42"), Flt),
+                ("1(10000000000000000000000000)e100", mpf("1.0e100"),
+                    mpf("1.0000000000000001e+125"), Flt),
+                ("-1(10000000000000000000000000)e100", mpf("-1.0e100"),
+                    mpf("1.0000000000000001e+125"), Flt),
             )
-            for s, nom, stdev in tests:
+            for s, nom, stdev, mytype in tests:
                 pp = p(s)
                 Assert(pp.real == nom)
                 Assert(pp.re_unc == stdev)
-                Assert(pp.type == NumType.Unc)
+                Assert(pp.type == mytype)
         if 1:   # Complex uncertainty
             # Forms that cause exceptions
             exc = (
@@ -843,7 +854,7 @@ if 1:   # StringParser tests
                 Assert(pp.re_unc == re_unc)
                 Assert(pp.im_unc == im_unc)
                 Assert(pp.correl == correl)
-                Assert(pp.type == NumType.UncCpx)
+                Assert(pp.type == NumType.Cpx)
             # Correlation coefficient outside of [-1, 1] is error
             raises(ValueError, Num, "-1.0(2)-1.0(2)j<R=2>")
 # END_CHUNK: NumTestStringParser
