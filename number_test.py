@@ -7,8 +7,8 @@ import fractions
 import io
 import sys
 import mpmath
-from number import Num, NumType, StringParser, unit_arbiter, Dbg, Bug
-from number import sqrt, radians, cos
+from number import Num, NumType, StringParser, UnitArbiter, unit_arbiter
+from number import sqrt, radians, cos, Dbg, Bug
 from lwtest import Assert, raises, run
 import dptypes
 assert mpmath.mp.dps == 15
@@ -341,17 +341,6 @@ if 1:   # Constructor, new unit, uncertainty tests
             pass
         if 1:   # Unc
             pass
-    def Test_New_Unit():
-        return
-        # I've shut this off, as it has been tested and works
-        if 0:
-            basename = "delete_me_"
-            for i in range(8):
-                c = random.randint(97, 122)
-                basename += chr(c)
-            x = Num("1 m")
-            print(f"basename = {basename!r}")
-            x.base(basename) # The Arbiter will turn this into "name\t!"
     def Test_Uncertainty():
         '''This output came from the _unc.py script, which uses the python
         uncertainties library to calculate the results.  I feel the Num class
@@ -413,13 +402,6 @@ if 1:   # Constructor, new unit, uncertainty tests
         indent = " "*4
         x1 = Num("100.0(1) ft")
         x2 = Num("150.0(1) ft")
-
-        a = Num("100 ft")
-        b = Num("100/303 ft")
-        c = Num("107.3(3) ft")
-        d = Num("150(3)-42(4)j<R=-0.62> ft")
-        a.du;b.du;c.du;d.du;exit()
-
         if 1:   # Addition
             result = x1 + x2
             if 0:   # Dump values for debugging
@@ -646,6 +628,82 @@ if 1:   # Corner cases, Noether invariant
         Assert(y.unit == z.unit)    # Make sure units didn't change
         Assert(z.num*y == z)        # Prove the Noether invariance
 # END_CHUNK: NumTestCorner
+
+# CHUNK: NumTestUnitArbiter
+if 1:   # UnitArbiter tests
+    '''
+
+    Needed test cases
+
+    """
+        m !
+        x
+    """
+    This should create a semantic unit x (i.e., the ending ! is optional).
+
+
+    '''
+    def Test_UnitArbiter_New_Dynamic_Unit():
+        Bug("Need to test generating new semantic unit")
+        return
+        # I've shut this off, as it has been tested and works
+        if 0:
+            basename = "delete_me_"
+            for i in range(8):
+                c = random.randint(97, 122)
+                basename += chr(c)
+            x = Num("1 m")
+            print(f"basename = {basename!r}")
+            x.base(basename) # The Arbiter will turn this into "name\t!"
+    def Test_UnitArbiter_Scaling_Logic():
+        arbiter = UnitArbiter()
+        # Register base and derived units
+        arbiter.RegisterDynamicUnit("m", "")             # Base
+        arbiter.RegisterDynamicUnit("cm", "0.01 m")      # Derived
+        arbiter.RegisterDynamicUnit("in", "0.0254 m")    # Derived
+        arbiter.RegisterDynamicUnit("ft", "12 in")       # Nested derived
+        # Verify scaling factors
+        scale_cm = arbiter.GetScalingFactorToBaseUnits("cm")
+        scale_ft = arbiter.GetScalingFactorToBaseUnits("ft")
+        #print(f"Scale of 'cm' to 'm': {scale_cm}")
+        #print(f"Scale of 'ft' to 'm': {scale_ft}")
+        eps = 1e-9
+        Assert(abs(scale_cm - 0.01) < eps)
+        Assert(abs(scale_ft - 0.3048) < eps)
+    def Test_UnitArbiter_Signature_and_Policy_Verification():
+        arbiter = UnitArbiter()
+        # Setup base units
+        arbiter.RegisterDynamicUnit("kg", "")
+        arbiter.RegisterDynamicUnit("m", "")
+        arbiter.RegisterDynamicUnit("s", "")
+        if 1:   # Test signature: m2
+            got = arbiter.GetDimensionalitySignature("m2")
+            Assert(got == {'m': 2})
+        if 1:   # Test signature: kg*m2/s3
+            # Register derived units
+            # Power: kg*m2/s3 (testing exponents and multiplication)
+            arbiter.RegisterDynamicUnit("Power", "kg*m2/s3")
+            sig = arbiter.GetDimensionalitySignature("Power")
+            Dbg(f"Signature for Power: {sig}")
+            Assert(sig == {"kg": 1, "m": 2, "s": -3})
+        if 1:   # Test reduction: m/m -> dimensionless (empty signature)
+            arbiter.RegisterDynamicUnit("Ratio", "m/m")
+            sig_ratio = arbiter.GetDimensionalitySignature("Ratio")
+            #print(f"Signature for Ratio: {sig_ratio}")
+            Assert(sig_ratio == {})
+        if 1:   # Test policy violations
+            # Multiple slashes without parentheses not allowed
+            with raises(ValueError):
+                arbiter.ValidatePolicy("m/kg/s")
+            # This should be OK
+            g.dbg = True
+            got = arbiter.GetDimensionalitySignature("m/(kg/s)")
+            Dbg('got = arbiter.GetDimensionalitySignature("m/(kg/s)")')
+            Dbg(f"got      = {got}")
+            expected = {"m": 1, "s": 1, "kg": -1}
+            Dbg(f"expected = {expected}")
+            #Assert(sig == {"m": 1, "s": 1, "kg": -1})
+# END_CHUNK: NumTestUnitArbiter
 
 # CHUNK: NumTestStringParser
 if 1:   # StringParser tests

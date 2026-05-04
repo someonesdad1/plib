@@ -1,5 +1,20 @@
 '''
 
+New vision:
+
+    - Delete all blank lines from a python file except for 
+        - Empty or space-filled lines within triple-quoted strings
+        - Between r'#\s*END_CHUNK:.*\n' and r'#\s*CHUNK:.*\n'.  There should be one
+          empty line with no spaces between these two line.
+    - Requirement:  the code can't be broken by these deletions
+    - Rationale
+        - Want high vertical compression for viewing files in editor, as vertical space
+          today is the most precious resource
+        - I use { and } in vi to navigate between blocks of code.  I insert empty lines
+          at my working spot(s) and can quickly get to them (faster than trying to
+          remember a register name).
+        - Quick way to undo the blank lines inserted by e.g. ruff or black
+
 ToDo
     - Need to fix blank lines that the python formatter inserts in functions with nested
       functions
@@ -73,24 +88,6 @@ if 1:  # Utility
             elif o == "-h":
                 Usage()
         return files
-if 0:  # Obsolete
-    def ProcessFileOrig(file):
-        '''Use regex matching to remove blank lines.
-        
-        A problem with this approach is that it will remove the blank lines inside of
-        python multiline strings, which is almost certainly not wanted.
-        ProcessFile2() was made to handle this case.  However, this function's approach
-        is also concise and fast.
-        '''
-        s = sys.stdin.read() if file == "-" else open(file).read()
-        # Remove leading and trailing blank lines
-        s = re.sub(r"^\n+", "", s)
-        s = re.sub(r"\n+$", "", s)
-        if d["-1"]:
-            s = re.sub(r"\n\n\n+", "\n\n", s)
-        else:
-            s = re.sub(r"\n\n+", "\n", s)
-        print(s)
 if 1:  # Core functionality
     def IsComment(line):
         return line.strip()[0] == "#"

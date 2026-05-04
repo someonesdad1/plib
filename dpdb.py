@@ -7,6 +7,11 @@ This module extends the python debugger pdb.py Features:
         - dr obj    Prints dir() output in columns
         - cls       Clears the screen
         - clr       Set the colorizing state
+        - aliases (in ~/.pdbrc)
+            - tb = tbreak
+            - pi = print instance variables
+            - ps = print instance variables of self
+
     - Changed the 'list' command to output more lines.
     - Colorize certain strings to make them easier to spot:
         - The current line in a list command
@@ -44,6 +49,7 @@ if 1:  # Header
         import fractions
         import inspect
         import linecache
+        import os
         import pathlib
         import pdb
         import re
@@ -54,6 +60,7 @@ if 1:  # Header
         import dptypes
         import f
         import trm
+        import wrap
     if 1:   # Global variables
         yy = pdb.set_trace  # Handy when this file is broken
         u = trm.TrmDP()
@@ -64,7 +71,7 @@ if 1:  # Header
         __test__      = "notest"
         __history__   = '''Important dates of changes'''
         __category__  = "util"
-        __todo__      = '''
+        __todo__      = r'''
 
         - If a debugger command starts with '^\s*#', it should be considered a comment
           and ignored.  This is helpful to type notes when using the script command to
@@ -182,20 +189,20 @@ if 1:  # Classes
             def do_list(self, arg):
                 '''l(ist) [first [,last] | .]
                 
-                List source code for the current file.  Without arguments,
-                list 11 lines around the current line or continue the previous
-                listing.  With . as argument, list 11 lines around the current
-                line.  With one argument, list 11 lines starting at that line.
-                With two arguments, list the given range; if the second
-                argument is less than the first, it is a count.
+                List source code for the current file.  Without arguments, list 11 lines
+                around the current line or continue the previous listing.  With . as
+                argument, list 11 lines around the current line.  With one argument,
+                list 11 lines starting at that line.  With two arguments, list the given
+                range; if the second argument is less than the first, it is a count.
                 
-                The current line in the current frame is indicated by "->".
-                If an exception is being debugged, the line where the
-                exception was originally raised or propagated is indicated by
-                ">>", if it differs from the current line.
+                The current line in the current frame is indicated by "->".  If an
+                exception is being debugged, the line where the exception was originally
+                raised or propagated is indicated by ">>", if it differs from the
+                current line.
+
                 '''
-                numlines = 20  # DP
-                half = numlines // 2  # DP
+                numlines = 20           # DP
+                half = numlines // 2    # DP
                 self.lastcmd = "list"
                 last = None
                 if arg and arg != ".":
@@ -210,7 +217,7 @@ if 1:  # Classes
                         else:
                             first = int(arg.strip())
                             # first = max(1, first - 5)
-                            first = max(1, first - half)  # DP
+                            first = max(1, first - numlines)  # DP
                     except ValueError:
                         self.error(f"Error in argument: {arg!r}")
                         return
@@ -244,11 +251,99 @@ if 1:  # Classes
                     code.interact(f"{u.interactive}{i}{u.n}{u('whtl')}", local=ns)
                 # Go back to standard screen colors
                 print(f"{u.n}", end="")
+            do_interact = do_repl
+            def do_run(self, arg):
+                '''Restart the program.  
+                The default run/restart in pdb raises an exception and thus don't work.
+                This command works, but your breakpoints and other information are not
+                restored.
+                '''
+                if 1:
+                    raise pdb.Restart
+                else:
+                    # The built-in command to the debugger usually has an exception; this
+                    # method seems to work OK.
+                    # From https://bobbyhadz.com/blog/how-to-restart-python-script-from-within-itself#how-to-restart-a-python-script
+                    u.print(f"{u.pnk}Restarting session")
+                    os.execv(sys.executable, ['python'] + sys.argv)
+            do_restart = do_run
+            def do_t(self, arg):
+                'Quick tutorial'
+                print(wrap.dedent(f'''
+                Post-mortem debugging:  Use pdb.post_mortem() to view program state after an exception.
+
+                display expression:  Show the expression if it changed each time execution stops
+                    in the current frame.  The old and new values are shown.
+                '''))
+            def do_H(self, arg):
+                self.do_h("all")
             def do_h(self, arg):
-                print("hi")
-                if 1 or arg:
+                '''Annotated help (use 'all' to see details)'''
+                if not arg or arg == "h":
+                    # Print my customized list of commands
+                    self.my_help_listing(arg)
+                elif arg == "all":
+                    self.my_help_listing("all")
+                elif arg == "!":
+                    super().do_h("exec")
+                else:
                     super().do_h(arg)
         if 1:  # New helper methods
+            def my_help_listing(self, arg):
+                'My help listing'
+                if arg == "h":
+                    super().do_h(arg)
+                else:
+                    u.bp = u.denl
+                    u.up = u.lip
+                    u.w = u.orn
+                    u.s = u.sea
+                    u.disp = u.pnkl
+                    builtin_cmds = [
+                        ["", "alias",  "Define an alias"],
+                        ["", "a(rgs)",  "Args of current function"],
+                        [u.bp, "b(reak)", "List/define breakpoints"],
+                        [u.w, "bt",      "Backtrace"],
+                        ["", "c(ontinue)",  "Continue execution"],
+                        [u.bp, "cl(ear)", "Clear breakpoints"],
+                        [u.bp, "commands",    "Specify commands for bp; end with 'end'"],
+                        [u.bp, "condition",   "Set a condition for a bp"],
+                        [u.up, "d(own)",  "Move down the stack"],
+                        ["", "debug",   "Recursive debugger"],
+                        [u.bp, "disable", "Disable bp"],
+                        [u.disp, "display", "Display an expression at each stop"],
+                        [u.bp, "enable",  "Enable a bp"],
+                        ["", "q(uit)",  "Exit the debugger"],
+                        [u.bp, "ignore",  "Ignore a bp"],
+                        ["", "j(ump)",  "Set next line to be executed"],
+                        ["", "l(ist)",  "Show code"],
+                        ["", "ll",      "Longlist"],
+                        [u.s, "n(ext)",  "Step over"],
+                        ["", "r(eturn)",    "Continue until function return"],
+                        ["", "repl",    "Start a REPL"],
+                        ["", "run", "Restart program (also restart)"],
+                        ["", "retval",  "Last return value of a function (also rv)"],
+                        [u.s, "s(tep)",  "Step into"],
+                        ["", "source",  "Show source code for expressions"],
+                        [u.bp, "tbreak",  "Set temporary bp"],
+                        [u.up, "u(p)",    "Move up stack frame"],
+                        ["", "unalias", "Remove alias"],
+                        [u.disp, "undisplay",   "Remove named expression or all"],
+                        ["", "unt(il)", "Continue until line number > current reached"],
+                        ["", "whatis",  "Print type of arg"],
+                        [u.w, "w(here)", "Backtrace"],
+                    ]
+                    if arg == "all":
+                        for clr, abbr, descr in builtin_cmds:
+                            print(f"  {clr}{abbr:10s}{u.n} {descr}")
+                    else:
+                        built = []
+                        for clr, abbr, descr in builtin_cmds:
+                            built.append(clr + abbr + u.n)
+                        for i in columnize.Columnize(built):
+                            print(i)
+
+
             def current_stopped_line(self, file, linenum, func, remainder):
                 print("> ", end="")
                 # Only colorize the file name portion

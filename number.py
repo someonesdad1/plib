@@ -128,13 +128,26 @@ if 1:  # Header
             return os.path.basename(frame.filename), frame.lineno
 if 1:   # Lightweight string formatter
     class MiniFmt:
-        '''Lightweight standalone formatter with uncertainty-shaving and Pythonic complex signs.'''
+        '''Lightweight Num formatter
+        Shows 3 digits by default and uses the fmt.py Fmt class interface.  Note this
+        is a lightweight tool and works by converting the Num instance to a float and
+        using the python uncertainties library's short-form string formatting tool.
+        It will fail if the mpmath number(s) don't fit into a python float number.
+        The uncertainties' library short-form format tool is used to limit the number
+        of digits displayed to those that are "significant" based on the uncertainty
+        magnitude.  
+        '''
+        # To use in the Num class:
+            # Plug it into the Num class variable Num.fmt = MiniFmt(n=3)
         def __init__(self, n=3, low=1e-4, high=1e6):
-            self.n = n
-            self.low = low
-            self.high = high
+            self.n = n          # Number of digits to display
+            self.low = low      # Scientific notation below this value
+            self.high = high    # Scientific notation above this value
         def __call__(self, x, n=None, fmt='auto'):
-            if x is None: return "None"
+            '''Return x formatted to n digits
+            '''
+            if x is None:
+                return "None"
             n = n if n is not None else self.n
             # Handle Complex
             if hasattr(x, 'imag') and x.imag != 0:
@@ -163,16 +176,19 @@ if 1:   # Lightweight string formatter
                 raw_s = f"{u_obj:.{n}uS{current_fmt}}"
                 # The "Killer" Step: Regex out the parenthetical uncertainty
                 return re.sub(r"\(.*?\)", "", raw_s)
-            except:
+            except Exception:
                 # Fallback if uncertainties library behaves unexpectedly
                 return f"{float(val):,.{n}{current_fmt}}"
-        def sci(self, x, n=None): return self(x, n=n, fmt='sci')
-        def fix(self, x, n=None): return self(x, n=n, fmt='fix')
-        def eng(self, x, n=None): return self.sci(x, n)
-        def engsi(self, x, n=None): return self.sci(x, n)
-        def engsic(self, x, n=None): return self.sci(x, n)
-    # Plug it into the class variable
-    # Num.fmt = MiniFmt(n=3)
+        def sci(self, x, n=None):
+            return self(x, n=n, fmt='sci')
+        def fix(self, x, n=None):
+            return self(x, n=n, fmt='fix')
+        def eng(self, x, n=None):
+            return self.sci(x, n)
+        def engsi(self, x, n=None):
+            return self.sci(x, n)
+        def engsic(self, x, n=None):
+            return self.sci(x, n)
 if 0:   # Documentation
     if 1:   # Main file
         '''Represent a general number useful for routine calculations
@@ -528,7 +544,6 @@ if 1: # NumericMixin
                             + (abs(df_dy)**2 * self.im_unc**2)
                             + (2 * df_dx * df_dy * cov_xy))
                 new_unc = mp_sqrt(abs(var_real))
-
                 def IsLargeSlope(value: mpmath.mpf,
                                  slope: mpmath.mpf,
                                  uncertainty: mpmath.mpf) -> bool:
@@ -996,6 +1011,11 @@ if 1: # Num
             NumType.Rat: t("brn", "gry1"),
             NumType.Flt: t("ygr", "gry1"),
             NumType.Cpx: t("sky", "gry1"),
+            #
+            #NumType.Int: t.mag,
+            #NumType.Rat: t.brn,
+            #NumType.Flt: t.ygr,
+            #NumType.Cpx: t.sky,
         }
         flip = False
         show_color = True
@@ -1288,7 +1308,9 @@ if 1: # Num
             else:
                 # Colorized printing that's more collapsed
                 c = Num.type_color[self.mytype]
-                print(f"{indent}Num(id({hex(id(self))} {c}<{self.mytype} {d[self.mytype]}{t.n}))")
+                bg = t("wht", "blk")
+                s = f"<{c}{self.mytype} {d[self.mytype]}{bg}>"
+                print(f"{indent}Num(id({hex(id(self))} {s}))")
                 is_int = self.mytype in (NumType.Int, NumType.Rat)
                 is_flt = self.mytype == NumType.Flt
                 is_cpx = self.mytype == NumType.Cpx
@@ -1296,12 +1318,12 @@ if 1: # Num
                 c_flt = c if is_flt else ""
                 c_cpx = c if is_cpx else ""
                 print(f"{indent}    init: {self._init!r}")
-                print(f"{indent}    {c_int}frac: {self._val.numerator}/{self._val.denominator}{t.n}")
+                print(f"{indent}    {c_int}frac: {self._val.numerator}/{self._val.denominator}{bg}")
                 if is_flt:
-                    print(f"{indent}    {c_flt}real: {self._real} ± {self.re_unc} {self._unit!r}{t.n}")
+                    print(f"{indent}    {c_flt}real: {self._real} ± {self.re_unc} {self._unit!r}{bg}")
                 if is_cpx:
-                    print(f"{indent}    {c_cpx}real: {self._real} ± {self.re_unc} {self._unit!r}{t.n}")
-                    print(f"{indent}    {c_cpx}imag: {self._imag} ± {self.im_unc} {self._unit!r}{t.n}")
+                    print(f"{indent}    {c_cpx}real: {self._real} ± {self.re_unc} {self._unit!r}{bg}")
+                    print(f"{indent}    {c_cpx}imag: {self._imag} ± {self.im_unc} {self._unit!r}{bg}")
                 print(f"{indent}    correl: {self.correl}")
         @property
         def unit(self) -> str:
@@ -1440,15 +1462,15 @@ if 1:  # UnitArbiter
         def GetScalingFactorToBaseUnits(self, unit_str: str, _depth: int = 0) -> float:
             '''
             Calculates the cumulative multiplier to convert a unit to SI base units.
-    
+            
             This method recursively traverses unit definitions through the registry.
             It uses a memoization pattern: if the scale isn't in _registry_scales,
             it triggers _calculate_scale and caches the result.
-    
+            
             Args:
                 unit_str: The unit to resolve.
                 _depth: Internal recursion tracker to prevent infinite loops.
-    
+            
             Returns:
                 A float (or mpmath.mpf) representing the conversion factor to SI.
             '''
@@ -1458,58 +1480,50 @@ if 1:  # UnitArbiter
         def GetDimensionalitySignature(self, unit_str: str) -> dict:
             '''
             Reduces a unit string to its irreducible base-dimension signature.
-    
+            
             This is the heart of the conformability logic. It handles:
             1. Parenthetical isolation using recursive regex substitution.
             2. Placeholder generation for nested groups.
             3. Structural splitting of numerators and denominators.
-    
+            
             Returns:
                 A dict (e.g., {'kg': 1, 'm': 1, 's': -2}) representing the
                 physical dimensions.
             '''
             if unit_str in self._registry_signatures:
                 return self._registry_signatures[unit_str]
-            
             Dbg(f"GDS: Processing {unit_str!r}")
-            
             # 1. Replace parens with placeholders, but ensure they are isolated
             import re
             def repl(match):
                 return f"_{self._store_temp_sig(self._combine_signatures_from_def(match.group(1)))}_"
-            
             processed_str = unit_str
             while '(' in processed_str:
                 processed_str = re.sub(r'\(([^()]+)\)', repl, processed_str)
-            
             # 2. Split by structure, not just string manipulation
             # Now processed_str looks like 'm/_0_'
             # We split by / and * to get individual tokens
             parts = processed_str.split('/')
             numerator = parts[0].split('*')
             denominator = parts[1].split('*') if len(parts) > 1 else []
-            
             sig = {}
             for t in numerator:
                 if t: self._update_sig(sig, self._resolve_token(t), 1)
             for t in denominator:
                 if t: self._update_sig(sig, self._resolve_token(t), -1)
-            
             Dbg(f"  GDS: Result for {unit_str!r} is {sig!r}")
             self._registry_signatures[unit_str] = sig
             return sig
         def AssertConformable(self, unit_a: str, unit_b: str, operation: str) -> None:
             '''
             Validates that two units are dimensionally identical for additive operations.
-            
             Args:
                 unit_a: The unit string of the left operand.
                 unit_b: The unit string of the right operand.
                 operation: The operator symbol (e.g., '+', '-') for error reporting.
-                
             Raises:
                 ValueError: If the reduced signatures of unit_a and unit_b do not match.
-                
+            
             Example:
                 AssertConformable('ft', 'm', '+') -> Passes (both are {m: 1})
                 AssertConformable('ft', 's', '+') -> Raises ValueError
@@ -1565,27 +1579,21 @@ if 1:  # UnitArbiter
             if len(parts) == 1:
                 if self._is_number(parts[0]): return float(parts[0])
                 return self.GetScalingFactorToBaseUnits(parts[0], depth)
-
             return float(parts[0]) * self.GetScalingFactorToBaseUnits(parts[1], depth)
         def _resolve_token(self, token: str) -> dict:
             # Handle the _ID_ placeholders
             if token.startswith("_") and token.endswith("_"):
                 uid = token.strip("_")
                 return self._temp_sigs().get(uid, {})
-
             # Handle normal units (with potential exponents)
             name, exponent = self._decomposed_token(token)
-
             # Look up definition in registry
             definition = self._registry.get(name)
-
             Dbg(f"    _resolve_token: {token!r} (name={name!r}, exp={exponent}) -> def={definition!r}")
-
             # If it's a primitive (defined as '!') or not in registry,
             # it IS the base dimension.
             if definition == "!" or name not in self._registry:
                 return {name: exponent}
-
             # Otherwise, recursively resolve the definition
             base = self._combine_signatures_from_def(definition)
             result =  {k: v * exponent for k, v in base.items()}
@@ -1909,7 +1917,6 @@ if 1:   # Global namespace function population
     floor = NoetherWrap("floor", logic="dimensionless")
 # END_CHUNK: NumFunctionPopulation
 
-
 if 1:   # Miscellaneous stuff
     if 1:  # Help 
         class Help:
@@ -1970,503 +1977,44 @@ if 1:   # Miscellaneous stuff
             # ... logic to read the file back and update n.d ...
             print(f"Updated {n._unit} metadata.")
 if 1:   # Default units and global unit_arbiter
-    default_units = '''
-        # This is a set of units using the GNU units configuration file syntax.
-        # The primary units are the 7 base SI units and the dollar $.  Note the
-        # assumption is that mpmath will be used for numerical calculation, so
-        # mpmathpi is defined as a base unit with the expectation that it will
-        # be replaced by its numerical value at runtime.
-        # Constructed by /plib/dp_units.py.
-        # Base units
-            m                    !
-            kg                   !
-            s                    !
-            A                    !
-            cd                   !
-            mol                  !
-            K                    !
-            $                    !
-        # Constants (pi to 30 digits, far more than is practical)
-            mpmathpi             3.14159265358979323846264338328
-        # Angle
-            radian               !dimensionless
-            degree               mpmathpi*radian/180
-            rad                  radian
-            radians              radian
-            rev                  2*mpmathpi*radian
-            revs                 1*rev
-            circle               1*rev
-            circles              circle
-            deg                  degree
-            degrees              degree
-            turn                 1*circle
-            turns                1*circle
-            grad                 circle/400
-            arcmin               degree/60
-            arcsec               arcmin/60
-        # Solid angle
-            sr                   !dimensionless
-            steradian            sr
-            steradians           sr
-            sphere               4*mpmathpi*sr
-        # Length
-            meter                m
-            metre                m
-            meters               m
-            metres               m
-            cm                   0.01*m
-            inch                 0.0254*m
-            in                   inch
-            inches               inch
-            ft                   12*inch
-            foot                 ft
-            feet                 ft
-            mi                   5280*ft
-            mile                 mi
-            miles                mi
-            nmi                  1852*m
-            nmile                nmi
-            nauticalmile         nmi
-            nauticalmiles        nmi
-            yd                   3*ft
-            yds                  3*ft
-            yard                 yd
-            yards                3*ft
-            ly                   365.25*24*3600*c*m
-            lightyear            1*ly
-            au                   149597870700*m
-            astronomicalunit     au
-            earthradius          6.37101e6*m
-            moonradius           1.73710e6*m
-            sunradius            6.96342e8*m
-            micron               1e-6*m
-            mil                  inch/1000
-            thou                 mil
-            Angstrom             1e-10*m
-            ang                  Angstrom
-            angstrom             Angstrom
-            cable                nmi/10
-            caliber              inch/100
-            chain                20.11684*m
-            link                 chain/100
-            click                1000*m
-            clicks               click
-            klick                click
-            klicks               click
-            fathom               6*ft
-            rod                  5.5*yard
-            furlong              40*rod
-            furlongs             furlong
-            hand                 4*inches
-            hands                hand
-            league               3*miles
-            ls                   c*m
-            lightsecond          ls
-            pace                 2.5*feet
-            pc                   3.08567758149e+16*m
-            parsec               3.08567758149e+16*m
-            point                inch/72.27
-            dpenny               0.75*inches
-            dnickel              0.835*inches
-            ddime                0.705*inches
-            dquarter             0.955*inches
-            dhalf                1.205*inches
-        # Area
-            acre                 4046.87260987425*m**2
-            hectare              1e4*m**2
-            barn                 1e-28*m**2
-            are                  100*m**2
-            letter               8.5*11*inch**2
-            legal                8.5*14*inch**2
-            ledger               11*17*inch**2
-            A4paper              0.21*0.297*m**2
-            dollarbill           2.61*6.14*inch**2
-            circmil              mpmathpi*(1e-3*inch)**2/4
-            mcm                  1000*circmil
-        # Volume
-            L                    1e-3*m**3
-            l                    L
-            liter                L
-            liters               L
-            litre                L
-            litres               L
-            gal                  231*inch**3
-            gallon               gal
-            gallons              gal
-            cc                   1e-6*m**3
-            acrefoot             acre*foot
-            qt                   gal/4
-            qts                  qt
-            quart                qt
-            quarts               qt
-            pint                 qt/2
-            pints                pint
-            floz                 pint/16
-            fluidounce           floz
-            cup                  8*floz
-            cups                 cup
-            dixiecup             cup
-            cuft                 ft**3
-            cubicfoot            cuft
-            cubicfeet            cuft
-            cuin                 inch**3
-            cubicinch            cuin
-            cubicinches          cuin
-            bbl                  42*gal
-            barrel               bbl
-            barrels              bbl
-            bdft                 12*12*1*inch**3
-            boardfoot            bdft
-            boardfeet            bdft
-            bushel               35.2391*L
-            bushels              bushel
-            cord                 4*4*8*ft**3
-            fldram               floz/8
-            fifth                gal/5
-            gill                 pint/4
-            hogshead             63*gal
-            jigger               1.5*floz
-            shot                 jigger
-            magnum               1.5*L
-            minim                fldram/60
-            drop                 (L/1000)/20
-            bloodunit            0.45*L
-            peck                 bushel/4
-            popcan               12*floz
-            beercan              popcan
-            bigbeercan           16*floz
-            shippington          40*ft**3
-            tbl                  cup/16
-            tablespoon           tbl
-            tsp                  cup/48
-            teaspoon             tsp
-            saltspoon            tbl/12
-            winebottle           3/4*L
-            wineglass            4*floz
-        # Time
-            sec                  s
-            min                  60*s
-            hr                   3600*s
-            yr                   365.242198781*24*hr
-            day                  24*hr
-            mo                   yr/12
-            wk                   7*day
-            week                 7*day
-            second               s
-            seconds              s
-            minute               min
-            minutes              min
-            hour                 hr
-            hours                hr
-            days                 day
-            weeks                week
-            year                 yr
-            years                yr
-            julianyear           365.25*days
-            month                mo
-            months               mo
-            decade               10*yr
-            decades              10*yr
-            century              100*yr
-            centuries            100*yr
-            millenium            1000*yr
-            millenia             1000*yr
-            fortnight            2*weeks
-            lustrum              5*yr
-            jiffy                0.01*s
-            leapyear             366*day
-            siderealday          23.934469444*hr
-            siderealyear         365.256360417*day
-            lunarmonth           2551442.8*s
-            mercuryday           58.6462*day
-            venusday             243.01*day
-            earthday             1*siderealday
-            marsday              1.02595675*day
-            jupiterday           0.41354*day
-            saturnday            0.4375*day
-            uranusday            0.65*day
-            neptuneday           0.768*day
-            plutoday             6.3867*day
-            mercuryyear          0.2408467*julianyear
-            venusyear            0.61519726*julianyear
-            earthyear            1*siderealyear
-            marsyear             1.8808476*julianyear
-            jupiteryear          11.862615*julianyear
-            saturnyear           29.447498*julianyear
-            uranusyear           84.016846*julianyear
-            neptuneyear          164.79132*julianyear
-            plutoyear            247.92065*julianyear
-        # Velocity
-            c                    299792458*m/s
-            mph                  mi/hr
-            kph                  1000*m/hr
-            fps                  ft/s
-            fpm                  ft/min
-            sfpm                 ft/min
-            knot                 1852*m/hr
-            light                c*m/s
-        # Frequency
-            Hz                   1/s
-            rpm                  1/min
-            hertz                Hz
-            rps                  Hz
-        # Mass
-            g                    kg/1000
-            lb                   0.45359237*kg
-            electron_m           9.109384e-31*kg
-            gram                 g
-            grams                g
-            pound                lb
-            lbs                  lb
-            lbm                  lb
-            amu                  1.660538921e-27*kg
-            oz                   lb/16
-            ton                  2000*lb
-            tonne                1000*kg
-            gm                   g
-            gramme               g
-            grammes              g
-            pounds               lb
-            slug                 14.593903*kg
-            Da                   amu
-            ounce                oz
-            ounces               oz
-            grain                lb/7000
-            grains               lb/7000
-            gr                   lb/7000
-            troypound            5760.*grain
-            troyounce            troypound/12
-            egg                  50*g
-            cuftwater            28.2661*kg
-            ft3h2o               cuftwater
-            galwater             3.7855178*kg
-            galH2O               galwater
-            galh2o               galwater
-            gallonwater          galwater
-            carat                g/5
-            ct                   carat
-            dram                 ounce/16
-            stone                14*lb
-            mpenny               2.5*g
-            mnickel              5*g
-            mdime                2.268*g
-            mquarter             5.670*g
-            mhalf                11.340*g
-            sunmass              1.9891e30*kg
-            moonmass             7.3483e22*kg
-            mercurymass          0.33022e24*kg
-            venusmass            4.8690e24*kg
-            earthmass            5.9742e24*kg
-            marsmass             0.64191e24*kg
-            jupitermass          1898.8e24*kg
-            saturnmass           568.5e24*kg
-            uranusmass           86.625e24*kg
-            neptunemass          102.78e24*kg
-            plutomass            0.015e24*kg
-        # Energy
-            J                    kg*m**2/s**2
-            btu                  1055.056*J
-            eV                   1.602176565e-19*J
-            cal                  4.1868*J
-            kcal                 1000*cal
-            Whr                  3600*J
-            Wh                   Whr
-            erg                  1e-7*J
-            CAL                  kcal
-            Calorie              kcal
-            calorie              cal
-            therm                1.054804e8*J
-            BTU                  btu
-            ttnt                 4.184e12*J
-        # Quantity
-            mole                 mol
-            molar                mol/L
-        # Avogadro's number
-            NA                   6.02214129e23/mol
-        # Force
-            N                    kg*m/s**2
-            lbf                  4.4482216152605*N
-            gravity              9.80665*m/s**2
-            kgf                  kg*gravity
-            gf                   g*gravity
-            dyne                 1e-5*N
-            poundf               lbf
-            kip                  1000*lbf
-            slugf                slug*gravity
-            tonf                 ton*gravity
-        # Pressure
-            Pa                   N/m**2
-            psi                  lbf/inch**2
-            atm                  101325*Pa
-            bar                  1e5*Pa
-            psf                  lbf/ft**2
-            torr                 atm/760
-            ksi                  kip/inch**2
-            water                g*gravity/(m/100)**3
-            fth2o                ft*water
-            inh2o                inch*water
-            mh2o                 m*water
-            mmh2o                m*water/1000
-            Hg                   13.5951*g*gravity/(m/100)**3
-            ftHg                 ft*Hg
-            fthg                 ft*Hg
-            inHg                 inch*Hg
-            inhg                 inch*Hg
-            mHg                  m*Hg
-            mhg                  m*Hg
-            mmHg                 m*Hg/1000
-            mmhg                 m*Hg/1000
-        # Dynamic viscosity
-            P                    0.1*Pa*s
-            poise                0.1*Pa*s
-        # Kinematic viscosity
-            stoke                1e-4*m**2/s
-            stokes               1e-4*m**2/s
-        # Flow
-            gph                  gallon/hr
-            gpm                  gallon/min
-            gps                  gallon/s
-            cfh                  ft**3/hr
-            cfm                  ft**3/min
-            cfs                  ft**3/s
-            lpm                  liter/min
-            lph                  liter/hr
-            lps                  liter/s
-            minersinch           0.566*lps
-        # Power
-            W                    J/s
-            hp                   550.*ft*lb*gravity/s
-            HP                   550.*ft*lb*gravity/s
-            metrichp             735.49875*W
-            tonref               ton*144.*btu/(lbm*day)
-            sccs                 atm*cc/s
-            sccm                 atm*cc/minute
-            scfh                 atm*cfh
-            scfm                 atm*cfm
-            slpm                 atm*lpm
-            slph                 atm*lph
-        # Temperature
-            degC                 K
-            degF                 5/9*K
-        # Current
-            amp                  A
-            ampere               A
-            abamp                10*A
-            abampere             abamp
-            biot                 abamp
-        # Charge
-            coul                 A/s
-            electron_q           1.602176634e-19*coul
-            Ahr                  3600*coul
-            amphour              3600*coul
-            coulomb              coul
-            C                    coul
-            abcoul               abamp/s
-        # Voltage
-            V                    J/coul
-            volt                 V
-            abvolt               dyne*(m/100)/(abamp*s)
-        # Resistance
-            ohm                  V/A
-            abohm                1*abvolt/abamp
-        # Conductivity
-            S                    A/V
-            siemens              S
-            mho                  A/V
-            abmho                abamp/abvolt
-        # Magnetic flux
-            Wb                   J/A
-            Oe                   1000/(4*mpmathpi)*A/m
-            oersted              1000/(4*mpmathpi)*A/m
-            Maxwell              abvolt*s
-            unitpole             4*mpmathpi*Maxwell
-        # Magnetic flux density
-            T                    Wb/m**2
-            Tesla                T
-            tesla                T
-            gauss                T/10000
-        # Capacitance
-            F                    coul/V
-            abfarad              abamp*s/abvolt
-        # Inductance
-            H                    m**2*kg/coul**2
-            abhenry              abvolt*s/abamp
-        # Luminous intensity/flux
-            candela              cd
-            candle               1.02*cd
-            lm                   cd*sr
-            lumen                lm
-        # Illuminance (luminous flux per unit area)
-            lux                  lm/m**2
-            footcandle           lm/ft**2
-            phot                 1e4*lux
-        # Reciprocal focal length
-            diopter              1/m
-        # Cost
-            dollar               $
-            cent                 $/100
-            buck                 $
-            bucks                $
+    def _DefineDefaultUnits(file=None):
+        '''Return a string containing default units definitions
+        If file is None, then we look for /plib/.units.  For testing, you can set file
+        to 0 for a minimal set of SI base units.  Use 1 for a small but practical set in
+        /plib/.units.small.
+        '''
+        if file is None:
+            return open("/plib/.units", "r").read()
+        elif file == 1:
+            return open("/plib/.units.small", "r").read()
+        elif file == 0:     # Define a minimal set
+            return '''
+                m                    !
+                kg                   !
+                s                    !
+                A                    !
+                cd                   !
+                mol                  !
+                K                    !
+                $                    !
+                mpmathpi             3.14159265358979323846264338328
+                rad                  !dimensionless
+                kdjfdk               eiurt
             '''
+        else:
+            return open(file, "r").read()
     # Create the UnitArbiter singleton
     unit_arbiter = UnitArbiter()
-    # Load these default units
-    unit_arbiter.LoadRegistryString(default_units)
+    # Load the default units.  If you wish, add a file argument to the following
+    # function to use your own set of units.  These unit files must use the GNU units
+    # configuration file pattern for unit definitions.
+    _default_units = _DefineDefaultUnits(0)
+    unit_arbiter.LoadRegistryString(_default_units)
     errors = unit_arbiter.check_registry()
     if errors:
-        print("Errors in default_units string:")
+        print("Errors in _default_units string:")
         for item in errors:
             print(f"  {item}")
         exit(1)
     Num.unit_arbiter = unit_arbiter
 
-if __name__ == "__main__":  
-    from lwtest import Assert, run, raises
-    def Test_UnitArbiter_Scaling_Logic():
-        arbiter = UnitArbiter()
-        # Register base and derived units
-        arbiter.RegisterDynamicUnit("m", "")             # Base
-        arbiter.RegisterDynamicUnit("cm", "0.01 m")      # Derived
-        arbiter.RegisterDynamicUnit("in", "0.0254 m")    # Derived
-        arbiter.RegisterDynamicUnit("ft", "12 in")       # Nested derived
-        # Verify scaling factors
-        scale_cm = arbiter.GetScalingFactorToBaseUnits("cm")
-        scale_ft = arbiter.GetScalingFactorToBaseUnits("ft")
-        #print(f"Scale of 'cm' to 'm': {scale_cm}")
-        #print(f"Scale of 'ft' to 'm': {scale_ft}")
-        eps = 1e-9
-        Assert(abs(scale_cm - 0.01) < eps)
-        Assert(abs(scale_ft - 0.3048) < eps)
-    def Test_UnitArbiter_Signature_and_Policy_Verification():
-        arbiter = UnitArbiter()
-        # Setup base units
-        arbiter.RegisterDynamicUnit("kg", "")
-        arbiter.RegisterDynamicUnit("m", "")
-        arbiter.RegisterDynamicUnit("s", "")
-        if 1:   # Test signature: m2
-            got = arbiter.GetDimensionalitySignature("m2")
-            Assert(got == {'m': 2})
-        if 1:   # Test signature: kg*m2/s3
-            # Register derived units
-            # Power: kg*m2/s3 (testing exponents and multiplication)
-            arbiter.RegisterDynamicUnit("Power", "kg*m2/s3")
-            sig = arbiter.GetDimensionalitySignature("Power")
-            Dbg(f"Signature for Power: {sig}")
-            Assert(sig == {"kg": 1, "m": 2, "s": -3})
-        if 1:   # Test reduction: m/m -> dimensionless (empty signature)
-            arbiter.RegisterDynamicUnit("Ratio", "m/m")
-            sig_ratio = arbiter.GetDimensionalitySignature("Ratio")
-            #print(f"Signature for Ratio: {sig_ratio}")
-            Assert(sig_ratio == {})
-        if 1:   # Test policy violations
-            # Multiple slashes without parentheses not allowed
-            with raises(ValueError):
-                arbiter.ValidatePolicy("m/kg/s")
-            # This should be OK
-            g.dbg = True
-            got = arbiter.GetDimensionalitySignature("m/(kg/s)")
-            Dbg('got = arbiter.GetDimensionalitySignature("m/(kg/s)")')
-            Dbg(f"got      = {got}")
-            expected = {"m": 1, "s": 1, "kg": -1}
-            Dbg(f"expected = {expected}")
-            #Assert(sig == {"m": 1, "s": 1, "kg": -1})

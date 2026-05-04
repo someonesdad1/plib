@@ -1,8 +1,14 @@
 3 May 2026 12:10:18 pm Sun
 
+**************************************
+**  Refactor only on a new branch!  **
+**************************************
+    git checkout -b new_branch_name
+        # Use just ASCII letters/digits and underscores for safe naming
+
 Caution:  The code is mature with hefty test cases and is a couple of klines.
-Unfortunately, it appears that this is near or beyond the ability of Mike to do a
-careful refactor, as evidenced by yesterday's disaster of trying to 1) refactor the Num
+Unfortunately, it appears that this is near the abilities of Mike to do a careful
+refactor, as evidenced by 2 May 2026's disaster of trying to 1) refactor the Num
 constructor signature and 2) remove old references to NumType.Unc and NumType.UncCpx.
 
 From now on, any such large task needs to be done on a well-named branch and only merged
@@ -12,16 +18,31 @@ the context degrade in an hour or two; the first symptom is the insertion of bla
 in the code and ignoring the requirement of newlines after a ":" character in
 conditionals and def).
 
+- Git policies
+    - Make sure the pre-commit script runs the number_test.py script
+    - commit-msg script should check to make sure the commit message isn't 
+      simply "Updated", as this is my traditional no-message commit/push
+
 - High priority bugs
+    - Ask Mike for a dbl replacement.  Needs to allow one empty line between 
+      '# END_CHUNK:' and '# CHUNK:'.
     - Uncertainty tests failing
     - Missing warning about large derivative for uncertainty in sqrt at 0
     - Num("60 mi/hr").to("ft/s") -> 60 (should be 88)
 
 - Bugs
-    - Now I'm getting AttributeError: 'UnitArbiter' object has no attribute '_register_unit'
-    - width = Num("3.770(5) m"), length = Num("14.22(2) m"), area = width*length, 
+    - Now I'm getting AttributeError: 'UnitArbiter' object has no attribute
+      '_register_unit'
+    - width = Num("3.770(5) m"), length = Num("14.22(2) m"), area = width*length,
       sqrt(area) -> "7.322(8) sqrt((m)*(m))".  That result is going to have to simplify
       to m.  Also sqrt(Num("1.05 acre")) has to work too.
+
+- Other
+    - Include limits on allowed values with type of interval?  [,], (,], [,), (,).  Not
+      terribly practical with immutable values.
+    - Does cc collide with centi-c?
+    - Tests needed
+        - sin(Num("4 rad")) must work
 
 - Attributes & properties
     - Num.unc_lsd: float    Default number of LSD for uncertainty
