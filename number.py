@@ -1999,7 +1999,6 @@ if 1:   # Default units and global unit_arbiter
                 $                    !
                 mpmathpi             3.14159265358979323846264338328
                 rad                  !dimensionless
-                kdjfdk               eiurt
             '''
         else:
             return open(file, "r").read()
@@ -2008,7 +2007,7 @@ if 1:   # Default units and global unit_arbiter
     # Load the default units.  If you wish, add a file argument to the following
     # function to use your own set of units.  These unit files must use the GNU units
     # configuration file pattern for unit definitions.
-    _default_units = _DefineDefaultUnits(0)
+    _default_units = _DefineDefaultUnits()
     unit_arbiter.LoadRegistryString(_default_units)
     errors = unit_arbiter.check_registry()
     if errors:
