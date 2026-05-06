@@ -4,19 +4,27 @@ Debug printing messages
     Dbg:  utility debugging messages
     Bug:  bug reminder; only prints once per location
 
-    from dbg import Dbg, Bug
-    Dbg.on = True               # Turn debug printing on
-    Dbg.stream = sys.stderr     # stdout is default
-    Dbg("This is a debugging message")  # Same syntax as print()
-        -> '[file.py:123]:DBG This is a debugging message'
-    Bug("Remember this bug")    # Always printed; same syntax as print()
-        -> '[file.py:123]:BUG Remember this bug'
+    These message can be put into code (and left in if you wish).  When there's a
+    problem, set Dbg.on to True and you'll see the Dbg messages after that point.  
+
+    Here's how to use the methods:
+
+        from dbg import Dbg, Bug
+        Dbg.on = True               # Turn debug printing on
+        Dbg.stream = sys.stderr     # stdout is default
+        Dbg("This is a debugging message")  # Same syntax as print()
+            -> '[file.py:123]:DBG This is a debugging message'
+        Bug("Remember this bug")    # Always printed; same syntax as print()
+            -> '[file.py:123]:BUG Remember this bug'
 
     The t instance is a trm.TrmDP() instance which provides color printing to the
     terminal; the functions should still work if 'import trm' fails for some reason.
     Here's how to output a message in a yellow color:
 
-        Dbg(f"{t.yel}This message is in color")
+        Dbg(f"{t.yel}This message is in color{t.n}")
+
+    The t.n is used at the end to turn off the color.  You can customize the trm.py file
+    to get the colors you like to use.
 
     The DBG and file/line number portion won't be colorized.
 
@@ -80,7 +88,7 @@ if 1:  # Core functionality
         print(*p, **kw)
     def Bug(*p, **kw):
         '''Print a bug you want to remember
-        Only list it once for each call at a specific file and line number so you're not
+        Only print it once for each call at a specific file and line number so you're not
         inundated with messages.  Printed in a very visible color.
         '''
         if not hasattr(Bug, "buglist"):
@@ -95,9 +103,12 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":
     # Dbg demo
+    print("Normal message using print()")
     Dbg("You shouldn't see this message")
     Dbg.on = True
     Dbg("You should see this message")
-    for i in range(10):
+    Dbg(f"{t.grn}Here's a debug message in color{t.n}")
+    print("Another normal message using print()")
+    for i in range(5):
         Bug("You should see this Bug message, but only once")
     

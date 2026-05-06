@@ -147,7 +147,7 @@ if 1:  # Custom imports
     t = trm.TrmDP()
     from columnize import Columnize
     from wsl import wsl  # wsl is True if we're running under WSL
-    from dpprint import PP
+    from dputil import PP
     pp = PP()
     if 0:
         import debug
