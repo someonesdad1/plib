@@ -672,7 +672,7 @@ if 1: # NumericMixin
             if self.mytype in (NumType.Cpx, NumType.UncCpx) or other_num.mytype in (NumType.Cpx, NumType.UncCpx):
                 raise TypeError(f"'{op}' not supported between complex numbers.")
             if self.mytype in (NumType.Unc, NumType.UncCpx) or other_num.mytype in (NumType.Unc, NumType.UncCpx):
-                raise TypeError(f"'{op}' not supported for numbers with uncertainty.")
+               raise TypeError(f"'{op}' not supported for numbers with uncertainty.")
         def __lt__(self, other):
             self._check_ordering(other, "<")
             other_num = other if isinstance(other, Num) else Num(other)

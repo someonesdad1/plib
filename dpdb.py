@@ -258,7 +258,7 @@ if 1:  # Classes
                 This command works, but your breakpoints and other information are not
                 restored.
                 '''
-                if 1:
+                if 0:
                     raise pdb.Restart
                 else:
                     # The built-in command to the debugger usually has an exception; this
@@ -342,8 +342,6 @@ if 1:  # Classes
                             built.append(clr + abbr + u.n)
                         for i in columnize.Columnize(built):
                             print(i)
-
-
             def current_stopped_line(self, file, linenum, func, remainder):
                 print("> ", end="")
                 # Only colorize the file name portion

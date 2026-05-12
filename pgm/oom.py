@@ -858,7 +858,7 @@ if 1:  # Utility
         d["-s"] = False  # Print summary
         d["-t"] = 50  # Tolerance to be "equal"
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "d:mnst")
+            opts, args = getopt.getopt(sys.argv[1:], "d:hmnst")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)

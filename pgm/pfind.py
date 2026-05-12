@@ -39,12 +39,11 @@ if 1:  # Header
         import trm
         t = trm.TrmDP()
         from columnize import Columnize
-        from dbg import Debug
+        from dbg import Dbg
     # Global variables
     if 1:
-        Dbg = Debug()
-        Debug.dbg = True
-        Debug.dbg = False
+        Dbg.on = True
+        Dbg.on = False
         ii = isinstance
 if 1:  # Utility
 

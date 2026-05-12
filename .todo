@@ -55,7 +55,10 @@ Reorganization core files
         - Generate a python interpreter with GNU units built into it, giving semantic
           units at the bytecode level
 
+
     - xybloat Dealing with function bloat (Mike's advice)
+    - pgm/ohm.py
+        - Add an interactive resistance calculator, particularly for conductors
 
     - dsort.py Utility to sort indented hyphenated lists
 
