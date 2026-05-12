@@ -24,7 +24,7 @@ Reminders to the Gemini AI for Don's code projects
   responsibility is to provide Mike with the code for ALL FOUR critical classes in the
   file:  NumericMixin, Num, UnitArbiter, and StringParser.
     - Mike should remember than any change to NumericMixin is a change to Num and vice
-      versa (i.e., treat the two classes as a composite, which they are).
+      versa (i.e., treat the two classes as a composite, which they are). 
 
 Mike added the following summary:
     - The Composite Class Rule: Treat NumericMixin and Num as a single, inseparable
