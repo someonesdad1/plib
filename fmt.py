@@ -8,7 +8,7 @@ class Fmt:  Format floating point numbers
 
     Features
         - "fix", "sci", "eng", "engsi", "engsic" formatting forms
-        - Can set width to print number in (best effort basis)
+        - Can set the width to print the number in (best effort basis)
             - Will get "plucked middle" approach, leaving beginning and ending digits
               with ellipsis in center
         - Handles very large numbers
@@ -28,21 +28,6 @@ class Fmt:  Format floating point numbers
         
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2008, 2012, 2021 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <programming> Format numbers with the Fmt class.  Provides
-        # fixed point, scientific, and engineering formats.  Run as a
-        # script to see a demo.
-        ##∞what∞#
-        ##∞test∞# --test #∞test∞#
-        pass
     if 1:  # Standard imports
         from collections import deque
         from pdb import set_trace as yy
@@ -75,6 +60,7 @@ if 1:  # Header
         Any = ty.Any
         mpf = mpmath.mpf
         Decimal = decimal.Decimal
+        Fraction = fractions.Fraction
         getcontext = decimal.getcontext
     if 1:  # Global variables
         #W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -162,7 +148,7 @@ if 1:  # Header
                     "Wraps the scalar (float/mpf/Decimal) string in the 'float' color"
                     s = super()._format_scalar(x, active_fmt)
                     # Check for specials (NaN/Inf) first
-                    if hasattr(x, 'is_special') and x.is_special:
+                    if hasattr(x, 'infnan') and x.infnan:
                         color = self.t.special
                     elif isinstance(x, int):
                         color = self.t.int
@@ -1585,34 +1571,50 @@ if 0:   # Old TakeApart and Fmt implementation
             @comp.setter
             def comp(self, value):
                 self._comp = bool(value)
-else:   # New TakeApart/Fmt
+
+if 1:   # New TakeApart/Fmt
+# file: fmt.py
+# CHUNK: TakeApart
     class DecomposedNumber(ty.NamedTuple):
-        sign: str
-        digits: str
-        exp: int
-        is_special: bool = False
-    class TakeApart:
-        def __init__(self):
-            pass
-        def __call__(self, x: ty.Any, n: int = 3) -> DecomposedNumber:
-            if not isinstance(n, int):
-                raise TypeError("n must be an int")
-            if n < 1:
-                raise ValueError("n must be > 0")
-            if isinstance(x, int):
+        sign: str                   # "-" or ""
+        digits: str                 # Decimal digits 0-9
+        exp: int                    # Integer
+        infnan: bool = False    # True if inf or nan
+    def TakeApart(x: ty.Any, n: int = 3) -> DecomposedNumber:
+        '''Return the parts of a number, given n, the significant figures wanted.
+        Supported numbers are integer, Fraction, float, Decimal, and mpmath.mpf.
+        The Fraction is converted to the equivalent mpmath.mpf.
+         
+        The use case is to get the n most significant digits of the number's scientific
+        notation representation, typically for string interpolation tasks.  For example, 
+        if x = math.pi, TakeApart(x, 6) will return 
+            DecomposedNumber(sign='', digits='314159', exp=0, infnan=False)
+        and TakeApart(1000*x, 6) will return
+            DecomposedNumber(sign='', digits='314159', exp=3, infnan=False)
+         
+        In DecomposedNumber, infnan is True if the number represents inf or nan.
+        '''
+        if not isinstance(n, int) or n < 1:
+            raise ValueError("n must be an int > 0")
+        if 1:   # Convert the number to an exponential form string s
+            if isinstance(x, int):                  # integer
                 if x == 0:
                     return DecomposedNumber("", "0"*n, 0, False)
                 else:
                     val_str = str(abs(x))
                     s = f"{val_str[0]}.{val_str[1:]}e{len(val_str)-1}"
-            elif isinstance(x, Decimal):
+            elif isinstance(x, decimal.Decimal):    # Decimal
                 s = format(x, f'.{n-1}e').lower()
-            elif isinstance(x, mpmath.mpf):
+            elif isinstance(x, fractions.Fraction):       # python Fraction
+                y = mpmath.mpf(x.numerator)/mpmath.mpf(x.denominator)
+                s = mpmath.nstr(y, n, min_fixed=0, max_fixed=0, strip_zeros=False,
+                                show_zero_exponent=True).lower()
+            elif isinstance(x, mpmath.mpf):         # mpmath.mpf
                 if not mpmath.isfinite(x):
                     return DecomposedNumber('', str(x).lower(), 0, True)
                 s = mpmath.nstr(x, n, min_fixed=0, max_fixed=0, strip_zeros=False,
                                 show_zero_exponent=True).lower()
-            elif isinstance(x, float):
+            elif isinstance(x, float):              # float
                 if not math.isfinite(x):
                     s = str(x).lower()
                     sign = "-" if s.startswith("-") else ""
@@ -1620,16 +1622,21 @@ else:   # New TakeApart/Fmt
                 s = format(x, f'.{n-1}e').lower()
             else:
                 raise Exception("Unhandled type")
-            Assert(s and 'e' in s)
+        if 1:   # Process the digits
+            msg = "in fmt.py: TakeApart"
+            assert s and 'e' in s, msg
             significand, exp = s.split('e')
             exponent = int(exp)
             sign = '-' if significand.startswith('-') else ''
             digits = significand.replace('.', '', 1).replace('-', '', 1)
             digits = digits.ljust(n, '0')[:n]
-            assert sign in ("-", "")
-            assert len(digits) == n
-            assert isinstance(exponent, int)
+            assert sign in ("-", ""), msg
+            assert len(digits) == n, msg
+            assert isinstance(exponent, int), msg
             return DecomposedNumber(sign, digits, exponent)
+# END_CHUNK: TakeApart
+
+# CHUNK: Fmt
     @dataclasses.dataclass
     class NumberChassis:
         sign: str
@@ -1638,8 +1645,8 @@ else:   # New TakeApart/Fmt
         exp: str
         @classmethod
         def from_val(cls, x: ty.Any, f_obj: 'Fmt', active_fmt: str) -> 'NumberChassis':
-            ta = TakeApart()(x, n=f_obj.n)
-            if ta.is_special: 
+            ta = TakeApart(x, n=f_obj.n)
+            if ta.infnan: 
                 return cls('', ta.digits, '', '')
             target_exp = 0
             if active_fmt == 'sci': 
@@ -1678,8 +1685,10 @@ else:   # New TakeApart/Fmt
             if isinstance(n, str) and fmt is None: 
                 fmt, n = n, None
             old_n, old_fmt = self.n, self.fmt
-            if n is not None: self.n = int(n)
-            if fmt is not None: self.fmt = fmt
+            if n is not None:
+                self.n = int(n)
+            if fmt is not None:
+                self.fmt = fmt
             try:
                 eff_fmt = self.fmt
                 if eff_fmt == 'fix':
@@ -1834,11 +1843,16 @@ else:   # New TakeApart/Fmt
             op = '+' if z.imag >= 0 else '-'
             s = '' if self.cuddled else space
             return f"{re_p}{s}{op}{s}{im_p}{self.imag_unit}"
-        def sci(self, x, n=None): return self(x, n=n, fmt='sci')
-        def eng(self, x, n=None): return self(x, n=n, fmt='eng')
-        def fix(self, x, n=None): return self(x, n=n, fmt='fix')
-        def engsi(self, x, n=None): return self(x, n=n, fmt='engsi')
-        def engsic(self, x, n=None): return self(x, n=n, fmt='engsic')
+        def sci(self, x, n=None):
+            return self(x, n=n, fmt='sci')
+        def eng(self, x, n=None):
+            return self(x, n=n, fmt='eng')
+        def fix(self, x, n=None):
+            return self(x, n=n, fmt='fix')
+        def engsi(self, x, n=None):
+            return self(x, n=n, fmt='engsi')
+        def engsic(self, x, n=None):
+            return self(x, n=n, fmt='engsic')
         def push(self) -> None:
             'Capture all current public attributes into the stack'
             # We only snapshot attributes that don't start with '_'
@@ -1925,6 +1939,8 @@ else:   # New TakeApart/Fmt
                 has_sign = im_str.startswith("-") or im_str.startswith("+")
                 sep = "+" if not has_sign else ""
                 return re_str + sep + im_str + self.imag_unit
+# END_CHUNK: Fmt
+
 if 1:   # Public convenience instance of Fmt()
     fmt = Fmt()
 
@@ -1952,7 +1968,7 @@ if 0 and __name__ == "__main__":
         x = mpmath.mpf("-314159265358979.33141592653589793")
         s = f"{x}"
         print(fmt.PluckReal(s))
-    if 1:  # Complex with proper digits
+    if 0:  # Complex with proper digits
         mpmath.mp.dps = 50 # Set decimal places to 50
         s = "-314159265358979.33141592653589793"
         x = mpmath.mpc(s, s)
@@ -1961,6 +1977,19 @@ if 0 and __name__ == "__main__":
         re = fmt.PluckReal(str(x.real))
         im = fmt.PluckReal(str(x.imag))
         print(fmt.PluckComplex(re, im))
+    if 1:   # Show how TakeApart works
+        mpf = mpmath.mpf
+        for x in [
+                Fraction(-8681386471640269*(10**123), 2199023255552),
+                Decimal("-3947.8375e123"),
+                mpf("-3947.8375e123"),
+                float("-3947.8375e123"),
+                mpf("-inf"),
+                mpf("nan"),
+                ]:
+            print(TakeApart(x, 3))
+        print(f"TakeApart(math.pi, 6) = {TakeApart(math.pi, 6)}")
+        print(f"TakeApart(1000*math.pi, 6) = {TakeApart(1000*math.pi, 6)}")
     exit()
 
 if __name__ == "__main__":

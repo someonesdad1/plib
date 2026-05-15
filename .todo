@@ -12,7 +12,9 @@ Reorganization core files
         - dpseq:Test_Flatten
         - dpstr:Test_GetHash
         - dpstr:Test_RegexpDecorate
-    - Ask Gemini for a tutorial on using package-like structure in /plib, as this could
+    - Mike recommended a python formatter library:  libcst.  Similar to ast, but a
+      concrete syntax tree generator, it's a library you can tune to exactly your needs.
+    - Ask Mike for a tutorial on using package-like structure in /plib, as this could
       probably make things work more concisely and let me group functionality in
       subpackages.
     - pytest:  Look at some simple ways of letting a user utilize either pytest or lwtest
@@ -32,6 +34,9 @@ Reorganization core files
     - in bp.py, GetScreen(), GetColors(), Dbg(), Warning(), and Error() are used in
       every script.  These should all have corresponding dputil.py functions that set up
       reasonable defaults.
+
+    - ~/.0rc/data/quotes.txt
+        - Convert to a datafile that can be searched with regexes
 
     - pgm/mathfuncs.py
         - Update to 3.11
