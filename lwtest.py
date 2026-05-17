@@ -84,7 +84,6 @@ if 1:  # Header
     if 1:  # Custom imports
         import color
         import f
-        import trm
         try:
             import numpy
             have_numpy = True
@@ -139,11 +138,7 @@ if 1:  # Header
         '''
     if 1:  # Global variables
         yy = pdb.set_trace
-        u = trm.TrmDP()
-        u.got = u.grn1
-        u.exp = u.orn
-        u.msg = u.mag
-        _modname = "<lwtest.py>"
+        _modname = "<lwtst.py>"
         __all__ = '''
             Assert
             ToDoMessage
@@ -179,6 +174,8 @@ if 1:  # Core functionality
             stream:     Where to send output [stdout].  None = no output.
             nomsg       If True, return only the integer 'failed'.
         '''
+        import trm
+        u = trm.TrmDP()
         # Keyword arguments
         broken = bool(kw.get("broken", False))
         dbg = bool(kw.get("dbg", False)) or "dbg" in os.environ
@@ -323,6 +320,8 @@ if 1:  # Utility
         If color is not None, then it must either be a string naming a color (see
         color.py) or a Color class instance.  The message is printed in this color.
         '''
+        import trm
+        u = trm.TrmDP()
         fn, ln, method, call = traceback.extract_stack()[-2]
         c = u(color) if color is not None else ""
         vars = {
@@ -531,6 +530,8 @@ if 1:  # Checking functions
         
         If debug is True, a failed assertion will drop you into the debugger.
         '''
+        import trm
+        u = trm.TrmDP()
         # fail will be None if all things compared are equal.  Otherwise,
         # it will be a list of error message strings detailing where the
         # comparison(s) failed.
@@ -567,7 +568,7 @@ if 1:  # Checking functions
         if fail is None:
             return  # a and b were equal
         else:
-            arg_not_eq = f"{u.msg}Arguments are not equal [pyver {python_version}]{u.n}:"
+            arg_not_eq = f"{u.mag}Arguments are not equal [pyver {python_version}]{u.n}:"
             try:
                 # Assume they're sequences
                 diff = [a[i] - b[i] for i in range(len(a))]
@@ -589,8 +590,8 @@ if 1:  # Checking functions
                         rel_diff_arg2 = None
                     fail += [
                         arg_not_eq,
-                        f"{u.got}  got      = {a!r}{u.n}",
-                        f"{u.exp}  expected = {b!r}{u.n}",
+                        f"{u.grn}  got      = {a!r}{u.n}",
+                        f"{u.orn}  expected = {b!r}{u.n}",
                         f"  diff = {diff!r}",
                     ]
                     if rel_diff_arg1 is not None:
@@ -600,8 +601,8 @@ if 1:  # Checking functions
             else:
                 fail += [
                     arg_not_eq,
-                    f"{u.got}  got      = {a!r}{u.n}",
-                    f"{u.exp}  expected = {b!r}{u.n}",
+                    f"{u.grn}  got      = {a!r}{u.n}",
+                    f"{u.orn}  expected = {b!r}{u.n}",
                     f"  diff = {diff!r}",
                 ]
         if msg:
@@ -639,6 +640,8 @@ if 1:  # Checking functions
         string, you'll be dropped into a debugger.  If msg is not empty, it's printed
         out.
         '''
+        #import trm
+        #u = trm.TrmDP()
         def PrintGotExpected():
             if op is not None:
                 print(f"  op       = {op!r}")
@@ -663,13 +666,15 @@ if 1:  # Checking functions
                     filename = os.path.basename(caller.filename)
                     line = caller.lineno
                     dbg = f"{filename}:{line}"
-                print(f"{u.red}No-stop Assert[{dbg}]{u.n}:  {msg}", file=sys.stdout)
+                #print(f"{u.red}No-stop Assert[{dbg}]{u.n}:  {msg}", file=sys.stdout)
+                print(f"No-stop Assert[{dbg}]:  {msg}", file=sys.stdout)
                 PrintGotExpected()
                 return 1
             if debug or Assert.debug or env_assert:
                 # Print colorized message to stdout and start debugger
                 if msg:
-                    u.print(f"{u.mag}{_modname} {msg}")
+                    #u.print(f"{u.mag}{_modname} {msg}")
+                    print(f"{_modname} {msg}")
                     PrintGotExpected()
                 print("Type 'up' to go to line that failed")
                 breakpoint()
@@ -861,6 +866,7 @@ if __name__ == "__main__":
         except ImportError:
             have_mpmath = False
     def ShowUsage():
+        u = trm.TrmDP()
         u.k = u.sky
         u.d = u.grn1
         u.u = u.lavl

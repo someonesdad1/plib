@@ -1576,9 +1576,9 @@ if 1:   # New TakeApart/Fmt
 # file: fmt.py
 # CHUNK: TakeApart
     class DecomposedNumber(ty.NamedTuple):
-        sign: str                   # "-" or ""
-        digits: str                 # Decimal digits 0-9
-        exp: int                    # Integer
+        sign: str               # "-" or ""
+        digits: str             # Decimal digits 0-9
+        exp: int                # Integer exponent
         infnan: bool = False    # True if inf or nan
     def TakeApart(x: ty.Any, n: int = 3) -> DecomposedNumber:
         '''Return the parts of a number, given n, the significant figures wanted.
@@ -1591,8 +1591,6 @@ if 1:   # New TakeApart/Fmt
             DecomposedNumber(sign='', digits='314159', exp=0, infnan=False)
         and TakeApart(1000*x, 6) will return
             DecomposedNumber(sign='', digits='314159', exp=3, infnan=False)
-         
-        In DecomposedNumber, infnan is True if the number represents inf or nan.
         '''
         if not isinstance(n, int) or n < 1:
             raise ValueError("n must be an int > 0")
@@ -1623,17 +1621,11 @@ if 1:   # New TakeApart/Fmt
             else:
                 raise Exception("Unhandled type")
         if 1:   # Process the digits
-            msg = "in fmt.py: TakeApart"
-            assert s and 'e' in s, msg
             significand, exp = s.split('e')
-            exponent = int(exp)
             sign = '-' if significand.startswith('-') else ''
             digits = significand.replace('.', '', 1).replace('-', '', 1)
             digits = digits.ljust(n, '0')[:n]
-            assert sign in ("-", ""), msg
-            assert len(digits) == n, msg
-            assert isinstance(exponent, int), msg
-            return DecomposedNumber(sign, digits, exponent)
+            return DecomposedNumber(sign, digits, int(exp))
 # END_CHUNK: TakeApart
 
 # CHUNK: Fmt

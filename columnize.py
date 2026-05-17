@@ -50,7 +50,7 @@ if 1:  # Header
         import re
         from typing import Sequence, Any
     if 1:  # Custom imports
-        import dpstr
+        pass
     if 1:  # Global variables
         pp = pprint.pprint
 if 0:  # New Columnize from Mike
@@ -78,6 +78,7 @@ if 0:  # New Columnize from Mike
             lsep = len(sep)
             # Use our specialized dpstr.Len (the one that ignores escapes)
             # If esc=False, we fall back to standard len
+            import dpstr
             get_len = dpstr.Len if kw.get("esc", True) else len
             maxlen = max(get_len(s) for s in sseq)
         if 1:   # Geometry Calculation

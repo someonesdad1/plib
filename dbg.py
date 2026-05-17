@@ -1,7 +1,8 @@
 '''
 Debug printing messages
 
-    Dbg:  utility debugging messages
+    Dbg:  utility debugging messages (convenience instance of class Debug)
+    Debug:  Debug message class
     Bug:  bug reminder; only prints once per location
 
     These message can be put into code (and left in if you wish).  When there's a
@@ -13,28 +14,15 @@ Debug printing messages
         Dbg.on = True               # Turn debug printing on
         Dbg.stream = sys.stderr     # stdout is default
         Dbg("This is a debugging message")  # Same syntax as print()
-            -> '[file.py:123]:DBG This is a debugging message'
+            -> 'DBG [file.py:123]: This is a debugging message'
         Bug("Remember this bug")    # Always printed; same syntax as print()
-            -> '[file.py:123]:BUG Remember this bug'
-
-    The t instance is a trm.TrmDP() instance which provides color printing to the
-    terminal; the functions should still work if 'import trm' fails for some reason.
-    Here's how to output a message in a yellow color:
-
-        Dbg(f"{t.yel}This message is in color{t.n}")
-
-    The t.n is used at the end to turn off the color.  You can customize the trm.py file
-    to get the colors you like to use.
-
-    The DBG and file/line number portion won't be colorized.
+            -> 'BUG [file.py:123]: Remember this bug'
 
     Use case:  for developing code, you can sprinkle Dbg() calls throughout your code
     and leave them in place.  There's not much overhead, as if Dbg.on is False, the code
     quickly exits.  At some point in your code's execution where a problem is occuring,
     set Dbg.on to True and you'll start seeing the debug messages, letting you see how
-    the state of things changes over time.  If you redirect to a file, the colorizing
-    escape sequences won't be emitted; if you want them to be there, set t.always to
-    True.
+    the state of things changes over time.
 
 '''
 if 1:  # Header
@@ -72,20 +60,68 @@ if 1:  # Header
         __category__  = "utility"
         __todo__      = ''' '''
 if 1:  # Core functionality
-    def Dbg(*p, **kw):
-        '''Simple debugging command with the same syntax as print
-        Attributes:
-            .on     Set to True to see the messages
+    class Debug:
+        '''A debugging print class with a __call__ method with the same syntax as print()
+        Usage:
+            Dbg = Debug()
+            Dbg.on = True
+            ...
+            Dbg("Here's a debugging message")
+                -> Message printed to stdout with file:line_number
         '''
-        if not hasattr(Dbg, "on"):
-            Dbg.on = False
-        if not Dbg.on:
-            return
-        frame = inspect.stack()[1]
-        fi = os.path.basename(frame.filename)
-        ln = frame.lineno
-        print(f"DBG [{fi}:{ln}]: ", end="")
-        print(*p, **kw)
+            
+        def __init__(self, 
+                     file: str = sys.stdout,    # Where output is sent
+                     color: str = "",           # Color escape sequence for print color
+                     header: str = "DBG",       # Leading string message
+                     show: bool = True,         # Show file and line number in message
+                     on: bool = False):         # If True, output sent to stream
+            self.file = file
+            self.color = color
+            self.header = header
+            self.show = show
+            self.on = on
+        def __call__(self, *p, **kw):
+            if not self.on:
+                return
+            # Get file & line number for calling point from stack
+            frame = inspect.stack()[1]
+            fi = os.path.basename(frame.filename)
+            ln = frame.lineno
+            # Construct debugging header string
+            hdr = ""
+            if self.color:
+                hdr += f"{self.color}"
+            if self.header:
+                hdr += f"{self.header} "
+            if self.show:
+                hdr += f"[{fi}:{ln}]: "
+            # Output the header string
+            print(f"{hdr}", end="", file=self.file)
+            # Print the user's information
+            print(*p, **kw)
+            if self.color:
+                print(f"{t.n}", end="", file=self.file)
+
+    # Convenience instance
+    Dbg = Debug()
+
+    if 0:
+        # Old function form
+        def Dbg(*p, **kw):
+            '''Simple debugging command with the same syntax as print
+            Attributes:
+                .on     Set to True to see the messages
+            '''
+            if not hasattr(Dbg, "on"):
+                Dbg.on = False
+            if not Dbg.on:
+                return
+            frame = inspect.stack()[1]
+            fi = os.path.basename(frame.filename)
+            ln = frame.lineno
+            print(f"DBG [{fi}:{ln}]: ", end="")
+            print(*p, **kw)
     def Bug(*p, **kw):
         '''Print a bug you want to remember
         Only print it once for each call at a specific file and line number so you're not
@@ -102,12 +138,16 @@ if 1:  # Core functionality
             Bug.buglist.add((fi, ln))
 
 if __name__ == "__main__":
-    # Dbg demo
+    # Demo
     print("Normal message using print()")
     Dbg("You shouldn't see this message")
     Dbg.on = True
     Dbg("You should see this message")
     Dbg(f"{t.grn}Here's a debug message in color{t.n}")
+    # Here's how to get a Dbg printer in a specific color of text
+    db = Debug(color=t.skyl)
+    db.on = True
+    db("A different Debug instance in color")
     print("Another normal message using print()")
     for i in range(5):
         Bug("You should see this Bug message, but only once")
