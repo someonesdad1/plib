@@ -24,6 +24,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from f import flt
+        from dbg import Bug
         from wrap import dedent
         import trm
         t = trm.TrmDP()
@@ -70,9 +71,7 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Manpage():
-        print(
-            dedent(
-                f'''
+        print(dedent(f'''
         The constants come from [1] and were downloaded 28 Aug 2021; they represent the 2018
         CODATA adjustments.
  
@@ -304,6 +303,7 @@ if 1:  # Core functionality
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
+    Bug("'const -d 0' has bug in mass for particles")
     GetData()
     if args:
         # Get a list of the constant numbers whose descriptions contain the desired regexes
