@@ -402,7 +402,7 @@ def GetData():
         d[name] = [value, unc, unit]
     if 1:   # Dump to stdout
         for i in d:
-            print(f"{i}: {d[i]}")
+            print(f"{i!r}: {d[i]}")
 def ShowSigFigs():
     if 1:   # 0-based column locations
         loc_name        = 0

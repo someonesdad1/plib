@@ -1,4 +1,11 @@
 '''
+
+ToDo:
+    - Fix basic behavior:  
+        --test doesn't work 
+        - -2 option doesn't work with '-2 516 .0003' and it should
+
+
 Calculate parameters of an Archimedean spiral.  The units of length are arbitrary; the
 program assumes that the diameters, lengths, and thicknesses all have the same physical
 unit.
@@ -83,12 +90,12 @@ if 1:  # Header
         from wrap import dedent
         from u import u, fromto, ParseUnit
         from f import flt, pi, sqrt, log, degrees
-        from root import NewtonRaphson
+        from dproot import NewtonRaphson
         from lwtest import run, Assert, raises, assert_equal
         import g
+        from dbg import Dbg
     if 1:  # Global variables
         P = pathlib.Path
-        ii = isinstance
         problem_description = dedent('''
         Select the problem to solve (enter nothing or q to quit):
             1.  Have D, d, and t; want n and L.
@@ -102,12 +109,11 @@ if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-        
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] parameters
-          Calculate the parameters of an Archimedean spiral:
+          Calculate the parameters of an Archimedean spiral (all lengths use the same
+          unit):
             D = outside diameter of spiral
             d = inside diameter of spiral
             t = thickness of spiral's wraps
@@ -122,14 +128,13 @@ if 1:  # Utility
         ''')
         )
         exit(status)
-        
     def ParseCommandLine(d):
         d["-1"] = False  # Solve problem 1
         d["-2"] = False  # Solve problem 2
         d["-3"] = False  # Solve problem 3
         d["-d"] = 8  # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "123d:ht", "test")
+            opts, args = getopt.getopt(sys.argv[1:], "123d:h", "test")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -344,7 +349,6 @@ if 1:  # Core functionality
         Length              = {L}
         Angle               = {theta} rad = {deg}°''')
         )
-        
     def GetNum(msg, zero_ok=False, is_length=True):
         '''Prompt for the number; if is_length is True, the dimension of the
         unit must be a length.  Either a Length() object or float is
@@ -366,7 +370,6 @@ if 1:  # Core functionality
                 return num
             except Exception:
                 print("'{}' is not a valid length".format(s))
-                
     def Problem1():
         '''Given D, d, t find n, L.
         Test case:
@@ -403,7 +406,6 @@ if 1:  # Core functionality
         theta = PN(thetaD - thetad)
         L = LD - Ld
         PrintReport(D, d, t, n, L, theta)
-        
     def Problem2():
         '''Given L, t find n, D.  Assumes d = 0.
         Test case:
@@ -445,7 +447,6 @@ if 1:  # Core functionality
         D = 2 * n * t
         d = PN(0)
         PrintReport(D, d, t, n, L, theta)
-        
     def Problem3():
         '''Given n, t find L, D.  Assumes d = 0.
         Test case:
@@ -470,7 +471,6 @@ if 1:  # Core functionality
         D = 2 * n * t
         d = PN(0)
         PrintReport(D, d, t, n, L, theta)
-        
     def PrintEquations():
         print(
             dedent(f'''
@@ -489,7 +489,6 @@ if 1:  # Core functionality
         While the equations are exact, the numbers are most meaningful when
         t << D.''')
         )
-        
     def GetDefaultLengthUnit():
         default_unit = "mm"
         print("\nEnter default length unit [{}]:  ".format(default_unit), end="")
@@ -509,7 +508,6 @@ if 1:  # Core functionality
                     pass
                 print("Not a valid length unit -- try again:  ", end="")
         return s
-        
     def Interactive():
         print(
             dedent(f'''
@@ -539,10 +537,8 @@ if 1:  # Core functionality
             else:
                 print("Unrecognized problem number")
                 exit(1)
-                
     def Manpage():
-        print(
-            dedent(f'''
+        print(dedent(f'''
         The polar equation of an Archimedean spiral is
         
             r = a*θ
@@ -584,10 +580,8 @@ if 1:  # Core functionality
                 Angle               = 3511.1918 rad = 201176.47°
             Divide the length by 1000 to get 144 m.
      
-        ''')
-        )
+        '''))
         exit(0)
-        
     def Test_Spiral():
         "Test the basic functionality of the Spiral object"
         s, eps = Spiral(), 1e-6
@@ -635,7 +629,7 @@ if 1:  # Core functionality
         # s.PrintReport()
         assert_equal(di["L"], L, reltol=eps)
         assert_equal(di["D"], D, reltol=eps)
-if 0:
+if 0:   # DrawSpiral
     import g, math
     def DrawSpiral(file, a, theta1, theta2):
         "Generate a PostScript file showing a spiral"
@@ -675,6 +669,7 @@ if 0:
         dtheta = pi / 100
         Draw(Nrevolutions, a, dtheta)
     DrawSpiral("a.ps", 0.1, 0, 10 * pi)
+
 if 1 and __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
