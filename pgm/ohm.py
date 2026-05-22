@@ -1,4 +1,4 @@
-"""
+'''
 
 Any arg, it turns into an interactive Ohm's Law calculator.  The goal is to help you understand
 and select resistance values for given voltage, current, and power conditions.  The calculator's
@@ -146,7 +146,7 @@ i, R        V = i*r, P = i**2*R
 i, P        V = P/i, R = P/i**2
 R, P        V = sqrt(P*R), i = sqrt(P/R)
 
-"""
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -184,9 +184,9 @@ if 1:  # Header
         g.dbg = False
         ii = isinstance
 if 1:  # Classes
-    """
+    '''
     The basic architecture is MVC.
-    """
+    '''
     class ZeroOrNegativeNotAllowed(Exception):
         "A variable must be > 0"
     class Model:
@@ -293,13 +293,12 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(status=0):
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] etc.
           Explanations...
         Options:
             -h      Print a manpage
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):
@@ -329,12 +328,12 @@ if 1:  # Utility
 if 1:  # Core functionality
     def ShowEquations():
         print(
-            dedent(f"""
+            dedent(f'''
             V = i*R = P/i  = sqrt(P*R)
             i = V/R = P/V  = sqrt(P/R)
             R = V/i = V²/P = P/i²
             P = V*i = i²*R = V²/R
-        """)
+        ''')
         )
 if __name__ == "__main__":
     d = {}  # Options dictionary
