@@ -1,4 +1,7 @@
 '''
+
+Todo
+    - Add 'ruler x' that shows a string x against a 0-based ruler
         
 This module extends the python debugger pdb.py Features:
 

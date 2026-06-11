@@ -47,8 +47,8 @@ if 1:  # Header
 
     # Custom imports
     from wrap import dedent
-    from months import months
-    from color import TRM as t
+    import trm
+    t = trm.TrmDP()
 
     if 0:
         import debug
@@ -59,12 +59,15 @@ if 1:  # Header
     W = int(os.environ.get("COLUMNS", "80")) - 1
     L = int(os.environ.get("LINES", "50"))
     # Colors
-    t.rise = t("ornl")
-    t.set = t("redl")
-    t.civ = t("purl")
+    t.rise = t("orn")
+    t.set = t("red")
+    t.civ = t("pur")
     t.naut = t("roy")
     t.astro = t("trq")
-    t.hyp = t("whtl")
+    t.hyp = t("wht")
+    # Month names
+    months = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
+        7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"}
 if 1:  # Location data
     # Boise, ID
     latitude = 43.64  # degrees

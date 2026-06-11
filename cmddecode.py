@@ -78,7 +78,7 @@ if 1:   # Classes
             the same number of elements as commands, then you'll get a
             ValueError.
             '''
-            self.ignore_case = ignore_case
+            self.ic = ignore_case
             # See if we can convert commands to a set
             try:
                 c = set(commands)
@@ -88,56 +88,46 @@ if 1:   # Classes
                 raise ValueError("commands must be a sequence of strings")
             if not c:
                 raise ValueError("commands must contain at least one command")
+            # Build self.commands_set, a set of allowed commands
             if ignore_case:
-                self.commands = set([i.lower() for i in c])
-                if len(self.commands) != len(commands):
+                self.command_set = set([i.lower() for i in c])
+                if len(self.command_set) != len(commands):
                     msg = "Some commands are not unique after conversion to lower case"
                     raise ValueError(msg)
             else:
-                self.commands = c
-            self.commands.discard("")   # Get rid of empty string
-            # Build index dictionary; each key is the first letter of the
-            # command and each element is a list of commands that have that
-            # first letter.
-            self.index = defaultdict(list)
-            for cmd in self.commands:
-                first_char = cmd[0]
-                self.index[first_char].append(cmd)
-            self.first_char_list = self.index.keys()
+                self.command_set = c
+            self.command_set.discard("")   # Get rid of empty string
+            if 1:
+                # Build index dictionary:  each key is the first character of the
+                # command and each element is a list of commands that have that first
+                # character.  This is a simple method to reduce the amount of searching
+                # for command matches.
+                self.index = defaultdict(list)
+                for cmd in self.command_set:
+                    first_char = cmd[0]
+                    self.index[first_char].append(cmd)
+                self.first_char_list = self.index.keys()
         def __str__(self):
-            s = " ".join(sorted(self.commands))
-            return f"CommandDecode({s}, ignore_case={self.ignore_case})"
-        def __call__(self, user_string):
-            '''Remove any leading and trailing whitespace in user_string and return a
-            list of the commands it matches, starting at the beginning of the string.
-            '''
-            if not isinstance(user_string, str):
+            s = " ".join(sorted(self.command_set))
+            return f"CommandDecode({s}, ignore_case={self.ic})"
+        def __call__(self, string):
+            'Return a list of the commands string matches'
+            if not isinstance(string, str):
                 raise ValueError("Input must be a string")
-            s = user_string.strip()
-            if not s:
-                return []   # No matches
-            if self.ignore_case:
-                s = s.lower()
-            if s in self.commands:  # It's in the set, so can be the only match
+            user_string = string.strip()
+            if not user_string:
+                return []
+            user_string = user_string.lower() if self.ic else user_string
+            if user_string in self.command_set:
                 return [user_string]
-            first_char = s[0]
-            if first_char not in self.first_char_list:
+            if user_string[0] not in self.first_char_list:
                 return []
-            # Get a list of the possible matches
-            possible_commands = self.index[first_char]
-            if self.ignore_case:
-                regexp = re.compile("^" + s, re.I)
-            else:
-                regexp = re.compile("^" + s)
-            matches = []
-            for cmd in possible_commands:
-                if regexp.match(cmd):
+            # Return a list of the possible matches
+            r = "^" + user_string
+            regex, matches = re.compile(r, re.I) if self.ic else re.compile(r), []
+            for cmd in self.index[user_string[0]]:
+                if regex.match(cmd):
                     matches.append(cmd)
-            # Return the list of matches (length 0, 1, or more than 1)
-            if len(matches) == 0:
-                return []
-            if len(matches) == 1:
-                return [matches[0]]
             return matches
 
 if __name__ == "__main__":

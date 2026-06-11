@@ -32,7 +32,8 @@ if 1:  # Header
         from columnize import Columnize
         from f import flt
         from f import cos, tan, sin, atan, pi, sqrt, radians
-        from color import Color, TRM as T
+        from trm import TrmDP
+        T = TrmDP()
     if 1:   # Global variables
         mm_per_in = 25.4  # in to mm
         tolerance = 0.1  # Tolerance for match in OD or tpi search

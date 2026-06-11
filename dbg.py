@@ -74,12 +74,14 @@ if 1:  # Core functionality
                      file: str = sys.stdout,    # Where output is sent
                      color: str = "",           # Color escape sequence for print color
                      header: str = "DBG",       # Leading string message
-                     show: bool = True,         # Show file and line number in message
+                     show_file: bool = False,   # Show file in message
+                     show_linenum: bool = True, # Show line number in message
                      on: bool = False):         # If True, output sent to stream
             self.file = file
             self.color = color
             self.header = header
-            self.show = show
+            self.show_file = show_file
+            self.show_linenum = show_linenum
             self.on = on
         def __call__(self, *p, **kw):
             if not self.on:
@@ -94,8 +96,11 @@ if 1:  # Core functionality
                 hdr += f"{self.color}"
             if self.header:
                 hdr += f"{self.header} "
-            if self.show:
-                hdr += f"[{fi}:{ln}]: "
+            if self.show_file or self.show_linenum:
+                f = fi if self.show_file else ""
+                l = ln if self.show_linenum else ""
+                c = ":" if f and l else ""
+                hdr += f"[{f}{c}{l}]: "
             # Output the header string
             print(f"{hdr}", end="", file=self.file)
             # Print the user's information
@@ -106,22 +111,6 @@ if 1:  # Core functionality
     # Convenience instance
     Dbg = Debug()
 
-    if 0:
-        # Old function form
-        def Dbg(*p, **kw):
-            '''Simple debugging command with the same syntax as print
-            Attributes:
-                .on     Set to True to see the messages
-            '''
-            if not hasattr(Dbg, "on"):
-                Dbg.on = False
-            if not Dbg.on:
-                return
-            frame = inspect.stack()[1]
-            fi = os.path.basename(frame.filename)
-            ln = frame.lineno
-            print(f"DBG [{fi}:{ln}]: ", end="")
-            print(*p, **kw)
     def Bug(*p, **kw):
         '''Print a bug you want to remember
         Only print it once for each call at a specific file and line number so you're not

@@ -318,7 +318,7 @@ if 1:  # Utility
               be ignored
         
         The treatment results in a first order linear differential equation for the wire
-        temperature as a function of time.  The "short time" should probably no more
+        temperature as a function of time.  The "short time" should probably be no more
         than a few seconds.  The derivation ignores the heat of fusion of the conductor,
         which is probably reasonable, as once the conductor is at the melting point,
         mechanical disruption is likely due to the mass of the conductor (i.e., its own
