@@ -1,27 +1,26 @@
-"""
+'''
 SUNRISET.C - computes Sun rise/set times, start/end of twilight, and
     the length of the day at any date and latitude
-
+    
     Written as DAYLEN.C, 1989-08-16
-
+    
     Modified to SUNRISET.C, 1992-12-01
-
+    
     (c) Paul Schlyter, 1989, 1992
-
+    
     Released to the public domain by Paul Schlyter, December 1992
-
+    
     Direct conversion to Java
     Sean Russell <ser@germane-software.com>
-
+    
     Conversion to Python Class, 2002-03-21
-
+    
     ---------------------------------------------------------------------
     DP Validation Sun 24 Apr 2022:  I downloaded the sunrise/sunset data
     for 2022 for my location from the USNO site https://aa.usno.navy.mil/;
     a number of spot checks over Apr to Oct 2022 gave agreements within one
     minute (i.e., the least significant figure).
-"""
-
+'''
 if 1:  # Header
     # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -44,15 +43,12 @@ if 1:  # Header
     import sys
     import time
     from collections import deque
-
     # Custom imports
     from wrap import dedent
     import trm
     t = trm.TrmDP()
-
     if 0:
         import debug
-
         debug.SetDebugger()
     # Global variables
     ii = isinstance
@@ -61,9 +57,9 @@ if 1:  # Header
     # Colors
     t.rise = t("orn")
     t.set = t("red")
-    t.civ = t("pur")
-    t.naut = t("roy")
-    t.astro = t("trq")
+    t.civ = t("whtl")
+    t.naut = t("wht")
+    t.astro = t("wht2")
     t.hyp = t("wht")
     # Month names
     months = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
@@ -96,31 +92,27 @@ if 1:  # Location data
     if dst_start.year != today.year:
         raise ValueError(f"{sys.argv[0]}:  Year wrong for DST calculations")
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [year month day]
           Print sunrise/sunset and twilight times.  The default settings print out 6 months of
           data.  In the second week in March and first week in November you'll see jumps in sunrise
-          and sunset because of the changes to/from Daylight Savings Time.
-        Validation:
-          2022 data from USNO https://aa.usno.navy.mil agreed within one least significant digit.
-        Source:
-          Derived from a C program by P. Schlyter put in the public domain in Dec 1992.
+          and sunset because of the changes to/from Daylight Savings Time.  Sun's center is:
+            Civil:          6° below horizon; brightest stars & planets seen
+            Nautical:      12° good stars & horizon still visible
+            Astronomical:  18° dark; galaxy/globular viewing needs dark skies even later
         Options:
             -h      Print a manpage
             -n n    Print n lines from given date [{d["-n"]}]
             -r      Reverse the order of the lines
             -s n    Use n days between dates [{d["-s"]}]
-        """)
+        ''')
         )
         exit(status)
-
     def ParseCommandLine(d):
         d["-n"] = 26  # Number of lines to print
         d["-r"] = False  # Reverse printout
@@ -143,18 +135,14 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return args
-
-
 if 1:  # Core functionality
-
     class Sun:
         def __init__(self):
             pass
-
         def daysSince2000Jan0(self, y, m, d):
-            """Return the number of days elapsed since 2000 Jan 0.0
+            '''Return the number of days elapsed since 2000 Jan 0.0
             (which is equal to 1999 Dec 31, 0h UT)
-            """
+            '''
             return (
                 367 * (y)
                 - ((7 * ((y) + (((m) + 9) / 12))) / 4)
@@ -162,88 +150,73 @@ if 1:  # Core functionality
                 + (d)
                 - 730530
             )
-
         "The trigonometric functions in degrees"
-
         def sind(self, x):
             return math.sin(math.radians(x))
-
         def cosd(self, x):
             return math.cos(math.radians(x))
-
         def acosd(self, x):
             return math.degrees(math.acos(x))
-
         def atan2d(self, y, x):
             return math.degrees(math.atan2(y, x))
-
-        """Following are some functions around the "workhorse" function __daylen__
+        '''Following are some functions around the "workhorse" function __daylen__
         They mainly fill in the desired values for the reference altitude
         below the horizon, and also selects whether this altitude should
         refer to the Sun's center or its upper limb.
-        """
-
+        '''
         def dayLength(self, year, month, day, lon, lat):
-            """Returns the length of the day, from sunrise to sunset.
+            '''Returns the length of the day, from sunrise to sunset.
             Sunrise/set is considered to occur when the Sun's upper limb is
             35 arc minutes below the horizon (this accounts for the refraction
             of the Earth's atmosphere).
-            """
+            '''
             return self.__daylen__(year, month, day, lon, lat, -35 / 60, 1)
-
         def dayCivilTwilightLength(self, year, month, day, lon, lat):
-            """Returns the length of the day, including civil twilight.
+            '''Returns the length of the day, including civil twilight.
             Civil twilight starts/ends when the Sun's center is 6 degrees below
             the horizon.
-            """
+            '''
             return self.__daylen__(year, month, day, lon, lat, -6, 0)
-
         def dayNauticalTwilightLength(self, year, month, day, lon, lat):
-            """Returns the length of the day, incl. nautical twilight.
+            '''Returns the length of the day, incl. nautical twilight.
             Nautical twilight starts/ends when the Sun's center is 12 degrees
             below the horizon.
-            """
+            '''
             return self.__daylen__(year, month, day, lon, lat, -12, 0)
-
         def dayAstronomicalTwilightLength(self, year, month, day, lon, lat):
-            """Returns the length of the day, incl. astronomical twilight.
+            '''Returns the length of the day, incl. astronomical twilight.
             Astronomical twilight starts/ends when the Sun's center is 18 degrees
             below the horizon.
-            """
+            '''
             return self.__daylen__(year, month, day, lon, lat, -18, 0)
-
         def sunRiseSet(self, year, month, day, lon, lat):
-            """Returns (sunrise, sunset) times.
+            '''Returns (sunrise, sunset) times.
             Sunrise/set is considered to occur when the Sun's upper limb is
             35 arc minutes below the horizon (this accounts for the refraction
             of the Earth's atmosphere).
-            """
+            '''
             return self.__sunriset__(year, month, day, lon, lat, -35 / 60, 1)
-
         def civilTwilight(self, year, month, day, lon, lat):
-            """Returns (start_time, end_time) of civil twilight.
+            '''Returns (start_time, end_time) of civil twilight.
             Civil twilight starts/ends when the Sun's center is 6 degrees below
             the horizon.
-            """
+            '''
             return self.__sunriset__(year, month, day, lon, lat, -6, 0)
-
         def nauticalTwilight(self, year, month, day, lon, lat):
-            """Returns (start_time, end_time) of nautical twilight.
+            '''Returns (start_time, end_time) of nautical twilight.
             Nautical twilight starts/ends when the Sun's center is 12 degrees
             below the horizon.
-            """
+            '''
             return self.__sunriset__(year, month, day, lon, lat, -12, 0)
-
         def astronomicalTwilight(self, year, month, day, lon, lat):
-            """Returns (start_time, end_time) of astronomical twilight.
+            '''Returns (start_time, end_time) of astronomical twilight.
             Astronomical twilight starts/ends when the Sun's center is 18 degrees
             below the horizon.
-            """
+            '''
             return self.__sunriset__(year, month, day, lon, lat, -18, 0)
-
         def __sunriset__(self, year, month, day, lon, lat, altit, upper_limb):
             # The "workhorse" function for sun rise/set times
-            """
+            '''
             Note: year,month,date = calendar date, 1801-2099 only.
                 Eastern longitude positive, Western longitude negative
                 Northern latitude positive, Southern latitude negative
@@ -270,7 +243,7 @@ if 1:  # Core functionality
                         -1 = sun is below the specified 'horizon' 24 hours
                             'Day' length = 0 hours, *trise and *tset are
                                 both set to the time when the sun is at south.
-            """
+            '''
             # Compute d of 12h local mean solar time
             d = self.daysSince2000Jan0(year, month, day) + 0.5 - (lon / 360)
             # Compute local sidereal time of this moment
@@ -302,9 +275,8 @@ if 1:  # Core functionality
                 t = self.acosd(cost) / 15  # The diurnal arc, hours
             # Store rise and set times - in hours UT
             return (tsouth - t, tsouth + t)
-
         def __daylen__(self, year, month, day, lon, lat, altit, upper_limb):
-            """
+            '''
             Note: year,month,date = calendar date, 1801-2099 only.
                 Eastern longitude positive, Western longitude negative
                 Northern latitude positive, Southern latitude negative
@@ -318,7 +290,7 @@ if 1:  # Core functionality
                     upper_limb: non-zero -> upper limb, zero -> center
                         Set to non-zero (e.g. 1) when computing day length
                         and to zero when computing day+twilight length.
-            """
+            '''
             assert 1800 < year < 2100
             # Compute d of 12h local mean solar time
             d = self.daysSince2000Jan0(year, month, day) + 0.5 - (lon / 360)
@@ -346,14 +318,13 @@ if 1:  # Core functionality
             else:
                 t = 2 / 15 * self.acosd(cost)  # The diurnal arc, hours
             return t
-
         def sunpos(self, d):
-            """
+            '''
             Computes the Sun's ecliptic longitude and distance
             at an instant given in d, number of days since
             2000 Jan 0.0.  The Sun's ecliptic latitude is not
             computed, since it's always very near 0.
-            """
+            '''
             # Compute mean elements
             M = self.revolution(356.0470 + 0.9856002585 * d)
             w = 282.9404 + 4.70935e-5 * d
@@ -368,7 +339,6 @@ if 1:  # Core functionality
             if lon >= 360:
                 lon = lon - 360  # Make it 0..360 degrees
             return (lon, r)
-
         def sunRADec(self, d):
             # Compute Sun's ecliptical coordinates
             res = self.sunpos(d)
@@ -386,25 +356,22 @@ if 1:  # Core functionality
             RA = self.atan2d(y, x)
             dec = self.atan2d(z, math.sqrt(x * x + y * y))
             return (RA, dec, r)
-
         def revolution(self, x):
-            """
+            '''
             This function reduces any angle to within the first revolution
             by subtracting or adding even multiples of 360.0 until the
             result is >= 0.0 and < 360
-
+            
             Reduce angle to within 0..360 degrees
-            """
+            '''
             return x - 360 * math.floor(x / 360)
-
         def rev180(self, x):
-            """
+            '''
             Reduce angle to within +180..+180 degrees
-            """
+            '''
             return x - 360 * math.floor(x / 360 + 0.5)
-
         def GMST0(self, d):
-            """
+            '''
             This function computes GMST0, the Greenwich Mean Sidereal Time
             at 0h UT (i.e. the sidereal time at the Greenwhich meridian at
             0h UT).  GMST is then the sidereal time at Greenwich at any
@@ -413,21 +380,21 @@ if 1:  # Core functionality
             other times than 0h UT as well.  While this sounds somewhat
             contradictory, it is very practical:  instead of computing
             GMST like:
-
+            
             GMST = (GMST0) + UT*(366.2422/365.2422)
-
+            
             where (GMST0) is the GMST last time UT was 0 hours, one simply
             computes:
-
+            
             GMST = GMST0 + UT
-
+            
             where GMST0 is the GMST "at 0h UT" but at the current moment!
             Defined in this way, GMST0 will increase with about 4 min a
             day.  It also happens that GMST0 (in degrees, 1 hr = 15 degr)
             is equal to the Sun's mean longitude plus/minus 180 degrees!
             (if we neglect aberration, which amounts to 20 seconds of arc
             or 1.33 seconds of time)
-            """
+            '''
             # Sidtime at 0h UT = L (Sun's mean longitude) + 180.0 degr
             # L = M + w, as defined in sunpos().  Since I'm too lazy to
             # add these numbers, I'll let the C compiler do it for me.
@@ -437,7 +404,6 @@ if 1:  # Core functionality
                 (180 + 356.0470 + 282.9404) + (0.9856002585 + 4.70935e-5) * d
             )
             return sidtim0
-
     def PrintSunriseSunset_orig(year, month, day):
         S = Sun()
         assert 1 <= month <= 12
@@ -453,13 +419,12 @@ if 1:  # Core functionality
         times = S.astronomicalTwilight(year, month, day, longitude, latitude)
         Print("Astronomical twilight", times)
         print("Add 1 hour if daylight saving time is in effect")
-
     def PrintHeader():
         print(
-            dedent(f"""
+            dedent(f'''
         For Boise, ID
                                        {t.hyp}-------------- Twilight ---------------{t.n}
-        """)
+        ''')
         )
         print(f"                  {t.rise}Rise  {t.set}Set{t.n}       ", end="")
         print(
@@ -468,13 +433,11 @@ if 1:  # Core functionality
         print(
             f"                 {t.hyp}-----------   -----------   -----------   -----------{t.n}"
         )
-
     def DST(date):
         "Return True if DST is on"
         if dst_start < date < dst_end:
             return True
         return False
-
     def Correct(decimal_hours, date):
         # Change UT to local time
         hours = int(decimal_hours) + GMT_offset  # UT to local time
@@ -487,12 +450,10 @@ if 1:  # Core functionality
             if hours > 12:
                 hours -= 12
         return "%2d:%02d" % (hours, minutes)
-
     def Get(date, times, clr1="", clr2=""):
         rise = Correct(times[0], date)
         set = Correct(times[1], date)
         return f"{clr1}{rise:5s} {clr2}{set:5s}{t.n}   "
-
     def GetSunriseSunset(year, month, day):
         "Return a string for this day"
         S = Sun()
@@ -514,8 +475,6 @@ if 1:  # Core functionality
         times = S.astronomicalTwilight(year, month, day, longitude, latitude)
         out.append(Get(dt, times, t.astro, t.astro))
         return "".join(out)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
