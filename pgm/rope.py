@@ -1,16 +1,16 @@
-"""
+'''
 
 ToDo:
     - Default units metric, -p for lbf
-    - Samson 3/8" stable braid has min 4.8 klb breaking with a mean of 5.6
-      klb, so mean is about 15% more than minimum.  Assuming a normal
+    - Samson 3/8" stable braid has min 4.8 klbf breaking with a mean of 5.6
+      klbf, so mean is about 15% more than minimum.  Assuming a normal
       distribution with the minimum being minus three standard deviations,
       this means the standard deviation of the strength is about 5%.
       
 ---------------------------------------------------------------------------
 
 Print rope data
-"""
+'''
 ##∞test∞# notest #∞test∞#
 if 1:  # Header
     # Standard imports
@@ -44,7 +44,7 @@ if 1:  # Utility
         exit(status)
     def Usage(status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] [arg]
           If arg is empty, print strength data.  If arg is given, plot the
           rope strength as a function of nylon's strength.
@@ -53,7 +53,7 @@ if 1:  # Utility
             -f      Used fixed decimal point display
             -d      Number of digits in numbers [{d["-d"]}]
             -h      Print a manpage
-        """)
+        ''')
         )
         exit(status)
     def ParseCommandLine(d):
@@ -82,27 +82,27 @@ if 1:  # Utility
         return args
 if 1:  # Samson data
     def GetSamsonData():
-        """Return a list of
+        '''Return a list of
         (
             diameter_mm,
             mass_density_g_per_m,
             average_strength_N,
             minimum_strength_N
         )
-        """
+        '''
         # These are the data from the Samson website
-        dia_in = """1/4 5/16 3/8 7/16 1/2 9/16 5/8 3/4 7/8 1 1-1/8 1-1/4 1-5/16
+        dia_in = '''1/4 5/16 3/8 7/16 1/2 9/16 5/8 3/4 7/8 1 1-1/8 1-1/4 1-5/16
                     1-1/2 1-5/8 1-3/4 2 2-1/8 2-1/4 2-1/2 2-5/8 2-3/4 3 3-1/4
-                    3-5/8 4 4-1/4 4-5/8 5""".split()
-        wt_100_ft_lb = """2.1 3.2 4.5 6.1 8.2 11 14 18 27.1 34 45.3 53.9 60.8 73.3
+                    3-5/8 4 4-1/4 4-5/8 5'''.split()
+        wt_100_ft_lb = '''2.1 3.2 4.5 6.1 8.2 11 14 18 27.1 34 45.3 53.9 60.8 73.3
                        85.9 104 124 147 173 196 225 246 300 375 450 525 589 689
-                       788""".split()
-        strength_avg_klb = """2.3 3.6 5.6 7.7 10.4 13.3 16.3 20.4 29.9 39.2 48.2
+                       788'''.split()
+        strength_avg_klb = '''2.3 3.6 5.6 7.7 10.4 13.3 16.3 20.4 29.9 39.2 48.2
                               57.3 64.7 75.1 87.2 104 124 145 166 190 212 234
-                              278 343 407 470 533 616 698""".split()
-        strength_min_klb = """2 3.1 4.8 6.5 8.8 11.3 13.9 17.3 25.4 33.3 41 48.7 55
+                              278 343 407 470 533 616 698'''.split()
+        strength_min_klb = '''2 3.1 4.8 6.5 8.8 11.3 13.9 17.3 25.4 33.3 41 48.7 55
                               63.8 74.1 88.4 105 123 141 162 180 199 236 292
-                              346 400 453 524 593""".split()
+                              346 400 453 524 593'''.split()
         # Get diameter in mm
         dia_mm = []
         for i in dia_in:
@@ -128,9 +128,9 @@ if 1:  # Samson data
         data = list(zip(dia_mm, g_per_m, strength_avg_N, strength_min_N))
         return data
     def PrintSamsonTableMetric(data, all=False):
-        """data is a list of (dia_mm, g_per_m, strength_avg_N,
+        '''data is a list of (dia_mm, g_per_m, strength_avg_N,
         strength_min_N) entries.
-        """
+        '''
         if 1:  # Set up flt formatting
             x = flt(0)
             x.N = d["-d"]
@@ -179,17 +179,17 @@ if 1:  # Samson data
                     f"{g_per_m / 1000!s:^{w[4]}s}"
                 )
         print(
-            dedent("""
+            dedent('''
             
             Minimum strength is about 15% below average.  If strength is
             assumed to be a normal distribution and the minimum is 3σ below 
             the mean, then the standard deviation is about 5% of the mean.
-        """)
+        ''')
         )
     def PrintSamsonTablePounds(data, all=False):
-        """data is a list of (dia_mm, g_per_m, strength_avg_N,
+        '''data is a list of (dia_mm, g_per_m, strength_avg_N,
         strength_min_N) entries.
-        """
+        '''
         if 1:  # Set up flt formatting
             x = flt(0)
             x.N = d["-d"]
@@ -265,14 +265,14 @@ if 1:  # Generic data
             data.append(item)
         return data
     def PrintGenericTable(data):
-        """This information was online at one time, but I cannot find a
+        '''This information was online at one time, but I cannot find a
         link for it anymore.  Wall Rope Works apparently has been defunct
         for a number of decades.
-        """
+        '''
         digits = 2
         if 1:  # Table in klbf
             print(f"Generic rope data breaking strength to {digits} digits")
-            print(f"  Strength in klb and diameter in inches")
+            print(f"  Strength in klbf and diameter in inches")
             print(f"  Source:  U.S. Naval Institute and Wall Rope Works, NY")
             print(f"  PE = polyethylene, PP = polypropylene, PEst = polyester")
             print()
@@ -329,9 +329,9 @@ if 1:  # Generic data
                             print(f"{x:^{w}s}", end=" " * 2)
                         print()
     def ChainData():
-        """
+        '''
         https://www.uscargocontrol.com/blogs/blog/working-load-limits-chain
-        """
+        '''
         data = [
             # Working load limit in klbf as function of grade & size
             ("Size", 30, 43, 80, 100),
@@ -359,13 +359,13 @@ if 1:  # Generic data
                     f"{flt(i[4])!s:^{w}s}"
                 )
         print(
-            dedent("""
+            dedent('''
             
         Grade 30:  economical, light duty
         Grade 43:  towing & logging duty
         Grade 80:  Heat-treated alloy chain for lifting
         Grade 100: Heat-treated alloy chain for lifting
-        """)
+        ''')
         )
         # Metric data
         print(f"\nWorking load limit in kN for steel chain vs. grade")
@@ -383,7 +383,7 @@ if 1:  # Generic data
                     f"{flt(i[4]) * lbf_to_kN!s:^{w}s}"
                 )
     def PlotData():
-        """Fields are:
+        '''Fields are:
             Dia, inches
             Manila
             Sisal
@@ -393,8 +393,8 @@ if 1:  # Generic data
             Polypropylene
             Polyester
         The numbers are breaking strength in klbf.
-        """
-        data = """
+        '''
+        data = '''
             0.188  0.45   0.36  1    0.85  0.7   0.8  0.72
             0.25   0.6    0.48  1.5  1.38  1.2   1.2  1.15
             0.312  1      0.8   2.5  2.15  1.75  2.1  1.75
@@ -406,7 +406,7 @@ if 1:  # Generic data
             0.75   5.4    4.32  14   12.5  7.4   8.2  9.5
             0.875  7.7    5.7   20   17.5  10.4  11.5 13.5
             1      9      7.2   24   20    12.6  14   16.5
-        """
+        '''
         dia, manila, sisal, nylon, dacron, polye, polyp, polyester = (
             [],
             [],
@@ -478,12 +478,12 @@ if 1:  # Generic data
         else:
             savefig("rope_str_rel_nylon.png")
     def PrintTypeTable():
-        """These data came from
+        '''These data came from
         https://atlanticbraids.com/double-braid-versus-3-strand-twisted-rope/
-        """
+        '''
         w = 8
         print(
-            dedent(f"""
+            dedent(f'''
         Minimum tensile strength ratio for db/3str where db means double
         braided rope and 3str means three-strand:
                        Nylon              Polyester
@@ -491,11 +491,11 @@ if 1:  # Generic data
             1/2"        {flt(83 / 59.5)!s:{w}s}            {flt(90 / 36.5)!s:{w}s}
             1"          {flt(31 / 22)!s:{w}s}            {flt(34 / 12.6)!s:{w}s}
             2"          {flt(118 / 81.4)!s:{w}s}            {flt(106 / 48.6)!s:{w}s}
-        """)
+        ''')
         )
     def Notes():
         print(
-            dedent(f"""
+            dedent(f'''
         Notes:
             - Published rope tensile strength data easily varies by 20% or
               more and the typical web author doesn't 1) attribute their data
@@ -503,7 +503,7 @@ if 1:  # Generic data
             - Most web pages are written by amateurs who do not have a
               technical background, so vet their data carefully (or,
               better, don't use it).
-        """)
+        ''')
         )
 if __name__ == "__main__":
     d = {}  # Options dictionary

@@ -121,12 +121,12 @@ if 1:  # Header
         except Exception:
             _have_uncertainties = False
     if 1:  # Global variables
-        g = dptypes.Constant()
+        G = dptypes.Constant()
         # Utility stuff
-        g.have_uncertainties = _have_uncertainties
+        G.have_uncertainties = _have_uncertainties
         # Regular expression that will match an integer or floating point
         # number in its string representation.
-        g._num_unit = re.compile(
+        G._num_unit = re.compile(
             r'''
                 (?x)                            # Allow verbosity
                 ^                               # Must match at beginning
@@ -148,7 +148,7 @@ if 1:  # Header
         # default should be suitable for most practical problems.  This
         # lower number is used to help avoid annoying string
         # interpolations like '34.199999999999', which should be '34.2'.
-        g.number_of_digits = 12
+        G.number_of_digits = 12
         del _have_uncertainties
         # Public symbols when "from u import *" is used.
         __all__ = '''CT dim Dim fromto ParseUnit RoundOff SI_prefixes
@@ -361,7 +361,7 @@ if 1:  # Parsing
         '''
         if s.lower() == "q" and allow_quit:
             exit(0)
-        if allow_unc and not g.have_uncertainties:
+        if allow_unc and not G.have_uncertainties:
             raise ValueError("uncertainties library not available")
         if allow_expr and allow_unc:
             raise ValueError("allow_expr and allow_unc cannot both be True")
@@ -389,7 +389,7 @@ if 1:  # Parsing
                 u = f[1] if len(f) == 2 else ""
                 return (x, u)
             else:
-                mo = g._num_unit.search(s)
+                mo = G._num_unit.search(s)
                 if mo:
                     x, unit = s[: mo.end()].rstrip(), s[mo.end() :].lstrip()
                     return (x, unit)
@@ -528,7 +528,7 @@ if 1:  # Parsing
                     raise ValueError(f"'{s}' is an invalid integer")
         return (significand, unit)
 if 1:  # Utilities
-    def RoundOff(number, digits=g.number_of_digits):
+    def RoundOff(number, digits=G.number_of_digits):
         '''Round the significand of number to the indicated number of digits
         and return the number suitably rounded (integers are returned
         untransformed).  The desire is to round things to get rid of
@@ -606,7 +606,7 @@ if 1:  # Utilities
         '''Print an error message the the uncertainties module is not
         present.
         '''
-        if not g.have_uncertainties:
+        if not G.have_uncertainties:
             print(
                 '''Error:  the uncertainties module is not available
             (see http://pythonhosted.org/uncertainties)''',
@@ -1337,54 +1337,51 @@ if 1:   # Classes
             t = tokenize.untokenize(r).decode("utf-8")
             return t
         def __call__(self, expr, strict=None, dim=False, digits=None):
-            '''Returns a conversion factor to base units for the string
-            expr, an expression in terms of unit strings.  The value will be
-            rounded off to the U instance's digits attribute's number of
-            significant figures.  If the keyword digits is a suitable
-            integer, it is used instead, so that you don't have to change
-            the instance attribute (it must be an integer or None).
+
+            '''Returns a conversion factor to base units for the string expr, an
+            expression in terms of unit strings.  The value will be rounded off to the U
+            instance's digits attribute's number of significant figures.  If the keyword
+            digits is a suitable integer, it is used instead, so that you don't have to
+            change the instance attribute (it must be an integer or None).
             
-            The current global context is used for evaluating the
-            expression; the local context is all the units that have been
-            defined (they must be valid python variable names).  An
-            exception is raised if the call can't complete.
+            The current global context is used for evaluating the expression; the local
+            context is all the units that have been defined (they must be valid python
+            variable names).  An exception is raised if the call can't complete.
             
-            expr can be a string of whitespace or empty, in which case 1 will
-            be returned.
+            expr can be a string of whitespace or empty, in which case 1 will be
+            returned.
             
-            If dim is True, then a tuple (factor, Dim_instance) is returned.
-            factor is the conversion factor (a float) and Dim_instance is a Dim
-            object representing the physical dimensions of expr.
+            If dim is True, then a tuple (factor, Dim_instance) is returned.  factor is
+            the conversion factor (a float) and Dim_instance is a Dim object
+            representing the physical dimensions of expr.
             
-            If strict is True, then only valid python expressions in the
-            unit strings are allowed; the unit strings are regarded as
-            variable names.  If strict is not True, then the following
-            syntactical conveniences are allowed:
+            If strict is True, then only valid python expressions in the unit strings
+            are allowed; the unit strings are regarded as variable names.  If strict is
+            not True, then the following syntactical conveniences are allowed:
             
-                - Sequences of one or more space characters in expr are
-                converted to '*' characters (alternate multiplication
-                syntax).  Example:  'J s' means joule*seconds.
+                - Sequences of one or more space characters in expr are converted to '*'
+                  characters (alternate multiplication syntax).  Example:  'J s' means
+                  joule*seconds.
                 - '^' is equivalent to '**'
-                - A unit string can have an appended integer, which is an
-                implied exponent.  Example:  'm2' means square meters.
-                Warning:  this only works for positive integers.
-                - Bare SI prefixes can be used as numerical constants
-                (excluding 'm'); implicit exponentiation works with them.
-                Example:  'k2' means 1000**2 == 1e6.
+                - A unit string can have an appended integer, which is an implied
+                  exponent.  Example:  'm2' means square meters.  Warning:  this only
+                  works for positive integers.
+                - Bare SI prefixes can be used as numerical constants (excluding 'm');
+                  implicit exponentiation works with them.  Example:  'k2' means 1000**2
+                  == 1e6.
                 
-            If strict is None (the default), then the current setting of the
-            object's strict attribute are used.
+            If strict is None (the default), then the current setting of the object's
+            strict attribute are used.
             
-            Fractions in an expression are indicated by a pair of single or
-            double quotes; This e.g. allows fractional exponents and lets you
-            use fractions of an inch (assume u is a U instance for SI units):
+            Fractions in an expression are indicated by a pair of single or double
+            quotes; This e.g. allows fractional exponents and lets you use fractions of
+            an inch (assume u is a U instance for SI units):
                 print(u("m^'1/2'", dim=True))
                 print(u("'7/16' inch"))
             outputs
                 (1.0, Dim("L1/2"))
                 0.011112499999999999
-            showing that the physical dimensions are the square root of a
-            length.
+            showing that the physical dimensions are the square root of a length.
             '''
             assert expr is not None, "Bug in U.__call__:  expr is None"
             # Translate superscripts to digits and middle dot & no-break
@@ -2862,7 +2859,7 @@ if __name__ == "__main__":
         # instances with the same constructor; you have to compare the nominal
         # value and standard deviation to determine the equality of
         # their distributions.
-        if g.have_uncertainties:
+        if G.have_uncertainties:
             def ueq(a, b):
                 return a.nominal_value == b.nominal_value and a.std_dev == b.std_dev
             y = ufloat(4, 1)

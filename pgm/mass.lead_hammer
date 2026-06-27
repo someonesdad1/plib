@@ -37,8 +37,8 @@ vunit in3
 # Lengthened to get 2.5 to 3 lb for head.  
 #   L=1.2 gives 2.14 lb for the head.
 #   L=1.6 gives 2.64 lb for the head.
-    cyl d=1.5, L=1.5, material="Pb", name="endcap", n=2
-    cyl d=1, L=0.25, material="Pb", name="endcap hole", neg=True, n=2
+cyl d=1.5, L=1.5, material="Pb", name="endcap", n=2
+cyl d=1, L=0.25, material="Pb", name="endcap hole", neg=True, n=2
 
 # 2:  Body
 cyl d=1.5, L=1.5, name="body"

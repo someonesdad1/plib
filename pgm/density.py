@@ -1,6 +1,7 @@
 '''
 TODO
 
+    - For re searches, highlight the matches
     - -d doesn't work for range data (e.g., human urine is 1-1.03)
     - CO2 gas at 1.8 from pht can't be correct
     - Move density data to a datafile and use GetLines to retrieve.  In fact, it
@@ -2511,7 +2512,7 @@ if 1:  # Density data
         Gypsum (ground)                                ; 0.673       ; pwdrh
         Ice, crushed                                   ; 0.641       ; pwdrh
         Iron chromite                                  ; 1.826       ; pwdrh
-        Iron fillings                                  ; 2.884       ; pwdrh
+        Iron filings                                   ; 2.884       ; pwdrh
         Iron ore                                       ; 2.595       ; pwdrh
         Iron oxide                                     ; 1.282       ; pwdrh
         Iron oxide (black)                             ; 2.579       ; pwdrh
