@@ -270,6 +270,7 @@ if 1:  # Core functionality
     def OpenFile(app, matches, choice):
         "Open indicated choice (subtract 1 first)"
         file = matches[choice - 1][0]
+        print(f"{choice + 1} {file}")
         if wsl:
             if 0:
                 # Use wslpath.exe to convert the file name to a Windows path
