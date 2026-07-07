@@ -965,7 +965,6 @@ if 1:  # Data
         Temperature by appearance	Lautard, Guy	TMBR#1:200
         Testing a square against a surface plate or straightedge	Lautard, Guy	TMBR#2:15
         Testing lifting and slinging gear	Lautard, Guy	TMBR#3:39
-        Testing squares against a surface plate or straightedge	Lautard, Guy	TMBR#2:15
         The Bullseye Mixture	Lautard, Guy	TMBR#2:163
         The Cole Drill	Lautard, Guy	TMBR#3:18
         The Disappearing Drilling & Tapping Tool	Lautard, Guy	TMBR#3:172
