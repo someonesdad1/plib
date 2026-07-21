@@ -21,7 +21,7 @@ if 1:  # Header
         pass
     if 1:  # Custom imports
         from columnize import Columnize
-        from frange import frange
+        from dpseq import frange
     if 1:  # Global variables
         pass
     __all__ = (

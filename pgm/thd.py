@@ -1,6 +1,6 @@
 '''
 TODO:
-    - Add -d for sig figures
+    - Add message at bottom if pitch can be cut on lathe
     - Add -b for brief report
     - Helix angle
     - UN flat on front of cutting tool
@@ -60,61 +60,13 @@ if 1:  # Header
 if 1:   # Data
     # Clausing 5914 lathe threads per inch
     lathe_threads = (
-        "4",
-        "4.5",
-        "5",
-        "5.5",
-        "5.75",
-        "6",
-        "6.5",
-        "6.75",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "11.5",
-        "12",
-        "13",
-        "13.5",
-        "14",
-        "16",
-        "18",
-        "20",
-        "22",
-        "23",
-        "24",
-        "26",
-        "27",
-        "28",
-        "32",
-        "36",
-        "40",
-        "44",
-        "46",
-        "48",
-        "52",
-        "54",
-        "56",
-        "64",
-        "72",
-        "80",
-        "88",
-        "92",
-        "96",
-        "104",
-        "108",
-        "112",
-        "128",
-        "144",
-        "160",
-        "176",
-        "184",
-        "192",
-        "208",
-        "216",
-        "224",
+        "4", "4.5", "5", "5.5", "5.75", "6", "6.5", "6.75", "7", "8", "9", "10", "11",
+        "11.5", "12", "13", "13.5", "14", "16", "18", "20", "22", "23", "24", "26",
+        "27", "28", "32", "36", "40", "44", "46", "48", "52", "54", "56", "64", "72",
+        "80", "88", "92", "96", "104", "108", "112", "128", "144", "160", "176", "184",
+        "192", "208", "216", "224",
     )
+    lathe_threads_flt = tuple(flt(i) for i in lathe_threads)
     # Clausing 5914 lathe feeds in mils per revolution
     lathe_feeds = [
         0.65,
@@ -1446,7 +1398,7 @@ if 1:  # Core functionality
             p = 1 / Float(arg)
         print(" " * spc, "   inches        mm")
         print(" " * spc, "   ------        ---")
-        print(fmt1 % ("Threads per inch or mm", 1 / p, 1 / (mm_per_in * p)))
+        print(fmt1 % ("Threads per inch or mm", 1 / p, 1 / flt(mm_per_in * p)))
         print(fmt % ("Pitch", p, p * mm_per_in))
         print("PD = pitch diameter = MOW - const")
         PrintBestWire(p)
@@ -1909,13 +1861,12 @@ if 1:  # Core functionality
         H = p * sqrt(3) / 2
         if 0:
             import ruler
-
             R = ruler.Ruler()
             print(R(choice=0))
         print(f"{'':{g.w}s} {'inches':^{g.iw}s} {'mm':^{g.mw}s}")
         print(f"{'':{g.w}s} {'-' * (g.iw - 2):^{g.iw}s} {'-' * (g.mw - 2):^{g.mw}s}")
         Print("Nominal diameter", diameter)
-        Print("Threads per inch or mm", tpi, tpi / mm_per_in)
+        Print("Threads per inch or mm", tpi, flt(tpi / mm_per_in))
         loe = diameter * d["-L"]
         Print("Length of engagement", loe)
         # Sellers' recommended tpi given the diameter
@@ -2007,6 +1958,11 @@ if 1:  # Core functionality
             Print(f"    {percent:3d}% thread      Drill = {F}", D)
         print()
         ThreadDepths(H)
+        # Print color message if this pitch is found on my lathe
+        if tpi in lathe_threads_flt:
+            my_tpi = int(tpi) if int(tpi) == tpi else tpi
+            T.print(f"{T.grn}{my_tpi} is a thread the Clausing 5914 lathe can cut")
+
     def PrintBriefResults(diameter, tpi):
         thread_class = d["-c"]
         A = asme.UnifiedThread(
@@ -2027,10 +1983,8 @@ if 1:  # Core functionality
         with H:
             H.n = max(d["-d"] - 1, 1)
         if 1:  # Output strings
-
             def f(x):
                 return int(round(1000 * x, 0))
-
             DIA = f"{f(diameter)}"
             TPI = f"{tpi}"
             LOE = f"{f(loe)}"
@@ -2043,7 +1997,6 @@ if 1:  # Core functionality
                 AS.n = 3
                 TA_IN2 = f"{AS}"
                 TA_MM2 = f"{AS * mm_per_in**2}"
-
         # Thread shear area
         # ∞∞2 Note:  this prints out values that cannot be right.
         if 0:
@@ -2086,9 +2039,9 @@ if 1:  # Core functionality
         if W:
             mow_max = MOW(A.Emax(), tpi, W)
             mow_min = MOW(A.Emin(), tpi, W)
-            MOWWD = f"{f(W)}" if W else "N/A"
-            MOWMAX = f"{f(MOW(A.Emax(), tpi, W))}" if W else "N/A"
-            MOWMIN = f"{f(MOW(A.Emin(), tpi, W))}" if W else "N/A"
+        MOWWD = f"{f(W)}" if W else "N/A"
+        MOWMAX = f"{f(MOW(A.Emax(), tpi, W))}" if W else "N/A"
+        MOWMIN = f"{f(MOW(A.Emin(), tpi, W))}" if W else "N/A"
         D, F = TapDrill(diameter, 65, 1 / tpi)
         TD65 = f"{f(D)}"
         TDS65 = f"{F}"
@@ -2125,27 +2078,22 @@ if 1:  # Core functionality
             f"{ALLOW:6s}"
         )
         print(f"Tensile area = {TA_IN2} in² = {TA_MM2} mm²")
-        print(
-            dedent(f'''
+        print(dedent(f'''
         External thread diameters           Max     Min     Tol
             Major {" " * 25} {EXTDMAX:6s}  {EXTDMIN:6s}{1000 * (A.Dmax() - A.Dmin()):6.1f}
             Pitch {" " * 25} {EXTPDMAX:6s}  {EXTPDMIN:6s}{1000 * (A.Emax() - A.Emin()):6.1f}
             Minor (vee thread), nom. {" " * 7}{EXTdNOM} 
-        ''')
-        )
-        print(
-            dedent(f'''
+        '''))
+        print(dedent(f'''
         Internal thread diameters
             Minor {" " * 25} {INTdMAX:6s}  {INTdMIN:6s}{1000 * (A.dmax() - A.dmin()):6.1f}
             Pitch {" " * 25} {INTPDMAX:6s}  {INTPDMIN:6s}{1000 * (A.emax() - A.emin()):6.1f}
             Major (vee thread), nom. {" " * 7}{INTDNOM} 
-        ''')
-        )
+        '''))
         td65 = f"{TD65} ({TDS65})"
         td75 = f"{TD75} ({TDS75})"
         td85 = f"{TD85} ({TDS85})"
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Measurements over wires       Wire ∅      MOW-Max     MOW-Min
         {" " * 33}{MOWWD}         {MOWMAX}         {MOWMIN}
         Tap drills      65%             75%             85%
@@ -2157,8 +2105,7 @@ if 1:  # Core functionality
             Flat on form tool                              {FRMTOOLFLT}
             Double depth                                   {UNDD}     
             Compound feed, DD/cos(29°)                     {UNCF} 
-        ''')
-        )
+        '''))
         # Print short instructions for lathe cutting
         T.print(f"\n{T('magl')}Lathe cutting summary for vee thread at MMC")
         print(f"{T('purl')}", end="")

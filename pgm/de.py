@@ -36,7 +36,7 @@ if 1:  # Header
         from bisect import bisect_left, bisect_right
     if 1:  # Custom imports
         from wrap import dedent
-        from frange import frange, Rational
+        from dpseq import frange, Rational
         from sig import sig
         from f import flt
         from columnize import Columnize
