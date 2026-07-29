@@ -78,7 +78,7 @@ if 1:  # Utility
         Usage:  {name} [options] Y [amount1 amount2 ...]
           Print approximately what something cost in year Y compared to today
           ({ref_year}).  If amounts are included, they are scaled to both years.  Based
-          on the consumer price index.
+          on the consumer price index from 1913 to today.
         Options:
           -d n      Set the number of significant digits.  [{d["-d"]}]
           -h        Print a manpage

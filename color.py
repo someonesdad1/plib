@@ -1631,507 +1631,508 @@ if __name__ == "__main__":
             return tuple(names)
     def Reset():
         Color.bits_per_color = 8
-    def Test_8bitConversions():
-        for i in range(256):
-            rgb1 = Translate8bit(i)
-            n = RGBtoANSI8bit(*rgb1.irgb)
-            rgb2 = Translate8bit(n)
-            dist = ColorDistance(rgb1, rgb2)
-            lw.Assert(not dist)
-    def Test_Color_adjust():
-        Reset()
-        c = Color(0, 100, 0)
-        # Adjust green up and down by 10%
-        c1 = c.adjust(10, comp="g", set=False)
-        lw.Assert(c1.irgb == (0, 110, 0))
-        c1 = c.adjust(-10, comp="g", set=False)
-        lw.Assert(c1.irgb == (0, 90, 0))
-        # Set green to 0
-        c1 = c.adjust(0, comp="g", set=True)
-        lw.Assert(c1.irgb == (0, 0, 0))
-    def Test_Color_short_color_names():
-        # This just sees that the names are recognized.
-        R = GetShortNames(all=True)
-        for i in R:
-            c = Color(i, bpc=8)
-            c   # Quiet linter
-            #c = Color(i, bpc=10)
-    def Test_Color_change_bpc():
-        Reset()
-        a = (15, 3, 7)
-        c = Color(*a, bpc=4)
-        d = c.change_bpc(8)
-        lw.Assert(d == Color(240, 48, 112, bpc=8))
-        e = c.change_bpc(4)
-        lw.Assert(e == c)
-        f = c.change_bpc(34)
-        lw.Assert(f == Color(16106127360, 3221225472, 7516192768, bpc=34))
-        g = f.change_bpc(4)
-        lw.Assert(g == c)
-    def Test_ColorAttributes():
-        Reset()
-        a = (3, 34, 18)
-        c = Color(*a)
-        n = c.N - 1
-        lw.Assert(c.irgb == c._rgb)
-        dec = tuple(i/n for i in c._rgb)
-        lw.Assert(c.drgb == dec)
-        lw.Assert(c.xrgb == "#032212")
-        #
-        lw.Assert(c.ihsv == (105, 232, 34))
-        e = Color(*c.ihsv, hsv=True)
-        lw.Assert(e == c)  # Shows c.ihsv converts back to original color
-        dec = (0.41397849462365593, 0.9117647058823529, 0.13333333333333333)
-        lw.Assert(c.dhsv == dec)
-        lw.Assert(c.xhsv == "@69e822")
-        # Can add attributes (no __slots__)
-        c.a = 4
-        lw.Assert(c.a == 4)
-    def Test_Color_downshift():
-        n = 7
-        c1 = Color(1, 2, 3, bpc=13)
-        c2 = Color(88, 233, 73, bpc=n)
-        n1, n2 = Color.downshift(c1, c2)
-        lw.Assert(n1.bpc == n and n2.bpc == n)
-    def Test_Color_dist():
-        n = 8
-        m = 2**n - 1
-        c1 = Color(0, 0, 0, bpc=n)
-        c2 = Color(m, m, m, bpc=n)
-        #x = Color.dist(c1, c2)
-        lw.Assert(Color.dist(c1, c2) == 1)
-        lw.Assert(Color.dist(c1, c2, taxicab=True) == 1)
-    def Test_ColorEquality():
-        Reset()
-        if 1:  # Integers in constructor
-            a, b, c = (36, 40, 99)
-            c1 = Color(a, b, c)
-            e, f, g = c1.irgb
-            c2 = Color(a, b, c)
-            c3 = Color(a + 1, b, c)
-            lw.Assert(c1 == c2)
-            lw.Assert(hash(c1) == hash(c2))
-            lw.Assert(c1 != c3)
-            # Show equality only depends on the stored integers
-            c3._rgb = (a, b, c)
-            lw.Assert(c1 == c3)
-            lw.Assert(hash(c1) == hash(c3))
-        if 1:  # Floats in constructor
-            c1 = Color(e, f, g)
-            c2 = Color(e, f, g)
-            lw.Assert(c1 == c2)
-        if 1:
-            # Colors with different bpcs can be equal
-            c1 = Color(15, 0, 0, bpc=4)
-            c2 = Color(255, 0, 0, bpc=8)
-            lw.Assert(c1 == c2)
-    def Test_ColorInterpolate():
-        Reset()
-        c1 = Color(210, 105, 30)  # chocolate
-        c2 = Color(205, 41, 144)  # maroon3
-        got = c1.interpolate(c2, 0.65)
-        expected = Color(206, 63, 104)
-        lw.Assert(got == expected)
-    def Test_ColorConstruct():
-        Reset()
-        def f(x):
-            return tuple(round(i, 3) for i in x)
-        # No color specifier gets None
-        s = "kldjfkdj"
-        c = Color.Construct(s)
-        lw.Assert(c is None)
-        # Separated by commas or spaces
-        expected = Color(25, 51, 76)
-        for s in (".1, .2, .3", ".1 .2 .3"):
-            c = Color.Construct(s)
-            lw.Assert(c == expected)
-        # Multiline
-        t = "This is a line"
-        s = f'''
-            {t} (.1, .2, .3)
-            {t} (.2, .4, .7)
-        '''
-        a = Color.Construct(s)
-        lw.Assert(isinstance(a, collections.deque))
-        name, c = a.popleft()
-        lw.Assert(t in name)
-        lw.Assert(c == expected)
-        name, c = a.popleft()
-        lw.Assert(t in name)
-        lw.Assert(f(c.drgb) == (0.200, 0.400, 0.698))
-    def Test_ColorDistance():
-        Reset()
-        a = 12, 6, 247
-        b = 101, 171, 124
-        c1 = Color(*a)
-        c2 = Color(*b)
-        def f(x, y):
-            return (sum((i - j) ** 2 for i, j in zip(x, y))/3) ** (1/2)
-        # rgb
-        d1 = f(c1.drgb, c2.drgb)
-        d2 = Color.dist(c1, c2, space="rgb")
-        lw.Assert(d1 == d2)
-        # hsv
-        d1 = f(c1.dhsv, c2.dhsv)
-        d2 = Color.dist(c1, c2, space="hsv")
-        lw.Assert(d1 == d2)
-        # hls
-        d1 = f(c1.dhls, c2.dhls)
-        d2 = Color.dist(c1, c2, space="hls")
-        lw.Assert(d1 == d2)
-        # Distance from self is always zero
-        for i in "rgb hsv hls".split():
-            lw.Assert(Color.dist(c1, c1, space=i) == 0)
-            lw.Assert(Color.dist(c2, c2, space=i) == 0)
-    def Test_ColorSort():
-        Reset()
-        if 1:  # Sorting
-            a = Color(12, 6, 247)
-            b = Color(168, 255, 4)
-            c = Color(252, 252, 129)
-            seq = (a, b, c)
-            # Sort on r; sequence should be unchanged
-            seq1 = Color.Sort(seq, keys="r")
-            lw.Assert(seq == seq1)
-            # Sort on g
-            seq1 = Color.Sort(seq, keys="g")
-            lw.Assert(seq1 == (a, c, b))
-            # Sort on b
-            seq1 = Color.Sort(seq, keys="b")
-            lw.Assert(seq1 == (b, c, a))
-            # Sort on L
-            seq1 = Color.Sort(seq, keys="L")
-            lw.Assert(seq == seq1)
-            # Sort on h
-            seq1 = Color.Sort(seq, keys="h")
-            lw.Assert(seq1 == (c, b, a))
-            # Sort on s
-            seq1 = Color.Sort(seq, keys="s")
-            lw.Assert(seq1 == (c, a, b))
-            # Sort on S
-            seq1 = Color.Sort(seq, keys="S")
-            lw.Assert(seq1 == (a, c, b))
-        if 1:  # Test with predicate
-            a = Color(12, 6, 247)
-            b = Color(168, 255, 4)
-            seq = (
-                ("bob", b),
-                ("alice", a),
-            )
-            def f(x):
-                return x[1]
-            seq1 = Color.Sort(seq, keys="r", get=f)
-            lw.Assert(seq1[0] == ("alice", a))
-            lw.Assert(seq1[1] == ("bob", b))
-        if 1:  # Test the < operator
-            a = Color("#000000")
-            b = Color("#010000")
-            lw.Assert(a < b)
-            lw.Assert(not (b < a))
-            lw.Assert(not (a < a))
-            lw.Assert(not (b < b))
-    def Test_ColorClassMethods():
-        if 1:  # convert_hex
-            f = Color.hex_to_int
-            g = Color.int_to_hex
-            for arg, expected in (
-                ("000000", (0, 0, 0)),
-                ("010203", (1, 2, 3)),
-                ("fefefe", (0xFE, 0xFE, 0xFE)),
-                ("ffffff", (0xFF, 0xFF, 0xFF)),
-                ("000000000000", (0, 0, 0)),
-                ("000100020003", (1, 2, 3)),
-                ("00ff00ff00ff", (0xFF, 0xFF, 0xFF)),
-                ("ffffffffffff", (0xFFFF, 0xFFFF, 0xFFFF)),
-            ):
-                bytes_per_color = len(arg) // 6
-                lw.Assert(f(arg) == expected)
-                got = g(expected, bytes_per_color)
-                lw.Assert(got == arg)
-            lw.raises(TypeError, f, 0)
-            lw.raises(ValueError, f, "12345")
-            lw.raises(ValueError, f, "1234567890")
-            lw.raises(ValueError, f, "00000g")
-        if 1:  # round
-            f = Color.round
-            pi = math.pi
-            for arg, digits, expected in (
-                (pi, 1, round(pi, 1)),
-                (pi, 2, round(pi, 2)),
-                (pi, 3, round(pi, 3)),
-                (pi, 4, round(pi, 4)),
-                (pi, 5, round(pi, 5)),
-            ):
-                lw.Assert(f(pi, digits) == expected)
-            # Test sequence
-            seq = [pi, pi, pi]
-            seq1 = f(seq, digits)
-            a = round(pi, digits)
-            lw.Assert(seq1 == (a, a, a))
-        if 1:  # Dot
-            f = Color.Dot
-            a, b = (1, 2, 3), (3, 2, 1)
-            lw.Assert(f(a, b) == 10)
-        if 1:  # XYZ_to_sRGB
-            def GammaCompressed(x):
-                return (
-                    12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
-                )
-            f = Color.XYZ_to_sRGB
-            XYZ = (1, 1, 1)
-            got = f(XYZ)
-            r1 = sum((+3.2406, -1.5372, -0.4986))
-            r2 = sum((-0.9689, +1.8758, +0.0415))
-            r3 = sum((+0.0557, -0.2040, +1.0570))
-            expected = (r1, r2, r3)
-            def clip(x):
-                return min(1.0, max(x, 0.0))
-            expected = tuple(clip(GammaCompressed(i)) for i in expected)
-            lw.Assert(got == expected)
-        if 1:  # wl2rgb
-            f = Color.wl2rgb
-            T, F = True, False
-            lw.raises(TypeError, f, "a")
-            lw.raises(TypeError, f, 1, gamma="")
-            lw.raises(ValueError, f, 1, gamma=-1)
-            # Using the spectrum of sunlight
-            lw.Assert(f(1.1, sunlight=T) == Color(0, 0, 0))
-            lw.Assert(f(399, sunlight=T) == Color(0, 0, 0))
-            # About the sodium D line
-            lw.Assert(f(589, sunlight=T) == Color(246, 195, 0, bpc=8))
-            lw.Assert(f(701, sunlight=T) == Color(0, 0, 0))
-            # Bruton's approximation
-            low, high = 379, 781
-            lw.Assert(f(1.1, sunlight=F) == Color(0, 0, 0))
-            lw.Assert(f(low, sunlight=F) == Color(0, 0, 0))
-            # About the sodium D line
-            #x = f(589, sunlight=F)
-            lw.Assert(f(589, sunlight=F) == Color(255, 219, 0, bpc=8))
-            lw.Assert(f(high, sunlight=F) == Color(0, 0, 0))
-    def Test_ColorProperties():
-        # Integer conversions should remain exact.  Check by testing some
-        # samples.
-        Reset()
-        for bpc in (8, 10):
-            Color.bits_per_color = bpc
-            n = 2**bpc - 1
-            R = range(0, n, n // 10)
+    if 1:   # Testing stuff
+        def Test_8bitConversions():
+            for i in range(256):
+                rgb1 = Translate8bit(i)
+                n = RGBtoANSI8bit(*rgb1.irgb)
+                rgb2 = Translate8bit(n)
+                dist = ColorDistance(rgb1, rgb2)
+                lw.Assert(not dist)
+        def Test_Color_adjust():
+            Reset()
+            c = Color(0, 100, 0)
+            # Adjust green up and down by 10%
+            c1 = c.adjust(10, comp="g", set=False)
+            lw.Assert(c1.irgb == (0, 110, 0))
+            c1 = c.adjust(-10, comp="g", set=False)
+            lw.Assert(c1.irgb == (0, 90, 0))
+            # Set green to 0
+            c1 = c.adjust(0, comp="g", set=True)
+            lw.Assert(c1.irgb == (0, 0, 0))
+        def Test_Color_short_color_names():
+            # This just sees that the names are recognized.
+            R = GetShortNames(all=True)
             for i in R:
-                for j in R:
-                    for k in R:
-                        a = (i, j, k)
-                        c = Color(*a)
-                        lw.Assert(c.irgb == a)
-        Reset()
-        # Properties return 3-tuples
-        c = Color(1, 2, 3)
-        lw.Assert(isinstance(c.irgb, tuple) and len(c.irgb) == 3)
-        lw.Assert(isinstance(c.drgb, tuple) and len(c.drgb) == 3)
-        lw.Assert(isinstance(c.ihsv, tuple) and len(c.irgb) == 3)
-        lw.Assert(isinstance(c.dhsv, tuple) and len(c.drgb) == 3)
-        lw.Assert(isinstance(c.ihls, tuple) and len(c.ihls) == 3)
-        lw.Assert(isinstance(c.dhls, tuple) and len(c.dhls) == 3)
-        # Hex string properties return proper hex forms
-        s, n = c.xrgb, 7
-        lw.Assert(isinstance(s, str) and len(s) == n and s[0] == "#")
-        s = c.xhsv
-        lw.Assert(isinstance(s, str) and len(s) == n and s[0] == "@")
-        s = c.xhls
-        lw.Assert(isinstance(s, str) and len(s) == n and s[0] == "$")
-    def Test_Color_Constructor_1Arg():
-        Reset()
-        if 1:  # Color instance:  make a copy
-            c = Color(0.1, 0.2, 0.3)
-            c1 = Color(c)
-            lw.Assert(c.drgb == c1.drgb)
-        if 1:  # Name
-            c = Color("Red")
-            lw.Assert(c.irgb == (254, 0, 0))
-        if 1:  # Hex strings
-            for i in "@#$":
-                c = Color(f"{i}000000")
-                lw.Assert(c.irgb == (0, 0, 0))
-            c = Color("#010203")
-            lw.Assert(c.irgb == (1, 2, 3))
-            # Note the HSV and HLS transformations can lose a little
-            # information because of conversion between ints and floats.
-            c = Color("@010203")
-            lw.Assert(c.ihsv == (0, 0, 3))
-            c = Color("@808080")
-            lw.Assert(c.ihsv == (128, 129, 128))
-            lw.Assert(c.ihls == (128, 95, 86))
-            c = Color("$010203")
-            lw.Assert(c.ihls == (0, 2, 0))
-        if 1:  # Single number:  wavelength in nm or gray or 8-bit number
-            # Wavelengths
-            expected = (1.0, 0.859, 0.0)
-            for i in (589, 589.0, Decimal(589), Fraction(589, 1)):
-                c = Color(i)  # About sodium yellow-orange
-                rgb = tuple(round(i, 3) for i in c.drgb)
-                lw.Assert(rgb == expected)
-                if have_mpmath:
-                    c = Color(mpmath.mpf(float(i)))
+                c = Color(i, bpc=8)
+                c   # Quiet linter
+                #c = Color(i, bpc=10)
+        def Test_Color_change_bpc():
+            Reset()
+            a = (15, 3, 7)
+            c = Color(*a, bpc=4)
+            d = c.change_bpc(8)
+            lw.Assert(d == Color(240, 48, 112, bpc=8))
+            e = c.change_bpc(4)
+            lw.Assert(e == c)
+            f = c.change_bpc(34)
+            lw.Assert(f == Color(16106127360, 3221225472, 7516192768, bpc=34))
+            g = f.change_bpc(4)
+            lw.Assert(g == c)
+        def Test_ColorAttributes():
+            Reset()
+            a = (3, 34, 18)
+            c = Color(*a)
+            n = c.N - 1
+            lw.Assert(c.irgb == c._rgb)
+            dec = tuple(i/n for i in c._rgb)
+            lw.Assert(c.drgb == dec)
+            lw.Assert(c.xrgb == "#032212")
+            #
+            lw.Assert(c.ihsv == (105, 232, 34))
+            e = Color(*c.ihsv, hsv=True)
+            lw.Assert(e == c)  # Shows c.ihsv converts back to original color
+            dec = (0.41397849462365593, 0.9117647058823529, 0.13333333333333333)
+            lw.Assert(c.dhsv == dec)
+            lw.Assert(c.xhsv == "@69e822")
+            # Can add attributes (no __slots__)
+            c.a = 4
+            lw.Assert(c.a == 4)
+        def Test_Color_downshift():
+            n = 7
+            c1 = Color(1, 2, 3, bpc=13)
+            c2 = Color(88, 233, 73, bpc=n)
+            n1, n2 = Color.downshift(c1, c2)
+            lw.Assert(n1.bpc == n and n2.bpc == n)
+        def Test_Color_dist():
+            n = 8
+            m = 2**n - 1
+            c1 = Color(0, 0, 0, bpc=n)
+            c2 = Color(m, m, m, bpc=n)
+            #x = Color.dist(c1, c2)
+            lw.Assert(Color.dist(c1, c2) == 1)
+            lw.Assert(Color.dist(c1, c2, taxicab=True) == 1)
+        def Test_ColorEquality():
+            Reset()
+            if 1:  # Integers in constructor
+                a, b, c = (36, 40, 99)
+                c1 = Color(a, b, c)
+                e, f, g = c1.irgb
+                c2 = Color(a, b, c)
+                c3 = Color(a + 1, b, c)
+                lw.Assert(c1 == c2)
+                lw.Assert(hash(c1) == hash(c2))
+                lw.Assert(c1 != c3)
+                # Show equality only depends on the stored integers
+                c3._rgb = (a, b, c)
+                lw.Assert(c1 == c3)
+                lw.Assert(hash(c1) == hash(c3))
+            if 1:  # Floats in constructor
+                c1 = Color(e, f, g)
+                c2 = Color(e, f, g)
+                lw.Assert(c1 == c2)
+            if 1:
+                # Colors with different bpcs can be equal
+                c1 = Color(15, 0, 0, bpc=4)
+                c2 = Color(255, 0, 0, bpc=8)
+                lw.Assert(c1 == c2)
+        def Test_ColorInterpolate():
+            Reset()
+            c1 = Color(210, 105, 30)  # chocolate
+            c2 = Color(205, 41, 144)  # maroon3
+            got = c1.interpolate(c2, 0.65)
+            expected = Color(206, 63, 104)
+            lw.Assert(got == expected)
+        def Test_ColorConstruct():
+            Reset()
+            def f(x):
+                return tuple(round(i, 3) for i in x)
+            # No color specifier gets None
+            s = "kldjfkdj"
+            c = Color.Construct(s)
+            lw.Assert(c is None)
+            # Separated by commas or spaces
+            expected = Color(25, 51, 76)
+            for s in (".1, .2, .3", ".1 .2 .3"):
+                c = Color.Construct(s)
+                lw.Assert(c == expected)
+            # Multiline
+            t = "This is a line"
+            s = f'''
+                {t} (.1, .2, .3)
+                {t} (.2, .4, .7)
+            '''
+            a = Color.Construct(s)
+            lw.Assert(isinstance(a, collections.deque))
+            name, c = a.popleft()
+            lw.Assert(t in name)
+            lw.Assert(c == expected)
+            name, c = a.popleft()
+            lw.Assert(t in name)
+            lw.Assert(f(c.drgb) == (0.200, 0.400, 0.698))
+        def Test_ColorDistance():
+            Reset()
+            a = 12, 6, 247
+            b = 101, 171, 124
+            c1 = Color(*a)
+            c2 = Color(*b)
+            def f(x, y):
+                return (sum((i - j) ** 2 for i, j in zip(x, y))/3) ** (1/2)
+            # rgb
+            d1 = f(c1.drgb, c2.drgb)
+            d2 = Color.dist(c1, c2, space="rgb")
+            lw.Assert(d1 == d2)
+            # hsv
+            d1 = f(c1.dhsv, c2.dhsv)
+            d2 = Color.dist(c1, c2, space="hsv")
+            lw.Assert(d1 == d2)
+            # hls
+            d1 = f(c1.dhls, c2.dhls)
+            d2 = Color.dist(c1, c2, space="hls")
+            lw.Assert(d1 == d2)
+            # Distance from self is always zero
+            for i in "rgb hsv hls".split():
+                lw.Assert(Color.dist(c1, c1, space=i) == 0)
+                lw.Assert(Color.dist(c2, c2, space=i) == 0)
+        def Test_ColorSort():
+            Reset()
+            if 1:  # Sorting
+                a = Color(12, 6, 247)
+                b = Color(168, 255, 4)
+                c = Color(252, 252, 129)
+                seq = (a, b, c)
+                # Sort on r; sequence should be unchanged
+                seq1 = Color.Sort(seq, keys="r")
+                lw.Assert(seq == seq1)
+                # Sort on g
+                seq1 = Color.Sort(seq, keys="g")
+                lw.Assert(seq1 == (a, c, b))
+                # Sort on b
+                seq1 = Color.Sort(seq, keys="b")
+                lw.Assert(seq1 == (b, c, a))
+                # Sort on L
+                seq1 = Color.Sort(seq, keys="L")
+                lw.Assert(seq == seq1)
+                # Sort on h
+                seq1 = Color.Sort(seq, keys="h")
+                lw.Assert(seq1 == (c, b, a))
+                # Sort on s
+                seq1 = Color.Sort(seq, keys="s")
+                lw.Assert(seq1 == (c, a, b))
+                # Sort on S
+                seq1 = Color.Sort(seq, keys="S")
+                lw.Assert(seq1 == (a, c, b))
+            if 1:  # Test with predicate
+                a = Color(12, 6, 247)
+                b = Color(168, 255, 4)
+                seq = (
+                    ("bob", b),
+                    ("alice", a),
+                )
+                def f(x):
+                    return x[1]
+                seq1 = Color.Sort(seq, keys="r", get=f)
+                lw.Assert(seq1[0] == ("alice", a))
+                lw.Assert(seq1[1] == ("bob", b))
+            if 1:  # Test the < operator
+                a = Color("#000000")
+                b = Color("#010000")
+                lw.Assert(a < b)
+                lw.Assert(not (b < a))
+                lw.Assert(not (a < a))
+                lw.Assert(not (b < b))
+        def Test_ColorClassMethods():
+            if 1:  # convert_hex
+                f = Color.hex_to_int
+                g = Color.int_to_hex
+                for arg, expected in (
+                    ("000000", (0, 0, 0)),
+                    ("010203", (1, 2, 3)),
+                    ("fefefe", (0xFE, 0xFE, 0xFE)),
+                    ("ffffff", (0xFF, 0xFF, 0xFF)),
+                    ("000000000000", (0, 0, 0)),
+                    ("000100020003", (1, 2, 3)),
+                    ("00ff00ff00ff", (0xFF, 0xFF, 0xFF)),
+                    ("ffffffffffff", (0xFFFF, 0xFFFF, 0xFFFF)),
+                ):
+                    bytes_per_color = len(arg) // 6
+                    lw.Assert(f(arg) == expected)
+                    got = g(expected, bytes_per_color)
+                    lw.Assert(got == arg)
+                lw.raises(TypeError, f, 0)
+                lw.raises(ValueError, f, "12345")
+                lw.raises(ValueError, f, "1234567890")
+                lw.raises(ValueError, f, "00000g")
+            if 1:  # round
+                f = Color.round
+                pi = math.pi
+                for arg, digits, expected in (
+                    (pi, 1, round(pi, 1)),
+                    (pi, 2, round(pi, 2)),
+                    (pi, 3, round(pi, 3)),
+                    (pi, 4, round(pi, 4)),
+                    (pi, 5, round(pi, 5)),
+                ):
+                    lw.Assert(f(pi, digits) == expected)
+                # Test sequence
+                seq = [pi, pi, pi]
+                seq1 = f(seq, digits)
+                a = round(pi, digits)
+                lw.Assert(seq1 == (a, a, a))
+            if 1:  # Dot
+                f = Color.Dot
+                a, b = (1, 2, 3), (3, 2, 1)
+                lw.Assert(f(a, b) == 10)
+            if 1:  # XYZ_to_sRGB
+                def GammaCompressed(x):
+                    return (
+                        12.92*x if x <= 0.0031308 else 1.055*x ** (1/2.4) - 0.055
+                    )
+                f = Color.XYZ_to_sRGB
+                XYZ = (1, 1, 1)
+                got = f(XYZ)
+                r1 = sum((+3.2406, -1.5372, -0.4986))
+                r2 = sum((-0.9689, +1.8758, +0.0415))
+                r3 = sum((+0.0557, -0.2040, +1.0570))
+                expected = (r1, r2, r3)
+                def clip(x):
+                    return min(1.0, max(x, 0.0))
+                expected = tuple(clip(GammaCompressed(i)) for i in expected)
+                lw.Assert(got == expected)
+            if 1:  # wl2rgb
+                f = Color.wl2rgb
+                T, F = True, False
+                lw.raises(TypeError, f, "a")
+                lw.raises(TypeError, f, 1, gamma="")
+                lw.raises(ValueError, f, 1, gamma=-1)
+                # Using the spectrum of sunlight
+                lw.Assert(f(1.1, sunlight=T) == Color(0, 0, 0))
+                lw.Assert(f(399, sunlight=T) == Color(0, 0, 0))
+                # About the sodium D line
+                lw.Assert(f(589, sunlight=T) == Color(246, 195, 0, bpc=8))
+                lw.Assert(f(701, sunlight=T) == Color(0, 0, 0))
+                # Bruton's approximation
+                low, high = 379, 781
+                lw.Assert(f(1.1, sunlight=F) == Color(0, 0, 0))
+                lw.Assert(f(low, sunlight=F) == Color(0, 0, 0))
+                # About the sodium D line
+                #x = f(589, sunlight=F)
+                lw.Assert(f(589, sunlight=F) == Color(255, 219, 0, bpc=8))
+                lw.Assert(f(high, sunlight=F) == Color(0, 0, 0))
+        def Test_ColorProperties():
+            # Integer conversions should remain exact.  Check by testing some
+            # samples.
+            Reset()
+            for bpc in (8, 10):
+                Color.bits_per_color = bpc
+                n = 2**bpc - 1
+                R = range(0, n, n // 10)
+                for i in R:
+                    for j in R:
+                        for k in R:
+                            a = (i, j, k)
+                            c = Color(*a)
+                            lw.Assert(c.irgb == a)
+            Reset()
+            # Properties return 3-tuples
+            c = Color(1, 2, 3)
+            lw.Assert(isinstance(c.irgb, tuple) and len(c.irgb) == 3)
+            lw.Assert(isinstance(c.drgb, tuple) and len(c.drgb) == 3)
+            lw.Assert(isinstance(c.ihsv, tuple) and len(c.irgb) == 3)
+            lw.Assert(isinstance(c.dhsv, tuple) and len(c.drgb) == 3)
+            lw.Assert(isinstance(c.ihls, tuple) and len(c.ihls) == 3)
+            lw.Assert(isinstance(c.dhls, tuple) and len(c.dhls) == 3)
+            # Hex string properties return proper hex forms
+            s, n = c.xrgb, 7
+            lw.Assert(isinstance(s, str) and len(s) == n and s[0] == "#")
+            s = c.xhsv
+            lw.Assert(isinstance(s, str) and len(s) == n and s[0] == "@")
+            s = c.xhls
+            lw.Assert(isinstance(s, str) and len(s) == n and s[0] == "$")
+        def Test_Color_Constructor_1Arg():
+            Reset()
+            if 1:  # Color instance:  make a copy
+                c = Color(0.1, 0.2, 0.3)
+                c1 = Color(c)
+                lw.Assert(c.drgb == c1.drgb)
+            if 1:  # Name
+                c = Color("Red")
+                lw.Assert(c.irgb == (254, 0, 0))
+            if 1:  # Hex strings
+                for i in "@#$":
+                    c = Color(f"{i}000000")
+                    lw.Assert(c.irgb == (0, 0, 0))
+                c = Color("#010203")
+                lw.Assert(c.irgb == (1, 2, 3))
+                # Note the HSV and HLS transformations can lose a little
+                # information because of conversion between ints and floats.
+                c = Color("@010203")
+                lw.Assert(c.ihsv == (0, 0, 3))
+                c = Color("@808080")
+                lw.Assert(c.ihsv == (128, 129, 128))
+                lw.Assert(c.ihls == (128, 95, 86))
+                c = Color("$010203")
+                lw.Assert(c.ihls == (0, 2, 0))
+            if 1:  # Single number:  wavelength in nm or gray or 8-bit number
+                # Wavelengths
+                expected = (1.0, 0.859, 0.0)
+                for i in (589, 589.0, Decimal(589), Fraction(589, 1)):
+                    c = Color(i)  # About sodium yellow-orange
                     rgb = tuple(round(i, 3) for i in c.drgb)
                     lw.Assert(rgb == expected)
-            black = (0.0, 0.0, 0.0)
-            for i in (0, -300, -300.0, 300, 300.0, 800, 800.0):
-                c = Color(i, hsv=True)  # hsv keyword ignored for 1 argument
-                lw.Assert(c.irgb == black)
-                c = Color(i, hls=True)  # hls keyword ignored for 1 argument
-                lw.Assert(c.irgb == black)
-            # Grays
-            for a, b in (
-                (0.0, 0.0),
-                (0.1, 0.098),
-                (0.2, 0.2),
-                (0.3, 0.298),
-                (0.4, 0.4),
-                (0.5, 0.498),
-                (0.6, 0.6),
-                (0.7, 0.698),
-                (0.8, 0.8),
-                (0.9, 0.898),
-                (1.0, 1.0),
-            ):
-                c = Color(a, a, a)
-                rgb = tuple(round(i, 3) for i in c.drgb)
-                lw.Assert(rgb == (b, b, b))
-            # Integers on [0, 255]:  ANSI 8-bit colors
-            c = Color(200)
-            lw.Assert(c.irgb == (255, 0, 215)) # It's a medium magenta
-    def Test_Color_Constructor_3Args():
-        Reset()
-        if 1:  # Integer arguments
-            for a in (0, 1, 2, 254, 255, 256):
-                b = (a, a, a)
-                c = Color(*b)
-                expected = tuple(i & c.n for i in b)
-                lw.Assert(c.irgb == expected)
-            # Works for 10-bit arguments
-            Color.bits_per_color = 10
-            a = 1023
-            b = (a, a, a)
-            c = Color(*b)
-            lw.Assert(c.irgb == b)
+                    if have_mpmath:
+                        c = Color(mpmath.mpf(float(i)))
+                        rgb = tuple(round(i, 3) for i in c.drgb)
+                        lw.Assert(rgb == expected)
+                black = (0.0, 0.0, 0.0)
+                for i in (0, -300, -300.0, 300, 300.0, 800, 800.0):
+                    c = Color(i, hsv=True)  # hsv keyword ignored for 1 argument
+                    lw.Assert(c.irgb == black)
+                    c = Color(i, hls=True)  # hls keyword ignored for 1 argument
+                    lw.Assert(c.irgb == black)
+                # Grays
+                for a, b in (
+                    (0.0, 0.0),
+                    (0.1, 0.098),
+                    (0.2, 0.2),
+                    (0.3, 0.298),
+                    (0.4, 0.4),
+                    (0.5, 0.498),
+                    (0.6, 0.6),
+                    (0.7, 0.698),
+                    (0.8, 0.8),
+                    (0.9, 0.898),
+                    (1.0, 1.0),
+                ):
+                    c = Color(a, a, a)
+                    rgb = tuple(round(i, 3) for i in c.drgb)
+                    lw.Assert(rgb == (b, b, b))
+                # Integers on [0, 255]:  ANSI 8-bit colors
+                c = Color(200)
+                lw.Assert(c.irgb == (255, 0, 215)) # It's a medium magenta
+        def Test_Color_Constructor_3Args():
             Reset()
-        if 1:  # Float arguments
-            for a, e in (
-                (0.0, 0.0),
-                (0.0039, 0.0039),
-                (0.5, 0.498),
-                (0.9999, 1.0),
-                (1.0, 1.0),
-            ):
+            if 1:  # Integer arguments
+                for a in (0, 1, 2, 254, 255, 256):
+                    b = (a, a, a)
+                    c = Color(*b)
+                    expected = tuple(i & c.n for i in b)
+                    lw.Assert(c.irgb == expected)
+                # Works for 10-bit arguments
+                Color.bits_per_color = 10
+                a = 1023
                 b = (a, a, a)
                 c = Color(*b)
-                got = tuple(round(i, 4) for i in c.drgb)
-                expected = (e, e, e)
-                lw.Assert(got == expected)
-        if 1:  # Normalization of floats
-            a = 1.0001
-            t = (a, a, a)
-            c = Color(*t)
-            mag = sum(i*i for i in t) ** (1/2)
-            dec = tuple(i/mag for i in t)
-            rgb = c.dec_to_int(dec)
-            lw.Assert(c.irgb == rgb)
-            #
-            a = (0.99999, 1.00001, 1.0)
-            c = Color(*a)
-            mag = sum(i*i for i in t) ** (1/2)
-            dec = tuple(i/mag for i in t)
-            rgb = c.dec_to_int(dec)
-            lw.Assert(c.irgb == rgb)
-            #
-            # Normalization with one very large component effectively gives a
-            # monochromatic color
-            c = Color(1e9, 1, 1)
-            lw.Assert(c == Color(255, 0, 0))
-        if 1:  # Fraction arguments
-            for n, d, e in ((0, 1, 0.0), (1, 2, 0.498), (2, 3, 0.667), (1, 1, 1.0)):
-                a = Fraction(n, d)
-                c = Color(a, a, a)
-                got = tuple(round(i, 3) for i in c.drgb)
-                expected = (e, e, e)
-                lw.Assert(got == expected)
-        if 1:  # Decimal arguments
-            for x, e in (
-                ("0", 0.0),
-                ("0.5", 0.498),
-                ("0.666667", 0.667),
-                ("1.0", 1.0),
-            ):
-                a = Decimal(x)
-                c = Color(a, a, a)
-                got = tuple(round(i, 3) for i in c.drgb)
-                expected = (e, e, e)
-                lw.Assert(got == expected)
-        if 1:  # mpmath.mpf arguments
-            if have_mpmath:
+                lw.Assert(c.irgb == b)
+                Reset()
+            if 1:  # Float arguments
+                for a, e in (
+                    (0.0, 0.0),
+                    (0.0039, 0.0039),
+                    (0.5, 0.498),
+                    (0.9999, 1.0),
+                    (1.0, 1.0),
+                ):
+                    b = (a, a, a)
+                    c = Color(*b)
+                    got = tuple(round(i, 4) for i in c.drgb)
+                    expected = (e, e, e)
+                    lw.Assert(got == expected)
+            if 1:  # Normalization of floats
+                a = 1.0001
+                t = (a, a, a)
+                c = Color(*t)
+                mag = sum(i*i for i in t) ** (1/2)
+                dec = tuple(i/mag for i in t)
+                rgb = c.dec_to_int(dec)
+                lw.Assert(c.irgb == rgb)
+                #
+                a = (0.99999, 1.00001, 1.0)
+                c = Color(*a)
+                mag = sum(i*i for i in t) ** (1/2)
+                dec = tuple(i/mag for i in t)
+                rgb = c.dec_to_int(dec)
+                lw.Assert(c.irgb == rgb)
+                #
+                # Normalization with one very large component effectively gives a
+                # monochromatic color
+                c = Color(1e9, 1, 1)
+                lw.Assert(c == Color(255, 0, 0))
+            if 1:  # Fraction arguments
+                for n, d, e in ((0, 1, 0.0), (1, 2, 0.498), (2, 3, 0.667), (1, 1, 1.0)):
+                    a = Fraction(n, d)
+                    c = Color(a, a, a)
+                    got = tuple(round(i, 3) for i in c.drgb)
+                    expected = (e, e, e)
+                    lw.Assert(got == expected)
+            if 1:  # Decimal arguments
                 for x, e in (
                     ("0", 0.0),
                     ("0.5", 0.498),
                     ("0.666667", 0.667),
                     ("1.0", 1.0),
                 ):
-                    a = mpmath.mpf(x)
+                    a = Decimal(x)
                     c = Color(a, a, a)
                     got = tuple(round(i, 3) for i in c.drgb)
                     expected = (e, e, e)
                     lw.Assert(got == expected)
-    def Test_ColorConstructorKeywords():
-        Reset()
-        # Test keyword arguments
-        c = Color(16, 16, 16, hsv=True)
-        lw.Assert(c == Color(16, 15, 15))
-        c = Color(16, 16, 16, hls=True)
-        lw.Assert(c == Color(17, 16, 15))
-        # sunlight and gamma used to be OK, but I removed them Feb 2026
-        for kw in "sunlight gamma aaa bbb".split():
-            mykw = {kw: 0}
-            lw.raises(ValueError, Color, 0, 0, 0, **mykw)
-    def Test_Color_int_to_hex():
-        '''This checks that int_to_hex and hex_to_int are inverse for all
-        numbers < 0x10000.
-        '''
-        n = 0x10000
-        for i in range(n):
-            a = max(i - 1, 0)
-            b = i
-            c = min(i, n)
-            d = (a, b, c)
-            x = Color.int_to_hex(d)
-            y = Color.hex_to_int(x)
-            lw.Assert(y == d)
-    def Test_ColorHash():
-        a, bpc = (18, 3333, 3578457), 28
-        c = Color(*a, bpc=bpc)
-        got = hash(c)
-        expected = hash((a, bpc))
-        lw.Assert(got == expected)
-    def Test_ColorInvariants():
-        '''Make sure things like
-            c = Color('mag')
-            c1 = Color(c.xhls)
-            assert(c == c1)
-        are true.
-        '''
-        distances = []
-        for i in GetShortNames(all=True):
-            c = Color(i)
-            c1 = Color(c.xhls)
-            if c != c1:
-                dist = flt(Color.dist(c, c1))
-                distances.append(dist)
-                lw.Assert(dist < 0.014)
-                # print(f"Failed for {i}:  {c} {c1} dist={dist}")
-        if 0 and distances:
-            # Note max possible distance value is 1.  Max is 0.0136 for
-            # vio.  So, it's either ignore any dist < 0.014 or see if the
-            # calculations with Fractions produces better conversions.
-            print(f"Max dist = {max(distances)}")
-            print("Tests failed")
-            exit(1)
+            if 1:  # mpmath.mpf arguments
+                if have_mpmath:
+                    for x, e in (
+                        ("0", 0.0),
+                        ("0.5", 0.498),
+                        ("0.666667", 0.667),
+                        ("1.0", 1.0),
+                    ):
+                        a = mpmath.mpf(x)
+                        c = Color(a, a, a)
+                        got = tuple(round(i, 3) for i in c.drgb)
+                        expected = (e, e, e)
+                        lw.Assert(got == expected)
+        def Test_ColorConstructorKeywords():
+            Reset()
+            # Test keyword arguments
+            c = Color(16, 16, 16, hsv=True)
+            lw.Assert(c == Color(16, 15, 15))
+            c = Color(16, 16, 16, hls=True)
+            lw.Assert(c == Color(17, 16, 15))
+            # sunlight and gamma used to be OK, but I removed them Feb 2026
+            for kw in "sunlight gamma aaa bbb".split():
+                mykw = {kw: 0}
+                lw.raises(ValueError, Color, 0, 0, 0, **mykw)
+        def Test_Color_int_to_hex():
+            '''This checks that int_to_hex and hex_to_int are inverse for all
+            numbers < 0x10000.
+            '''
+            n = 0x10000
+            for i in range(n):
+                a = max(i - 1, 0)
+                b = i
+                c = min(i, n)
+                d = (a, b, c)
+                x = Color.int_to_hex(d)
+                y = Color.hex_to_int(x)
+                lw.Assert(y == d)
+        def Test_ColorHash():
+            a, bpc = (18, 3333, 3578457), 28
+            c = Color(*a, bpc=bpc)
+            got = hash(c)
+            expected = hash((a, bpc))
+            lw.Assert(got == expected)
+        def Test_ColorInvariants():
+            '''Make sure things like
+                c = Color('mag')
+                c1 = Color(c.xhls)
+                assert(c == c1)
+            are true.
+            '''
+            distances = []
+            for i in GetShortNames(all=True):
+                c = Color(i)
+                c1 = Color(c.xhls)
+                if c != c1:
+                    dist = flt(Color.dist(c, c1))
+                    distances.append(dist)
+                    lw.Assert(dist < 0.014)
+                    # print(f"Failed for {i}:  {c} {c1} dist={dist}")
+            if 0 and distances:
+                # Note max possible distance value is 1.  Max is 0.0136 for
+                # vio.  So, it's either ignore any dist < 0.014 or see if the
+                # calculations with Fractions produces better conversions.
+                print(f"Max dist = {max(distances)}")
+                print("Tests failed")
+                exit(1)
     if 1:  # Example stuff
         def ShowAttributes():
             c = trm.TrmDP()
@@ -2383,7 +2384,7 @@ if __name__ == "__main__":
             return int(s, 2)
         else:
             return int(s)
-    def InterpretColorSpecifier(s):
+    def InterpretColorSpecifier(s, retval=False):
         '''s will be a string of one of the following forms:
             1.  One of the short names such as 'ornl'
             2.  #XXXXXX, @XXXXXX, and $XXXXXX hex forms
@@ -2392,10 +2393,12 @@ if __name__ == "__main__":
             5.  A number on [400, 700]
         Instead of space characters, nearly any characters can be used as
         delimiters, as they are replaced by spaces.
+        
+        If retval is True, return the relevant Color instance.
         '''
         namestr = s.strip()
         if not namestr:
-            return
+            return None
         # Replace nearly all delimiters
         for i in "~!%^&*()_-+=|{}[}:;\"'<>,?/":
             namestr = namestr.replace(i, " ")
@@ -2415,20 +2418,26 @@ if __name__ == "__main__":
                 rgb = Color(n)
             else:
                 Error("A number must be between 0 and 255 inclusive or on [400, 700]")
+            if retval:
+                return rgb
             t.print(f"The number '{n}' {t(rgb)}Represents this color")
             ShowRepresentations(rgb)
-            return
+            return None
         elif len(namestr) in (3, 4):  # Short name form
             try:
                 c = Color(namestr)
+                if retval:
+                    return c
                 rgb = c.irgb
                 t.print(f"Color name '{namestr}'    {t[namestr]}Represents this color")
                 ShowRepresentations(c)
             except Exception:
                 Error(f"'{namestr}' not recognized as a color name")
-            return
+            return None
         elif namestr[0] in "@#$":  # Hex form
             c = Color(namestr)
+            if retval:
+                return c
             rgb = c.irgb
         else:  # Three numbers
             # Must be 3 RGB numbers separated by white space (either
@@ -2439,7 +2448,10 @@ if __name__ == "__main__":
                 rgb = [Int(i) for i in namestr.split()]
         if len(rgb) != 3:
             Error(f"'{namestr!s}' doesn't represent three numbers")
+        if retval:
+            return Color(*rgb)
         PrintRGB(s, namestr, rgb)
+        return None
     def iDistribute(n, a, b):
         '''Generator to return an integer sequence [a, ..., b] with n elements equally distributed
         between a and b.  Raises ValueError if no solution is possible.  Example:
@@ -2524,17 +2536,18 @@ if __name__ == "__main__":
         tt.print(data, style=" "*15)
     def ShowShortNames(extra):
         u = trm.TrmDP()
-        # Make a dict of the names vs. colors
-        di = {}
-        for i in trm.TrmDP.std:
+        # Make a list (names, colors)
+        lst = []
+        for i in sorted(trm.TrmDP.std):
             for j in ("l", "", "1", "2", "3"):
-                di[i + j] = Color(i + j)
+                name = i + j
+                lst.append((name, Color(name)))
         w = 2   # Spaces between columns
         i, f, block = " "*w, lambda x: " "*x, "█"*6
         hdr = f"Name{f(8)}RGB{f(10)}XRGB{f(5)}XHSV{f(5)}XHLS{f(3)}8-BIT{f(3)}        "
         u.hdr = u("whtl", "royd", "")
         u.print(f"{u.hdr}{hdr}")
-        for name, c in di.items():
+        for name, c in lst:
             s = str(c).replace("C⁸", "")
             n = RGBtoANSI8bit(*c.irgb)
             c8 = Translate8bit(n)
@@ -2557,7 +2570,7 @@ if __name__ == "__main__":
         # color blocks is a bit "strong" for how I use text in a terminal.
         u.print(f"\n{u(attr='ul')}Samples of text in the 24-bit and 8-bit color pairs:")
         o = []
-        for name, c in di.items():
+        for name, c in lst:
             n = RGBtoANSI8bit(*c.irgb)
             c8 = Translate8bit(n)
             s = f"{u(c.xrgb)}{name:4s} sample {u(c8.xrgb)}sample{u.n}"
@@ -2565,7 +2578,10 @@ if __name__ == "__main__":
         for i in columnize.Columnize(o):
             print(i)
         print("\nTo my eye, these 8-bit translations work OK except for:")
-        print("  brnd dend lavd lipd pnkb pnkd royd sead")
+        print("  sky3 den3 pur pur3 orn2 orn3 red3 ygr3 pnk3 roy3 lil lil1 lil2")
+        print("  lwn3 trq3 lip2 lip3 yon3 yel3 brn1 brn2 olv olv2 olv3 vio voi2")
+        print("  vio3 lav3")
+        print("(These exceptions are because of the perceived hue difference)")
     def ShowHTMLColors(by_hue=False):
         data = wrap.dedent('''
             AliceBlue #F0F8FF
@@ -2887,6 +2903,32 @@ if __name__ == "__main__":
         # name is "n", which is the default terminal color.
         names = [i for i in t.keys() if len(i) >= 3]
         return {i: Color(i) for i in names}
+    def CompareSpecifiers(file):
+        '''Execute the c command:  compare pairs of color specifiers on each line
+        separated by ';'.  Valid specifiers:
+            (0,254,120) RGB spec
+            skyl        Color name
+            #81ffbc     Hex RGB
+            @687eff     Hex HSV
+            $68c0ff     Hex HLS
+            121         8-bit color number or wavelength (380 to 780 nm)
+        '''
+        with open(file) as f:
+            lines = f.read().split("\n")
+        if not lines:
+            return
+        print(file)
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            clr1, clr2 = [i.strip() for i in line.split(";")]
+            c1 = InterpretColorSpecifier(clr1, retval=True)
+            c2 = InterpretColorSpecifier(clr2, retval=True)
+            s = " "*8
+            print(f"  {u('blk', c1)}{s}{u.n}{u('blk', c2)}{s}{u.n} {clr1}; {clr2}")
+        exit()
+
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
@@ -2911,6 +2953,8 @@ if __name__ == "__main__":
         print(wrap.dedent(f'''
         Usage:  {sys.argv[0]} [options] [cmd]
           cmd
+           c    Compare pairs of color specifiers on a line; separate them with ';'.
+                Valid specifiers: (0,254,120), skyl, #81ffbc, @687eff, $68c0ff, 121
            d    Show demo
            H    Show HTML colors sorted by hue
            h    Show HTML colors sorted by name
@@ -2928,6 +2972,17 @@ if __name__ == "__main__":
         Options
           -h      Print this help
           -t      Run self-tests
+        Other color utilities:
+          cdec      Decorate text color specifiers in their color
+          cf        Look up colornames
+          ch        Help on color expressions for shell usage
+          clrb      Show the shell's color environment variables
+          color     Print out color names that match given regex
+          cprint    Print a string with escape sequences
+          eseq      Echo esc sequence for 8-bit color (use -b for bg)
+          shclr     Show shell colors environment variables (escape sequences)
+          t8        Show 8-bit color bitmap
+          wl        Print RGB colors representing visible colors from 380 to 780 nm
         '''))
         exit(status)
     d: dict[str, str|int] = {}  # Options dictionary
@@ -2945,6 +3000,10 @@ if __name__ == "__main__":
         first_char = cmds[0][0]
         if first_char == "d":    # Show examples
             Examples()
+        elif first_char == "c":  # Compare pairs of color specifiers
+            u.print(f"{u(attr='ul')}Comparing pairs of colors from input files:\n")
+            for file in cmds[1:]:
+                CompareSpecifiers(file)
         elif first_char == "a":  # Show attributes
             ShowAttributes()
         elif first_char == "H":  # Show HTML colors by hue
