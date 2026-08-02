@@ -1,3 +1,5 @@
+- f.py tests broken because fmt.py changed; it runs if old is set to True.  Fix so 
+  things work with new Fmt implementation.
 
 Reorganization core files
 - Look at moving /plib/pgm to /pgm

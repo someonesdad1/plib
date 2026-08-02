@@ -621,9 +621,7 @@ class flt(Base, float):
         cp = flt(float(self))
         return cp
     def help(self):
-        print(
-            dedent(
-                '''
+        print(dedent('''
         The flt class is derived from float and has the following attributes:
           copy      Returns a copy of self
           eng       Return engineering notation string
@@ -646,8 +644,7 @@ class flt(Base, float):
           t       * Date and time
           u       * Use Unicode characters in eng/sci string interpolation
              * means the attribute's state affects all flt and cps instances'''[1:]
-            )
-        )
+        ))
         return ""
     if 1:  # Arithmetic functions
         def _do_op(self, other, op):
@@ -1256,8 +1253,7 @@ if 1:  # Get math/cmath functions into this namespace
     atanh     erf       frexp     isnan     log2      radians   trunc
     ceil      erfc      fsum      isqrt     modf      rect      ulp
     '''
-
-    if __name__ == "__main__":  
+    if 0 and __name__ == "__main__":  
         F = set(functions.split() + "e inf nan pi tau infj nanj".split())
         def PyVersion():
             import platform
@@ -1278,7 +1274,6 @@ if 1:  # Get math/cmath functions into this namespace
                 print(f"{i} ", end="")
         print()
         exit()
-
     for name in functions.split():
         if hasattr(math, name) or hasattr(cmath, name):
             s = f"{name} = Delegator('{name}')"
@@ -1555,6 +1550,7 @@ if 0:  # Classes derived from flt for physical data
             pass
         # It's nothing we recognize
         raise ValueError(f"{s!r} not a valid argument")
+
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     eps = 1e-15

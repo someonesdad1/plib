@@ -63,14 +63,15 @@ if 1:  # Header
         Fraction = fractions.Fraction
         getcontext = decimal.getcontext
     if 1:  # Global variables
-        #W = int(os.environ.get("COLUMNS", "80")) - 1
-        #L = int(os.environ.get("LINES", "50"))
         #F = Fraction = fractions.Fraction
         # Exported symbols:
         #   Fmt is the formatting class
         #   TakeApart is a class that takes apart numbers into string components
         #   fmt is a convenience instance of Fmt
         __all__ = "Fmt fmt".split()
+        have_mpmath = True
+        W = int(os.environ.get("COLUMNS", "80")) - 1
+        LL = int(os.environ.get("LINES", "50"))
     if 1:   # Core file gist information
         __gist__      = "String interpolation (formatting) of numbers"
         __copyright__ = "Copyright © 2008, 2012, 2021, 2026 Don Peterson"
@@ -235,7 +236,10 @@ if 0:   # Old FmtIV interval formatting
     # Convenience FmtIV instance
     if have_mpmath and have_uncertainties:
         fmtiv = FmtIV()
-if 0:   # Old TakeApart and Fmt implementation
+
+old = False     # Set to True to use old Fmt implementation
+
+if old:   # Old TakeApart and Fmt implementation
     class TakeApart:
         '''Take apart a number into its components to prepare for string
         interpolation.  Handles int, float, Decimal, mpf, and Fractions.
@@ -709,7 +713,7 @@ if 0:   # Old TakeApart and Fmt implementation
             self._rtdp = False
             self._spc = False
             self._sign = False
-            self.nchars = W*L//4  # Base on screen width and height
+            self.nchars = W*LL//4  # Base on screen width and height
             self.brief = False
             self.ellipsis = "⋯"
             # Attributes for complex numbers
@@ -1572,8 +1576,7 @@ if 0:   # Old TakeApart and Fmt implementation
             def comp(self, value):
                 self._comp = bool(value)
 
-if 1:   # New TakeApart/Fmt
-# file: fmt.py
+if not old:   # New TakeApart/Fmt
 # CHUNK: TakeApart
     class DecomposedNumber(ty.NamedTuple):
         sign: str               # "-" or ""
@@ -2022,7 +2025,7 @@ if __name__ == "__main__":
         t.em = t.purl   # Emphasis
         t.err = t.red   # Error in digits
         # Width of screen
-        W = 88
+        #W = 88
     def Demo():
         t.on = True if sys.stdout.isatty() else False
         f = fmt
