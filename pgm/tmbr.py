@@ -187,7 +187,7 @@ if 1:  # Data
         Bernzomatic torches etc.	Lautard, Guy	TMBR#1:51
         Between-centers boring bars	Lautard, Guy	TMBR#2:94
         Bevel protractor used to set up a reamer for stoning	Lautard, Guy	TMBR#3:159
-        Bill's big firm joint calipers	Lautard, Guy	TMBR#3:20
+        Bill's big firm joint calipers	Lautard, Guy	TMBR#3:21
         Bill's donkey engine & spar tree logging blocks	Lautard, Guy	TMBR#3:36-47
         Black or pink granite?	Lautard, Guy	TMBR#3:106
         Blade guides for bandsaw blades	Lautard, Guy	HTIM:42

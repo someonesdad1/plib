@@ -1,5 +1,8 @@
 '''
 Print the chemical resistance of various plastics
+
+https://www.cplabsafety.com/polypropylene-chemical-compatibility-chart/ might have 
+some tabular data that would be useful to insert.
 '''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
@@ -255,9 +258,11 @@ def Usage(d, status=1):
             chemicals.
         pl
             Show the list of plastics.
-    Example:
+    Examples:
         {name} a acetone
-            will show plastics suitable for containing acetone.
+            Will show plastics suitable for containing acetone.
+        {name} a .
+            Show all plastics that have "not attacked"
     Options
       -s    Show the organic materials (e.g., solvents, oils, etc.)
     Notes:

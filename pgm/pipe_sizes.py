@@ -184,6 +184,21 @@ if 1:   # Using dimensions
             assert(len(header) == len(elem))
             data.append(elem)
         tt.print(data, header=header, padding=(0, 0), style=None, alignment="r"*len(header))
+    def ConduitSizes():
+        t.print(f"{t.orn}{' '*30}Conduit Sizes")
+        sz = [
+            ["Size", "OD", "Wall", "ID", "lb/ft"],
+            ["1/2", 0.706, 0.042, 0.622, 0.19],
+            ["3/4", 0.922, 0.049, 0.824, 0.26],
+            ["1", 1.163, 0.057, 1.049, 0.35],
+            ["1.25", 1.510, 0.065, 1.380, 0.49],
+            ["1.5", 1.740, 0.062, 0.610, 0.58],
+        ]
+        tt.print(sz, style=" "*15, alignment="c"*5)
+        print()
+
+if __name__ == "__main__":
+    ConduitSizes()
     PipeSizes(metric=True)
     t.print()
     PipeSizes(metric=False)
