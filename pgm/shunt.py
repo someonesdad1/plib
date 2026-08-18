@@ -29,7 +29,7 @@ if 1:  # Header
         import trm
         t = trm.TrmDP()
         from lwtest import Assert
-        from dpprint import PP
+        from dputil import PP
         import termtables as tt
         pp = PP()   # Get pprint with current screen width
         if 0:
@@ -42,19 +42,19 @@ if 1:  # Header
         g.dbg = False
         ii = isinstance
 if 1:   # Shunt data
-    # Fields:  ID, manufacturer, model, rating in A, drop in mV, note
+    # Fields:  ID, manufacturer, model, rating in A, drop in mV, color, note
     data = '''
-    GS1; ?; ?; 200; 100; From Greg Sali, in oak box for Westinghouse 50 A 100 mV shunt, probably from 1940's or before
-    S100; ?; ?; 100; 50;
-    S200; ?; ?; 200; 50;
-    S300; Qeco; SWO300; 300; 50;
-    S25; Weston; ?; 25; 50;
-    S75-1; ?; ?; 75; 50; ebay 2010
-    S75-2; ?; ?; 75; 50; ebay 2010
-    S75-3; ?; ?; 75; 50; ebay 2010
-    Si1; Simpson; ?; 10; 100; ebay 2022
-    Si2; Simpson; ?; 10; 100; ebay >= 2022
-    SF10; Fluke; 80J-10; 10; 100; ebay 2022
+    GS1; ?; ?; 200; 100;; From Greg Sali, in oak box for Westinghouse 50 A 100 mV shunt, probably from 1940's or before
+    S100; ?; ?; 100; 50;orn;
+    S200; ?; ?; 200; 50;pnk; 
+    S300; Qeco; SWO300; 300; 50;red;
+    S75-1; ?; ?; 75; 50;; ebay 2010
+    S75-2; ?; ?; 75; 50;; ebay 2010
+    S75-3; ?; ?; 75; 50;; ebay 2010
+    S25; Weston; ?; 25; 50;grn;
+    Si1; Simpson; ?; 10; 100;yel; ebay 2022
+    Si2; Simpson; ?; 10; 100;yel; ebay >= 2022
+    SF10; Fluke; 80J-10; 10; 100;; ebay 2022
     '''
 if 1:   # Utility
     def GetColors():
@@ -116,10 +116,22 @@ if 1:   # Core functionality
             if not shunt or shunt[0] == "#":
                 continue
             f = shunt.split(";")
-            Assert(len(f) == 6)
-            id, mfg, model, A, drop_mV, note = f
+            Assert(len(f) == 7)
+            id, mfg, model, A, drop_mV, clr, note = f
             R_mohm = str(flt(drop_mV)/flt(A))
-            o.append([f"{id}", f"{mfg}", f"{A}", f"{drop_mV}", f"{R_mohm}"])
+            if clr == "orn":
+                c = t.orn
+            elif clr == "pnk":
+                c = t.pnkl
+            elif clr == "red":
+                c = t.lip
+            elif clr == "grn":
+                c = t.grn
+            elif clr == "yel":
+                c = t.yel
+            else:
+                c = ""
+            o.append([f"{c}{id}", f"{mfg}", f"{A}", f"{drop_mV}", f"{R_mohm}{t.n}"])
         tt.print(o, style=" "*15, alignment="lcrrr")
 if __name__ == "__main__":
     d = {}      # Options dictionary

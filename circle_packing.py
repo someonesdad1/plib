@@ -109,6 +109,7 @@ if 1:  # Header
     '''
     if 1:  # Standard imports
         from collections import namedtuple
+        from pathlib import Path
         import bisect
         import csv
     if 1:  # Custom imports
@@ -138,7 +139,10 @@ if 1:  # Core functionality
         else:
             if numtype is None:
                 numtype = lambda x: x   # noqa
-            file = "circle_packing.csv"
+            # Use same directory as the executable
+            executable = Path(sys.argv[0])
+            filename = "circle_packing.csv"
+            file = executable.parent/filename
             data = {}
             with open(file, newline='') as csvfile:
                 reader = csv.reader(csvfile)
@@ -202,22 +206,23 @@ if 1:  # Core functionality
             return None
 
 if __name__ == "__main__":
-    if 1:  # Imports
-        import math
-        import sys
-        import getopt
-    if 1:  # Custom imports
-        import f 
-        import wrap
-        import sig
-        import lwtest
-        import trm
-        import termtables as tt
-        if 0:
-            import debug
-            debug.SetDebugger()
-    if 1:  # Global variables
-        t = trm.Trm()
+    if 1:   # Header
+        if 1:   # Imports
+            import math
+            import sys
+            import getopt
+        if 1:   # Custom imports
+            import f 
+            import wrap
+            import sig
+            import lwtest as lw
+            import trm
+            import termtables as tt
+            if 0:
+                import debug
+                debug.SetDebugger()
+        if 1:   # Global variables
+            t = trm.TrmDP()
     if 1:  # Utility
         def GetColors():
             t.Title = t.redl

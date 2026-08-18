@@ -270,7 +270,7 @@ if 1:  # Core functionality
     def OpenFile(app, matches, choice):
         "Open indicated choice (subtract 1 first)"
         file = matches[choice - 1][0]
-        print(f"{choice + 1} {file}")
+        print(f"{choice} {file}")
         if wsl:
             if 0:
                 # Use wslpath.exe to convert the file name to a Windows path
@@ -372,7 +372,6 @@ if 1:  # Core functionality
                     d["files"] = f(d["files"])
             except FileNotFoundError:
                 pass
-
     def OpenMatches(matches, d):
         '''Each match item will be (full_filename, match_object) where
         match_object is the mo for _only_ the actual file name (not the
