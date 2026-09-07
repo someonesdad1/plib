@@ -230,7 +230,7 @@ if 1:  # Header
         if 0:
             import debug
             debug.SetDebugger()
-        import fmt
+        import fmt as FMT
         import wrap
         try:
             import uncertainties
@@ -255,7 +255,7 @@ class Base(object):
     _sigcomp = None  # Number of digits for comparisons
     _dp = locale.localeconv()["decimal_point"]
     _flip = False  # If True, interchange str() and repr()
-    _fmt = fmt.Fmt()  # Formatter for flt
+    _fmt = FMT.Fmt()  # Formatter for flt
     _rlz = False  # Remove leading zero if True
     _rtz = True  # Remove trailing zeros if True
     _rtdp = True  # Remove trailing decimal point
@@ -309,7 +309,7 @@ class Base(object):
             Base._sigcomp = None  # Number of digits for comparisons
             Base._dp = locale.localeconv()["decimal_point"]
             Base._flip = False  # If True, interchange str() and repr()
-            Base._fmt = fmt.Fmt()  # Formatter for flt
+            Base._fmt = FMT.Fmt()  # Formatter for flt
             Base._fmt.n = Base._digits
             Base._rlz = False  # Remove leading zero if True
             Base._rtz = True  # Remove trailing zeros if True
@@ -540,10 +540,10 @@ class flt(Base, float):
         # Local number of digits overrides Base.N if not zero
         instance._n = 0  # Instance's number of digits
         return instance
-    def _s(self, fmt="fix"):  # flt
+    def _s(self, format="fix"):  # flt
         'Return the rounded string representation'
-        if fmt not in set("fix fixed eng sci engsi engsic".split()):
-            raise ValueError("fmt must be one of:  fix, fixed, eng, sci, engsi, engsic")
+        if format not in set("fix fixed eng sci engsi engsic".split()):
+            raise ValueError("format must be one of:  fix, fixed, eng, sci, engsi, engsic")
         self._check()
         if not Base._digits:
             return str(float(self))
@@ -567,26 +567,34 @@ class flt(Base, float):
             Base._fmt.rtdp = self._rtdp
             Base._fmt.rlz = self._rlz
             Base._fmt.u = self._uni
-        if fmt == "fix" or fmt == "fixed":
+        if format == "fix" or format == "fixed":
             need_sci = (x and self.low is not None and abs(x) < self.low) or (
                 x and self.high is not None and abs(x) >= self.high
             )
             if need_sci:
                 s = self._fmt.sci(self, n=n)
             else:
-                s = (
-                    self._fmt.fix(self, n=n)
-                    if fmt == "fix"
-                    else self._fmt.fixed(self, n=n)
-                )
-        elif fmt == "eng":
-            s = self._fmt.eng(self, fmt="eng", n=n)
-        elif fmt == "engsi":
-            s = self._fmt.eng(self, fmt="engsi", n=n)
-        elif fmt == "engsic":
-            s = self._fmt.eng(self, fmt="engsic", n=n)
-        elif fmt == "sci":
-            s = self._fmt.sci(self, n=n)
+                s = self._fmt.fix(self, n=n) if format == "fix" else self._fmt.fixed(self, n=n)
+        elif format == "eng":
+            if FMT.old:
+                s = self._fmt.eng(self, fmt="eng", n=n)
+            else:
+                s = self._fmt.eng(self, n=n)
+        elif format == "engsi":
+            if FMT.old:
+                s = self._fmt.eng(self, fmt="engsi", n=n)
+            else:
+                s = self._fmt.engsi(self, n=n)
+        elif format == "engsic":
+            if FMT.old:
+                s = self._fmt.eng(self, fmt="engsic", n=n)
+            else:
+                s = self._fmt.engsic(self, n=n)
+        elif format == "sci":
+            if FMT.old:
+                s = self._fmt.sci(self, n=n)
+            else:
+                s = self._fmt.sci(self, n=n)
         else:
             raise Exception("Software bug")
         return s
@@ -742,23 +750,23 @@ class flt(Base, float):
         @property
         def eng(self):
             "Return a string formatted in engineering notation"
-            return self._s(fmt="eng")
+            return self._s(format="eng")
         @property
         def engsi(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with a space character.
             '''
-            return self._s(fmt="engsi")
+            return self._s(format="engsi")
         @property
         def engsic(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with no space character.
             '''
-            return self._s(fmt="engsic")
+            return self._s(format="engsic")
         @property
         def sci(self):
             "Return a string formatted in scientific notation"
-            return self._s(fmt="sci")
+            return self._s(format="sci")
 class ParseComplex(object):
     '''Parses complex numbers in the ways humans like to write them.
     Instantiate the object, then call it with the string to parse; the
@@ -936,29 +944,29 @@ class cpx(Base, complex):
             s = f"{r._s()}{sp}∠{sp}{theta._s()}{deg}"
         t = f(s) if self.i else f("(" + s + ")")
         return f(t)
-    def _s(self, fmt="fix"):
+    def _s(self, format="fix"):
         '''Return the rounded string representation.  If cpx.i is True,
         then "i" is used as the unit imaginary and no parentheses are
         placed around the string.  If cpx.p is False, use rectangular;
         if True, use polar coordinates.
         '''
-        if fmt not in set("fix eng sci engsi engsic".split()):
-            raise ValueError("fmt must be one of:  fix, eng, sci, engsi, engsic")
+        if format not in set("fix eng sci engsi engsic".split()):
+            raise ValueError("format must be one of:  fix, eng, sci, engsi, engsic")
         def f(x):
             return Base.wrap(x, self)
         if self.p:  # Polar coordinates
             return self._pol()
         elif self.t:  # Tuple form
             r, i = self._real, self._imag
-            re = r._s(fmt=fmt)
-            im = i._s(fmt=fmt)
+            re = r._s(format=format)
+            im = i._s(format=format)
             sp = " " if self.w else ""
             s = f"({re},{sp}{im})"
             return f(s)
         else:  # Rectangular coordinates
             r, i = self._real, self._imag
-            re = r._s(fmt=fmt)
-            im = i._s(fmt=fmt)
+            re = r._s(format=format)
+            im = i._s(format=format)
             if self.nz and ((r and not i) or (not r and i)):
                 if r:
                     s = f"{re}" if cpx._i else f"({re})"
@@ -970,7 +978,7 @@ class cpx(Base, complex):
                 iu = "i" if cpx._i else "j"
                 sp = " " if self.w else ""
                 sgn = f"{sp}-{sp}" if i < 0 else f"{sp}+{sp}"
-                im = abs(i)._s(fmt=fmt)
+                im = abs(i)._s(format=format)
                 if cpx._i:
                     s = f"{re}{sgn}{im}{iu}"
                 else:
@@ -1119,23 +1127,23 @@ class cpx(Base, complex):
         @property
         def eng(self):
             "Return a string formatted in engineering notation"
-            return self._s(fmt="eng")
+            return self._s(format="eng")
         @property
         def engsi(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with a space character.
             '''
-            return self._s(fmt="engsi")
+            return self._s(format="engsi")
         @property
         def engsic(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with no space character.
             '''
-            return self._s(fmt="engsic")
+            return self._s(format="engsic")
         @property
         def sci(self):
             "Return a string formatted in scientific notation"
-            return self._s(fmt="sci")
+            return self._s(format="sci")
 if 1:  # Get math/cmath functions into this namespace
     '''Put all math symbols into this namespace.  We use an object with
     the same name as the function and let it have a __call__ method.
