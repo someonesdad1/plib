@@ -135,27 +135,27 @@ if 1:  # Data
             4:1:?    4-pin transistor socket   socket
             4:2:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
             4:3:?    1854-0019 HP NPN transistor, silicon, TO-18   NPN transistor
-            4:4:?    1853-0316 Dual PNP, ITS-1160, (?) 40 V 200 mA   PNP transistor
+            4:4:?    1853-0316 Dual PNP transistor, ITS-1160, (?) 40 V 200 mA   PNP transistor
             4:5:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
-            4:6:?    1854-0071 NPN   NPN transistor
+            4:6:?    1854-0071 NPN transistor   NPN transistor
             4:7:?    2N2160 unijunction transistor, GE   misc transistor
-            4:7:?    2N2907 PNP 40 V 800 mA, hfe=100-300 at 150 mA   PNP transistor
-            4:7:?    2N5416 PNP 300 V 1 A, hfe=5 at 5 mA   PNP transistor
-            4:7:?    2N697 NPN 40 V 150 mA, hfe=3-12   NPN transistor
-            4:8:?    1853-0036 PNP 2N3906 40 V 200 mA, hfe=80   PNP transistor
-            4:9:?    1853-0462 PNP   PNP transistor
-            4:9:?    2N3440 NPN 250 V 1 A, hfe=40-160   NPN transistor
-            4:9:?    2N3635 PNP 140 V 1 A, hfe=100-300   PNP transistor
-            4:10:?    1854-0045 NPN  hfe=150   NPN transistor
-            4:11:?    1854-0045 NPN  hfe=150   NPN transistor
-            4:12:?    1854-0404 NPN small signal transistor, National NS04008   NPN transistor
+            4:7:?    2N2907 PNP transistor 40 V 800 mA, hfe=100-300 at 150 mA   PNP transistor
+            4:7:?    2N5416 PNP transistor 300 V 1 A, hfe=5 at 5 mA   PNP transistor
+            4:7:?    2N697 NPN transistor 40 V 150 mA, hfe=3-12   NPN transistor
+            4:8:?    1853-0036 PNP transistor 2N3906 40 V 200 mA, hfe=80   PNP transistor
+            4:9:?    1853-0462 PNP transistor   PNP transistor
+            4:9:?    2N3440 NPN transistor 250 V 1 A, hfe=40-160   NPN transistor
+            4:9:?    2N3635 PNP transistor 140 V 1 A, hfe=100-300   PNP transistor
+            4:10:?    1854-0045 NPN transistor  hfe=150   NPN transistor
+            4:11:?    1854-0045 NPN transistor  hfe=150   NPN transistor
+            4:12:?    1854-0404 NPN transistor small signal transistor, National NS04008   NPN transistor
             4:13:?    LM725 op amp   opamp
             4:13:?    Small 600 uA meter (from old Omega TC box)   misc
-            4:14:?    2N2369A NPN 40 V 200 mA, hfe=20-40   NPN transistor
-            4:15:?    2N2907A PNP 60 V 600 mA, hfe=100-450   PNP transistor
+            4:14:?    2N2369A NPN transistor 40 V 200 mA, hfe=20-40   NPN transistor
+            4:15:?    2N2907A PNP transistor 60 V 600 mA, hfe=100-450   PNP transistor
             4:16:?    LF353AH Dual input JFET op amp, 8-pin metal can   opamp
             4:17:?    1826-0217 HP IC, op amp, TO-99 8 pin package   opamp
-            4:18:?    2N3251 PNP 40 V 200 mA, hfe>90   PNP transistor
+            4:18:?    2N3251 PNP transistor 40 V 200 mA, hfe>90   PNP transistor
             
         Box 5
             5:1:?    Switches, pushbutton   switch
@@ -281,9 +281,9 @@ if 1:  # Data
             11:3:?    1 A, 120 VAC SSR solid state relay, Grayhill 70YY14350   relay switch
             11:4:?    2 A, 120 VAC SSR solid state relay, Kyotto KB20C02A, 3-32 VDC in   relay switch
             11:5:?    1 A, 120 VAC SSR solid state relay, Grayhill 70YY14350   relay switch
-            11:6:?    TIP120 NPN Darlington 60 V 5 A, TO220, BCE from front, tab is B   NPN transistor
+            11:6:?    TIP120 NPN transistor Darlington 60 V 5 A, TO220, BCE from front, tab is B   NPN transistor
             11:7:?    12 VDC reed relay, 1 kohm coil, single pole NO   relay switch
-            11:8:?    2N2222 NPN 30 V 600 mA, hfe=35-300   NPN transistor
+            11:8:?    2N2222 NPN transistor 30 V 600 mA, hfe=35-300   NPN transistor
             11:9:?    LF353 Dual JFET op amp, 8-pin DIP   opamp
             11:9:?    PT27311 current transformer, 30-200 kHz   transformer
             11:10:?    Photosensitive resistors from 1960's HP differential voltmeter   opto
@@ -398,7 +398,7 @@ if 1:  # Data
             19:6:4    CA3140EZ (Intersil) BiMOS op amp, MOSFET input, bipolar output   opamp
             19:6:1    TS912IN dual CMOS op amp   opamp
             19:7:3    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
-            19:7:1    2N1487 NPN 40 V 6 A, hfe=15-45   NPN transistor
+            19:7:1    2N1487 NPN transistor 40 V 6 A, hfe=15-45   NPN transistor
             19:8:1    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
             19:8:3    LM339 quad comparator, 14-pin DIP (HP part no. 1826-0138)   linear
             19:9:1    ECG56020 triac, 25 A, 400 V, 2.5 V gate voltage, 50 mA gate current   misc
