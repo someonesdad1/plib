@@ -62,6 +62,7 @@ if 1:  # Data
             1:4:4    Various Radio Shack (276-1657) CdS photocells   opto
             1:4:2    All Elec. 15 V sound modules   sound
             1:5:9    Small relays   relay switch
+            1:5:9    Sun Hold 12 V relay 400 ohm   relay switch
             1:6:9    Capacitor, 100 nF   capacitor
             1:6:1    Buck converter MPJA 35371 4.5-28 V in, > 3 Vout, 3 A max, heat snk > 10 W   converter
             1:7:M    #6 solder lugs   lug
@@ -81,6 +82,7 @@ if 1:  # Data
             1:16:1    RS Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound   sound
             1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
             1:18:1    Piezo buzzer All El. <= 20 Vpp, AVX mfg   sound
+            1:18:1    Piezo buzzer (passive) Amazon, small UM214022 barcode X004LX91BF   sound
             
         Box 2
             2:1:?    LEDs, misc (high brightness, UV)   opto LED
@@ -513,8 +515,10 @@ if 1:  # Data
             25:1:M    5 mm RGB LEDs (12 cents each from banggood)   LED
             25:1:4    GR precision wirewound resistors (1, 10, 100, 1000 kΩ) from 1656 impedance bridge   resistor
             25:1:4    Vishay precision 2 MΩ foil resistor   resistor
+            25:1:10   0.6 Ω 3 W resistor (from Richard)   resistor
             25:2:13   650 nm laser 5 mW, 5 V, two wires   opto
             25:2:1    LM34 temperature IC   IC
+            25:2:1    MPJA 37543 3 digit green LED mini voltmeter   LED
             25:3:M    Green 5 mm LED   LED
             25:4:M    Red 5 mm LED   LED
             25:5:M    Blue 5 mm LED   LED
@@ -554,15 +558,16 @@ if 1:  # Data
             28:1:?    Connector pair, locking 8-pin MPJA 32426   connector
             28:2:?    Connector pair, locking 8-pin MPJA 32426   connector
             28:3:?    1N4007 diode 1000 V PIV, 1 A   diode
-            28:4:?      
+            28:4:10   10 W 0.1 Ω power resistor (from Richard)   resistor
             28:5:?    Red boot 35 mm alligator clips MPJA 16452   misc
-            28:6:?    Rubber feet   hardware
+            28:6:?    Capacitor 2.2 μF 16 V (from Richard)   hardware
             28:7:?      
             28:8:?    Banana plugs, screw attach MPJA 30045   plug
             28:9:?    DPDT on-on mini toggle switch MPJA 31886   switch
             28:10:?    Black boot 35 mm alligator clips MPJA 16453   misc
             28:11:?      
             28:12:?      
+            28:12:10   5 W 0.1 Ω power resistor (from Richard)   resistor
             28:13:?      
             28:14:?    Dual banana jack MPJA 14492   jack
             28:15:?    Feed-throughs   connector
@@ -585,7 +590,9 @@ if 1:  # Data
         Box 30
             30:1:?    Dupont jumper wires, assorted, 100 mm   connector
             30:1:19   100 μF 35 V surface mount capacitors   capacitor
-            30:1:?    AC volts multi-function meter (line voltage & current measurement)   meter
+            30:1:4    47 μF 35 V surface mount capacitors (from Richard)   capacitor
+            30:1:4    220 μF 35 V surface mount capacitors (from Richard)   capacitor
+            30:1:1    MPJA 37882 looping relay PCB (from Richard)   relay
             30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
             30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOS
             30:4:7    Buck converter banggood 30Dec2019 $1.2   PCB
