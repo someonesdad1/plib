@@ -8,9 +8,9 @@ if 1:  # Data
     
     - Boxes
         - Color code the box numbers
-            - yell My existing plastic boxes
-            - cynl The Plano box
-            - ornl Cardboard boxes devoted to e.g. MPJA or Proto Supply parts
+            - yel My existing plastic boxes
+            - cyn The Plano box
+            - orn Cardboard boxes devoted to e.g. MPJA or Proto Supply parts
     - Inventory
         - Quantities
         - Symbols:  M = many, F = few, * = few or none and need to order
@@ -68,7 +68,7 @@ if 1:  # Data
             1:7:M    #6 solder lugs   lug
             1:7:M    Jumpers   jumper
             1:8:1    3 V 0.5 mA piezo buzzer (best 2.4 kHz)   sound
-            1:8:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
+            1:8:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48   sound
             1:9:1    2 kHz piezo buzzer   sound
             1:9:2    PS MOD-3 5 V piezo buzzer (use PWM on Arduino)   sound
             1:10:2    Piezo buzzers 1 kHz sq wv 9 Vpp   sound
@@ -80,7 +80,7 @@ if 1:  # Data
             1:14:1    Piezo buzzer 60 Hz - 2 kHz 4.5 Vpp   sound
             1:15:1    Buzzer 2 kHz 9 V   sound
             1:16:1    RS Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound   sound
-            1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
+            1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48   sound
             1:18:1    Piezo buzzer All El. <= 20 Vpp, AVX mfg   sound
             1:18:1    Piezo buzzer (passive) Amazon, small UM214022 barcode X004LX91BF   sound
             
@@ -194,15 +194,14 @@ if 1:  # Data
         Box 7
             7:1:?    1N3600 silicon diode 100 PIV, 200 mA   diode
             7:1:?    1N4004 diode 400 PIV, 1 A   diode
-            7:1:?    Zener 12 V 30 mA   zener
-            7:1:?    1N759 zener 12 V 30 mA   zener
-            7:1:?    1N965 zener 15 V 400 mA   zener
-            7:1:?    1N4728 zener 3.3 V @ 100 mA   zener
-            7:1:?    9.5 V rated silicon diode   diode
+            7:1:?    Zener diode 12 V 30 mA   zener
+            7:1:?    1N759 zener diode 12 V 30 mA   zener
+            7:1:?    1N965 zener diode 15 V 400 mA   zener
+            7:1:?    1N4728 zener diode 3.3 V @ 100 mA   zener
             7:1:?    9.5 V rated silicon diode   diode
             7:1:?    Assorted small signal diodes, silicon   diode
             7:1:?    C battery holder (holds one battery)   battery
-            7:1:?    Zener 1/2 W: 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30 V   zener
+            7:1:?    Zener diode 1/2 W: 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30 V   zener
             7:2:?    Various AGC fuses   fuse
             7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from Steve K.)   diode
             7:4:?    DC micromotor, 1 rev/s at 6 VDC, 10 mA no load current, 100 mA under load   misc
@@ -375,7 +374,7 @@ if 1:  # Data
             18:3:?    1N5817G Schottky diode, 20 PIV, 1 A   diode
             18:4:?    AGC fuse holder, panel mount   fuse
             18:4:?    2 A AGC slo-blo fuses   fuse
-            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 290 mΩ 62 °C/W TO-220
+            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 290 mΩ 62 °C/W TO-220   MOSFET
             18:5:?    Socket, 8-pin DIP   socket
             18:6:?    16 pin ZIF socket   socket
             18:6:?    Jumper, 0.1 inch   jumper
@@ -383,7 +382,7 @@ if 1:  # Data
             18:8:?    Jumper, fits 8-pin DIP socket   jumper
             18:9:?    Fuse, AGC, various sizes   fuse
             18:10:?    1A 250 V lever snap action microswitch   switch
-            18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
+            18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOSFET
             18:12:?    IC tube pin (closes IC antistatic tube off)   misc
             18:12:?    0.2 A AGC-size fuse for Aneng 870 DMM   fuse
             
@@ -428,7 +427,7 @@ if 1:  # Data
             20:4:1    6N139 opto isolator Darlington   opto
             20:4:8    Diac   misc
             20:4:1    HP 6N139 optocoupler   opto
-            20:5:15   IRF540 NMOS FET 33 A, 100 V, 44 mohm   FET transistor
+            20:5:15   IRF540 MOSFET 33 A, 100 V, 44 mohm   MOSFET
             20:6:1    74F240 octal buffer with 3-state outputs   TTL
             20:7:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220    misc
             20:8:1    74LS251M 3 state 1-of-8 line data selector/mux   TTL
@@ -441,7 +440,7 @@ if 1:  # Data
             20:12:2   LM317K adjustable voltage regulator, TO-3   linear
             20:12:2   LM317T adjustable voltage regulator, TO-220   linear
             20:12:1   7818C voltage regulator TO220   linear
-            20:12:2   HP 1826-0393, LM317T, TO-220   linear
+            20:12:2   HP 1826-0393, LM317T adjustable voltage regulator, TO-220   linear
             
         Box 21
             21:1:?    Alligator clips   misc
@@ -579,13 +578,14 @@ if 1:  # Data
             29:1:?    Dual banana jack MPJA 14492   jack
             29:1:?    BNC jacks & hardware (in plastic bag)   connector
             29:2:?    BNC jacks & hardware   connector
-            29:3:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
+            29:3:20   2N7000 MOSFET transistor TO92 60 V 200 mA   MOSFET
+            29:3:1    120 V blue voltage monitor MPJA 34660   module
             29:4:?    Normally closed thermostats 40, 50, 60, 65[5]150 °C, MPJA 38152   thermostat
+            29:4:15   STP40NF10L N-Ch MOSFET 100 V 40 A ProtoSupplies XTR-82   MOSFET
             29:5:?    Rubber tips & plugs for banana test leads   probe
             29:6:?    Normally open thermostats 40, 50, 60, 65[5]150 °C, MPJA 35719   thermostat
             29:7:?    Standard toggle switch safety cover   switch
             29:8:?    Hamon 0.1 and 0.01 divider parts   misc
-            29:9:?      
             
         Box 30
             30:1:?    Dupont jumper wires, assorted, 100 mm   connector
@@ -594,7 +594,7 @@ if 1:  # Data
             30:1:4    220 μF 35 V surface mount capacitors (from Richard)   capacitor
             30:1:1    MPJA 37882 looping relay PCB (from Richard)   relay
             30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
-            30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOS
+            30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOSFET
             30:4:7    Buck converter banggood 30Dec2019 $1.2   PCB
             30:5:?    5 V relay, 2.5 mA @ 5 V, 15 A 125 V (new 7 Aug 2017 banggood)   relay
             30:6:?    12 V 10 A relay, 60 mA closed (new 19 May 2022, Amazon, $2)   relay
@@ -659,6 +659,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from columnize import Columnize
+        import dpseq
         import trm
         t = trm.TrmDP()
         if 0:
@@ -715,6 +716,11 @@ if 1:  # Classes
             else:
                 return int(self.compartment) < int(other.compartment)
 if 1:  # Utility
+    def Error(*msg, status=1):
+        print(f"{t.err}", end="")
+        print(*msg, end="")
+        print(f"{t.n}")
+        exit(status)
     def SetColors(on=True):
         # Colors
         t.match = t("royl") if on else ""
@@ -722,7 +728,8 @@ if 1:  # Utility
         t.compartment = t("grn") if on else ""
         t.quantity = t("viol") if on else ""
         t.keyword = t("gry") if on else ""
-        t.warn = t("ornl") if on else ""  # Color for a missing category warning
+        t.warn = t("orn") if on else ""  # Color for a missing category warning
+        t.err = t("red") if on else "" 
     def Usage(status=0):
         print(
             dedent(f'''
@@ -732,8 +739,17 @@ if 1:  # Utility
                 that matches this with the '-' removed will not appear in the output.  The numbers
                 separated by ':' are:  box, compartment, quantity.  Quantity is not shown unless
                 it is known (i.e., not '?' in the data).
-                
-                The special regex 'e' will cause the source file to be edited.
+            Single letter commands
+                a   Dump all records
+                b n Show contents of box number n
+                d   Inspect the data, showing problem areas
+                D   Dump raw data to stdout
+                e   Edit the source file
+                l   List keywords
+                m   Show empty compartments
+                n   Show box numbers in use
+                t   Dump the todo list
+                v   Print out color code and numbering key
             Example
                 python '{sys.argv[0]}' diode -zener
                     shows diodes that don't contain 'zener'.
@@ -771,6 +787,8 @@ if 1:  # Utility
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
+        if len(sys.argv) < 2:
+            Usage()
         for o, a in optlist:
             if o[1] in "aCcdeilov":
                 d[o] = not d[o]
@@ -783,14 +801,20 @@ if 1:  # Utility
                 Usage()
             elif o in ("-k",):
                 d["-k"] = a
+            elif o in ("-m",):
+                ShowEmptyCompartments()
+            elif o in ("-n",):
+                ShowBoxNumbersInUse()
             elif o in ("-t",):
-                print(todo)
+                PrintToDo()
                 exit(0)
         SetColors(False) if d["-C"] else SetColors()
         if len(args) == 1 and args[0] == "e":
             EditFile()
         return args
 if 1:  # Core functionality
+    def PrintToDo():
+        print(todo)
     def EditFile():
         subprocess.call(["vi", "/plib/pgm/comp.py"])
         exit(0)
@@ -824,13 +848,13 @@ if 1:  # Core functionality
                     e = Entry(i + 1, location, description, keywords)
                 items.append(e)
         if 0:  # Debug dump items
-            t.print(f"{t.ornl}Debug dump of items:")
+            t.print(f"{t.orn}Debug dump of items:")
             for i in items:
                 print(i)
             exit(0)
         items = list(sorted(items))
         if not items:
-            print(f"{t.ornl}items is empty")
+            print(f"{t.orn}items is empty")
             exit()
         return items
     def TextSearch(args, items):
@@ -930,18 +954,15 @@ if 1:  # Core functionality
                 f"Color coding:  {t.box}box "
                 f"{t.compartment}compartment "
                 f"{t.quantity}quantity "
-                f"{t.keyword}keyword"
-            )
+                f"{t.keyword}keyword")
         # Quantity coding
         if qty:
-            print(
-                dedent('''
+            print(dedent('''
                 Letters for quantity:
                     ?   Not inventoried yet
                     f   A few
                     m   Too many to count
-            ''')
-            )
+            '''))
     def Keywords(items):
         "Returns a set of the keywords"
         kw = []
@@ -963,7 +984,7 @@ if 1:  # Core functionality
                 if not item.keywords:
                     no_kwd.append(item)
             if no_kwd:
-                t.print(f"{t.ornl}Items with no keyword:")
+                t.print(f"{t.orn}Items with no keyword:")
                 for item in no_kwd:
                     print(item)
         # Need inventory:  print boxes that still need their parts counted
@@ -977,14 +998,88 @@ if 1:  # Core functionality
                     needs_counting[box] += 1
             if needs_counting:
                 o = []
-                t.print(f"{t.ornl}Boxes:compartments that still need parts counting:")
+                t.print(f"{t.orn}Boxes:compartments that still need parts counting:")
                 for box in needs_counting:
                     o.append(f"{box:2d}: {needs_counting[box]}")
                 for i in Columnize(o, columns=5, sep=" " * 5):
                     print(i)
+    def PrintKeywords():
+        # Put each keyword into a dict with its count
+        KW = defaultdict(int)
+        for item in items:
+            for kw in item.keywords:
+                KW[kw] += 1
+        # Get maximum count
+        max_count = max(KW.values())
+        w = len(str(max_count))  # Needed printing width
+        # Print sorted alphabetically
+        o, o1, max_count = [], [], 0
+        #t.print(f"{t.orn}Keywords sorted alphabetically (number is count):")
+        t.print(f"{t.orn}Keywords sorted alphabetically:")
+        for name in sorted(KW, key=str.lower):
+            count = KW[name]
+            #o.append(f"{count:{w}d} {name}")
+            o.append(f"{name}")
+            o1.append((count, name))
+        for item in Columnize(o):
+            print(item)
+        # Print sorted numerically
+        t.print(f"\n{t.orn}Keywords sorted by count:")
+        o = []
+        for count, name in sorted(o1):
+            o.append(f"{count:{w}d} {name}")
+        for item in Columnize(o):
+            print(item)
+    def ShowEmptyCompartments():
+        u = defaultdict(list)
+        for item in items:
+            if item.empty:
+                u[item.box].append(item.compartment)
+        t.print(f"{t.orn}Empty compartments:")
+        for i in u:
+            b = list(sorted(set(u[i])))
+            t.print(f"{t.box}{i:2d}: {t.compartment}{' '.join(str(j) for j in b)}")
+    def ShowBoxNumbersInUse():
+        o = []
+        for line in data.split("\n"):
+            line = line.strip()
+            if not line.startswith("Box "):
+                continue
+            num = int(line.split()[1])
+            o.append(num)
+        print("Box numbers in use: ", dpseq.Hyphenate(o))
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
+    if args and len(args[0]) == 1:   # One letter command
+        allowed, letter = "abdDelmntv", args[0]
+        if letter in allowed:
+            if letter == "a":
+                d["-a"] = True
+            elif letter == "b":
+                try:
+                    d["-b"] = args[1]
+                except Exception:
+                    Error("Need box number")
+            elif letter == "d":
+                d["-d"] = True
+            elif letter == "D":
+                print(data)
+                exit(0)
+            elif letter == "l":
+                d["-l"] = True
+            elif letter == "m":
+                d["-e"] = True
+            elif letter == "n":
+                ShowBoxNumbersInUse()
+                exit(0)
+            elif letter == "t":
+                d["-t"] = True
+            elif letter == "v":
+                d["-v"] = True
+                PrintColorCoding()
+                exit(0)
     if not d["-C"]:
         t.cat = t.hl = t.N = ""
     items = GetData()
@@ -998,43 +1093,12 @@ if __name__ == "__main__":
         for item in items:
             if item.box == n:
                 print(item)
-        PrintColorCoding()
     elif d["-d"]:
         Inspection()
     elif d["-e"]:  # Show empty compartments
-        u = defaultdict(list)
-        for item in items:
-            if item.empty:
-                u[item.box].append(item.compartment)
-        t.print(f"{t.ornl}Empty compartments:")
-        for i in u:
-            b = list(sorted(set(u[i])))
-            t.print(f"{t.box}{i:2d}: {t.compartment}{' '.join(str(j) for j in b)}")
+        ShowEmptyCompartments()
     elif d["-l"]:  # Show allowed keywords
-        # Put each keyword into a dict with its count
-        KW = defaultdict(int)
-        for item in items:
-            for kw in item.keywords:
-                KW[kw] += 1
-        # Get maximum count
-        max_count = max(KW.values())
-        w = len(str(max_count))  # Needed printing width
-        # Print sorted alphabetically
-        o, o1, max_count = [], [], 0
-        t.print(f"{t.brnl}Keywords sorted alphabetically (number is count):")
-        for name in sorted(KW, key=str.lower):
-            count = KW[name]
-            o.append(f"{count:{w}d} {name}")
-            o1.append((count, name))
-        for item in Columnize(o):
-            print(item)
-        # Print sorted numerically
-        t.print(f"\n{t.brnl}Keywords sorted by count:")
-        o = []
-        for count, name in sorted(o1):
-            o.append(f"{count:{w}d} {name}")
-        for item in Columnize(o):
-            print(item)
+        PrintKeywords()
     elif d["-k"]:  # Show all the items with the given keyword
         kw = d["-k"].lower()
         for item in items:

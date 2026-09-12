@@ -38,6 +38,7 @@ Functions for sequences
     transpose       Transpose of a nested two-dimensional sequence
     Unique          Generator returns unique elements in sequence of hashable items
     unrange         Turn seq of integers into a collection of ranges; return as a string
+        Hyphenate   Convenience method of unrange that automatically sorts first
     unrange_real    Turn seq of numbers into a collection of ranges; return as a string
     VisualCount     Return a list of strings representing a histogram of the items in seq
 '''
@@ -87,6 +88,7 @@ if 1:  # Header
         import collections
         import decimal
         import fractions
+        import functools
         import inspect
         import itertools
         import math
@@ -1287,6 +1289,7 @@ if 1:   # From util
         s = " ".join([str(i) for i in out])
         u = s.replace(" " + sep + " ", sep)
         return u
+    Hyphenate = functools.partial(unrange, sort_first=True)
     def unrange_real(seq: ty.Sequence[ty.Any], sort_first=False, sep="┅") -> str:
         '''Turn a sequence of numbers seq into a set of ranges and return as a string
 
