@@ -1,15 +1,14 @@
-"""
+'''
 TODO
 
     - Include the -2 problem solving of a pot with two resistors in the obsolete/divider.py script.
-
+    
     - Since the equations are available, allow an uncertainty analysis to be done on the voltage
       ratios using the calculated resistors and an assumed tolerance %.  The uncertainty of the
       resistors will be assumed to be triangular and the uncertainty will be 1/sqrt(6) times the
       percentage half-width.
-
-"""
-
+      
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -33,13 +32,13 @@ if 1:  # Header
         from resistors import resistors, FindClosest
         from fpformat import FPFormat
         from f import flt
-        from color import t
+        import eia 
+        import trm 
         import u
     if 1:  # Global variables
-
         class g:
             pass
-
+        t = trm.TrmDP()
         t.exact = t.cynl
         t.ser = t.yel
         t.par = t.grn
@@ -47,14 +46,12 @@ if 1:  # Header
         t.err = t.redl
         t.norm = t.wht
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(d, status=1):
         print(
-            dedent(f"""
+            dedent(f'''
         Usage:  {sys.argv[0]} [options] R ratio1 ratio2 [ratio3 ...]
           Design a voltage divider for the input of a voltmeter.  R is the total divider resistance in
           ohms.  The ratios must be floating point numbers on the open interval (0, 1).  Expressions
@@ -69,13 +66,12 @@ if 1:  # Utility
             -2      Solve problem 2
             -E e    Use an EIA resistor set
             -h      Print a manpage (more detailed documentation)
-        """)
+        ''')
         )
         exit(status)
-
     def Manpage():
         print(
-            dedent(f"""
+            dedent(f'''
         The schematic is
     
             o-------+-----------o  ρ0
@@ -194,12 +190,12 @@ if 1:  # Utility
             do; companies like HP built products in large enough volumes that they could
             economically order the exact resistor sizes needed (although there were likely some
             products that still required selection at construction time).
-        """)
+        ''')
         )
         ColorCoding()
         print(
             dedent(
-                rf"""
+                rf'''
          
         Problem 2
             The -2 option solves the following problem:
@@ -217,18 +213,17 @@ if 1:  # Utility
             2) the current that will pass through the pot and resistors when
             the Vout terminal is open.
          
-        """.rstrip()
+        '''.rstrip()
             )
         )
         exit(0)
-
     def ParseCommandLine():
         d["-2"] = False  # Solve problem 2
         d["-d"] = 4  # Number of significant digits
         d["-E"] = None  # EIA set specifier
         d["command_line"] = " ".join(sys.argv[1:])
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "2d:Eh")
+            opts, args = getopt.getopt(sys.argv[1:], "2d:E:h")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -237,8 +232,16 @@ if 1:  # Utility
                 d[o] = not d[o]
             elif o in ("-d",):
                 try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
+                    d[o] = int(a)
+                    if not (1 <= d[o] <= 15):
+                        raise ValueError()
+                except ValueError:
+                    msg = "-d option's argument must be an integer between 1 and 15"
+                    Error(msg)
+            elif o in ("-E",):
+                try:
+                    d[o] = int(a)
+                    if not d[o] in (6, 12, 24, 48, 96):
                         raise ValueError()
                 except ValueError:
                     msg = "-d option's argument must be an integer between 1 and 15"
@@ -255,22 +258,18 @@ if 1:  # Utility
         x.n = 2  # Used for percent deviations
         x.rtz = True
         return args
-
-
 if 1:  # Core functionality
-
     def ColorCoding():
         t.print(
-            dedent(f"""
+            dedent(f'''
             The color coding in the report is:
                 {t.dev}Deviation in % from goal
                 {t.err}Needed resistor is not available
                 {t.exact}Deviation is zero to about 6 figures
                 {t.ser}Resistors are in series
                 {t.par}Resistors are in parallel
-        """)
+        ''')
         )
-
     def ProcessArguments(args):
         if 1:  # Get the total resistance
             r = args.pop(0)
@@ -306,24 +305,21 @@ if 1:  # Core functionality
             # Make the first element unity
             ratios.insert(0, 1)
             d["ratios"] = ratios
-
     def GetEIA():
-        "Return (n, pow0, pow1, ...) where n is the EIA series and pow0, etc. are the powers of 10"
-        s = d["-E"]
-        s = s.replace(",", " ")
-        f = [int(i) for i in s.split()]
-        n = f.pop(0)
+        'Return set of EIA resistance values from 1 to 1e6'
+        n = d["-E"]
         assert n in set((6, 12, 24, 48, 96))
-        f.insert(n, 0)
+        f =  eia.EIA(n)
+        # Divide by 100 so values start at 1 Ω 
+        f = [i/100 for i in f]
+        for i, item in enumerate(f):
+            f[i] = int(f[i]) if int(f[i]) == f[i] else f[i]
         return f
-
     def GetResistors():
         if d["-E"]:
-            f = GetEIA()
-            d["resistors"] = Resistors(EIA=f[0], powers_of_10=f[1:])
+            d["resistors"] = GetEIA()
         else:
             d["resistors"] = resistors  # On-hand set
-
     def Fix(x):
         "Format with fpformat.fix and remove trailing zeros"
         fp = d["fp"]
@@ -331,11 +327,10 @@ if 1:  # Core functionality
         while s and s[-1] == "0":
             s = s[:-1]
         return s
-
     def Fmt(R):
-        """Format a resistance R.  Use engsi format, but remove trailing zeros and remove the
+        '''Format a resistance R.  Use engsi format, but remove trailing zeros and remove the
         decimal point if possible.
-        """
+        '''
         fp = d["fp"].engsi
         T = fp(R) + d["ohm"]
         s, u = T.split()
@@ -344,7 +339,6 @@ if 1:  # Core functionality
         if s and s[-1] == ".":
             s = s[:-1]
         return " ".join([s, u])
-
     def SolveSystem():
         fp = d["fp"]
         F = Fmt
@@ -427,7 +421,6 @@ if 1:  # Core functionality
                 with dev:
                     dev.N = 2
                     print(f"{ind}{Fix(ratio):{k}s}   {t.dev}{100 * dev}%{t.norm}")
-
     def GetR(s):
         "s is a string that can have a cuddled SI prefix"
         val, prefix = u.ParseUnit(s)
@@ -435,7 +428,6 @@ if 1:  # Core functionality
         if prefix:
             val *= flt(u.SI_prefixes[prefix])
         return val
-
     def Problem2(args):
         E = d["fp"].engsi
         if len(args) != 4:
@@ -462,7 +454,7 @@ if 1:  # Core functionality
         i, V, V1, V2 = [E(i) for i in (i, V, V1, V2)]
         R, R1, R2, R1c, R2c = [Fmt(i) for i in (R, R1, R2, R1c, R2c)]
         print(
-            dedent(r"""
+            dedent(r'''
                              ◯ Vout
                              |
                              ↓
@@ -479,10 +471,9 @@ if 1:  # Core functionality
             R1 = {R1} (closest is {R1c})
             R2 = {R2} (closest is {R2c})
             i = {i}A
-        """).format(**locals())
+        ''').format(**locals())
         )
         exit(0)
-
 
 if __name__ == "__main__":
     d = {}  # Options dictionary

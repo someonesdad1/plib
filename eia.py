@@ -20,7 +20,7 @@ if 1:  # Header
     if 1:   # Standard imports
         pass
     if 1:   # Custom imports
-        from roundoff import RoundOff
+        from dpmath import RoundOff
     if 1:   # Global variables
         __all__ = '''EIA EIA_series OnHand '''.split()
         # The following iterable defines the powers of 10 to use to get

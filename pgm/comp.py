@@ -168,6 +168,7 @@ if 1:  # Data
             5:4:?    Switch, toggle, single throw   switch
             5:5:?    Switch, toggle, double throw   switch
             5:6:?    Switch fasteners   hardware
+            5:6:1    Momentary on pushbutton switch with leads (old demagnetizer)   switch
             5:7:?    Switch, DIP   switch
             5:8:?    Switch, various PC mount plastic toggle   switch
             5:9:?    Switch, toggle, DPDT, momentary, large   switch
@@ -576,6 +577,7 @@ if 1:  # Data
             
         Box 29
             29:1:?    Dual banana jack MPJA 14492   jack
+            29:1:w    USB-A 5 V to 12 V output boost converter   converter
             29:1:?    BNC jacks & hardware (in plastic bag)   connector
             29:2:?    BNC jacks & hardware   connector
             29:3:20   2N7000 MOSFET transistor TO92 60 V 200 mA   MOSFET
@@ -593,6 +595,7 @@ if 1:  # Data
             30:1:4    47 μF 35 V surface mount capacitors (from Richard)   capacitor
             30:1:4    220 μF 35 V surface mount capacitors (from Richard)   capacitor
             30:1:1    MPJA 37882 looping relay PCB (from Richard)   relay
+            30:1:1    Small prototyping PC boards (from Richard)   PCB
             30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
             30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOSFET
             30:4:7    Buck converter banggood 30Dec2019 $1.2   PCB
@@ -1053,7 +1056,7 @@ if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
     if args and len(args[0]) == 1:   # One letter command
-        allowed, letter = "abdDelmntv", args[0]
+        allowed, letter = "abdDeklmntv", args[0]
         if letter in allowed:
             if letter == "a":
                 d["-a"] = True
@@ -1067,7 +1070,7 @@ if __name__ == "__main__":
             elif letter == "D":
                 print(data)
                 exit(0)
-            elif letter == "l":
+            elif letter in "kl":
                 d["-l"] = True
             elif letter == "m":
                 d["-e"] = True

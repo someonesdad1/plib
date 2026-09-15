@@ -44,8 +44,8 @@ if 1:   # Header
         import trm
         t = trm.TrmDP()
         from lwtest import Assert
-        from dpprint import PP
-        from months import Months
+        from dputil import PP
+        from dptime import Num2Month
         from columnize import Columnize
         import dpstr
         pp = PP()   # Get pprint with current screen width
@@ -61,6 +61,7 @@ if 1:   # Header
         g.data = "/plib/pgm/eevblog.txt"
         g.remove = dpstr.RemoveFilter(string.punctuation + string.digits)
         ii = isinstance
+        Months = Num2Month
 if 1:   # Classes
     class Line:
         r = re.compile(r"(/\d\d\d\d/\d\d/\d\d)")

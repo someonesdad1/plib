@@ -1121,18 +1121,21 @@ if 1:  # Core functionality
         t.title = t.ornl
         t.si = t.yell
         t.insul = t.lavl
+        t.res = t.grnl
+        t.awg = t.ygr
         s = "       "
         t.print(f"{t.title}{s}Maximum current in A for single copper wire in air")
         print(f"{s}  Ambient temperature about 30 °C (86 °F, 303 K)")
-        def f(s, clr=None):
+        def Dec(s, clr=None):
+            'Decorate s with the indicated color'
             if clr is not None:
                 return f"{clr}{s}{t.n}"
             return f"{s}"
-        header = ["AWG", "mm", "mΩ/m", "m/kg", "60", "75", "90", "100", f("200", t.si), "250"]
+        header = ["AWG", "mm", Dec("mΩ/m", t.res), "m/kg", "60", "75", "90", "100", Dec("200", t.si), "250"]
         s = "-"
         ncols = 10
         c = [s*4]*ncols
-        c[8] = f"{f(c[8], t.si)}"
+        c[8] = f"{Dec(c[8], t.si)}"
         data = [c]
         Tambient = 30
         x = flt(0)
@@ -1140,7 +1143,10 @@ if 1:  # Core functionality
         x.rlz = True
         for awg in list(range(-3, 1)) + list(range(2, 26, 2)):
             row = []
-            row.append(f"{Size(awg)}")
+            if awg in (12, 16, 20):
+                row.append(Dec(f"{Size(awg)}", t.awg))
+            else:
+                row.append(f"{Size(awg)}")
             if 1:   # Get wire data
                 dia_in = AWG(awg)
                 dia_mm = flt(str(dia_in*25.4))
@@ -1149,11 +1155,11 @@ if 1:  # Core functionality
                 ohm_per_m = resistivity/area_m2
                 m_per_kg = 1/(density*area_m2)
             row.append(f"{dia_mm}")
-            row.append(f"{1000*ohm_per_m}")
+            row.append(Dec(f"{1000*ohm_per_m}", t.res))
             row.append(f"{m_per_kg}")
             for T in (60, 75, 90, 100, 200, 250):
                 i = ChassisCurrent(dia_mm, T - Tambient)
-                row.append(f(i, t.si if T == 200 else ""))
+                row.append(Dec(i, t.si if T == 200 else ""))
             data.append(row)
         print(" "*37, f"{t.lavl}Insulation rating, °C{t.n}")
         tt.print(data, header, style=" "*15, alignment="c"*ncols)
