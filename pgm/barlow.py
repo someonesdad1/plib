@@ -17,7 +17,7 @@ Construct a copy of Barlow's tables
     and had to be replaced?  Using flawed math tables (i.e., tables with errors) is like
     building a house with a tool you don't know is faulty and getting poor results.  You
     can waste a lot of time finding the problem and folks who have been burned look for
-    consistently along the way, not wanting to repeat the pain or rework.
+    consistency along the way, not wanting to repeat the pain or rework.
     
     The original work took much effort to produce, both calculation of the numbers
     (aided by algebraic checks) and checking the printer's typesetting; typesetting was
@@ -49,7 +49,10 @@ Construct a copy of Barlow's tables
     common user who just punches numbers into a keyboard and doesn't even check their
     work.  Checking is as important today with computers and calculators as it was with
     manual calculations, but typically one doesn't learn this important lesson easily,
-    least of all by hearing it from a teacher or reading it in a book.
+    least of all by hearing it from a teacher or reading it in a book.  No, the lesson
+    usually comes from extreme embarrassment in front of colleagues or managers when you
+    find out you made some serious error in your reasoning and it's now public. <smile>
+    It happens to all of us...
 
 '''
 if 1:  # Header

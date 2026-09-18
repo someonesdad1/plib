@@ -1131,9 +1131,9 @@ if 1:  # Core functionality
             if clr is not None:
                 return f"{clr}{s}{t.n}"
             return f"{s}"
-        header = ["AWG", "mm", Dec("mΩ/m", t.res), "m/kg", "60", "75", "90", "100", Dec("200", t.si), "250"]
+        header = ["AWG", "mm", "mm²", Dec("mΩ/m", t.res), "m/kg", "60", "75", "90", "100", Dec("200", t.si), "250"]
         s = "-"
-        ncols = 10
+        ncols = 11
         c = [s*4]*ncols
         c[8] = f"{Dec(c[8], t.si)}"
         data = [c]
@@ -1155,6 +1155,7 @@ if 1:  # Core functionality
                 ohm_per_m = resistivity/area_m2
                 m_per_kg = 1/(density*area_m2)
             row.append(f"{dia_mm}")
+            row.append(f"{area_m2*1e6}")
             row.append(Dec(f"{1000*ohm_per_m}", t.res))
             row.append(f"{m_per_kg}")
             for T in (60, 75, 90, 100, 200, 250):
@@ -1303,7 +1304,7 @@ if 1:  # Core functionality
         x = flt(0)
         x.rtz = False
         # Thin double termtables style
-        header = "AWG mm mΩ/m Chass 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%".split()
+        header = "AWG mm mm² mΩ/m Chass 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%".split()
         header = [f" {t.lill}{i} " for i in header]
         C = {6: t.lipl, 10: t.yell, 12: t.grnl, 16: t.ornl}
         o = []
@@ -1314,6 +1315,8 @@ if 1:  # Core functionality
             with x:
                 x.N = 2
                 q.append(f"{clr}{flt(dia_mm)}{t.n}")
+                area = flt(dia_mm**2*pi/4)
+                q.append(f" {clr}{flt(area)}{t.n} ")
                 q.append(f"{clr}{flt(res)}{t.n} ")
                 q.append(f"{clr}{flt(i_chass)}{t.n} ")
             for p in pct:

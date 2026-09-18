@@ -194,7 +194,6 @@ if 1:  # Data
             
         Box 7
             7:1:?    1N3600 silicon diode 100 PIV, 200 mA   diode
-            7:1:?    1N4004 diode 400 PIV, 1 A   diode
             7:1:?    Zener diode 12 V 30 mA   zener
             7:1:?    1N759 zener diode 12 V 30 mA   zener
             7:1:?    1N965 zener diode 15 V 400 mA   zener
@@ -206,7 +205,7 @@ if 1:  # Data
             7:2:?    Various AGC fuses   fuse
             7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from Steve K.)   diode
             7:4:?    DC micromotor, 1 rev/s at 6 VDC, 10 mA no load current, 100 mA under load   misc
-            7:5:?    1N4004 diode 400 PIV, 1 A   diode
+            7:5:?    1N4004 diode 400 PIV, 1 A marked GI010159, typ voltage 0.59 V   diode
             7:5:?    Round fluorescent starters, two pin   opto
             7:6:?    D battery holder (holds one battery)   battery
             7:6:?    Misc. resistors (can toss)   resistor
@@ -588,8 +587,10 @@ if 1:  # Data
             29:6:?    Normally open thermostats 40, 50, 60, 65[5]150 °C, MPJA 35719   thermostat
             29:7:?    Standard toggle switch safety cover   switch
             29:8:?    Hamon 0.1 and 0.01 divider parts   misc
+            29:8:20   LM358P dual op amp MPJA 36231   opamp
             
         Box 30
+            30:1:1    Buck CV/CC converter 3 A MPJA 33370   converter
             30:1:?    Dupont jumper wires, assorted, 100 mm   connector
             30:1:19   100 μF 35 V surface mount capacitors   capacitor
             30:1:4    47 μF 35 V surface mount capacitors (from Richard)   capacitor
