@@ -28,7 +28,7 @@ if 1:  # Imports
     from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
-    from color import C
+    #from color import C
 if 1:  # Global variables
     debug = False  # Set to True to ignore presence of a log file
     ii = isinstance
@@ -39,11 +39,18 @@ if 1:  # Global variables
 
 
 def UseColor(use=True):
-    g.dir = C.lgrn if use else ""
-    g.file = C.lmag if use else ""
-    g.err = C.lred if use else ""
-    g.warn = C.yel if use else ""
-    g.n = C.norm if use else ""
+    if 0:
+        g.dir = C.lgrn if use else ""
+        g.file = C.lmag if use else ""
+        g.err = C.lred if use else ""
+        g.warn = C.yel if use else ""
+        g.n = C.norm if use else ""
+    else:
+        g.dir = ""
+        g.file = ""
+        g.err = ""
+        g.warn = ""
+        g.n = ""
 
 
 def Expand(filespec):
@@ -135,9 +142,9 @@ def ParseCommandLine(d):
     for o, a in opts:
         if o[1] in "CcdeinuxX":
             d[o] = not d[o]
-    UseColor(use=False)
-    if d["-C"] or (d["-c"] and sys.stdout.isatty()):
-        UseColor(use=True)
+    UseColor()
+    #if d["-C"] or (d["-c"] and sys.stdout.isatty()):
+    #    UseColor(use=True)
     if not args:
         Usage(d)
     return args
@@ -165,7 +172,7 @@ def Rename(fn):
     the tuple (oldname, newname) to let us write a command to reverse the
     renamings made.  fn can also be a directory name and will be renamed
     if d["-d"] was set.
-
+    
     NOTE:  we don't save the commands to undo directory name changes because
     there are cases where it's not easy to recover.
     """
@@ -199,8 +206,6 @@ def Rename(fn):
                 c.fg(c.lred)
             print(msg)
             c.normal()
-
-
 def GenerateListOfFiles(args):
     "Return (files, dirs) where both are lists"
     files, dirs = set(), set()
@@ -227,19 +232,15 @@ def GenerateListOfFiles(args):
         f = file.resolve().parent
         if f in resolved:
             Error(f"{g.err}'{file}' affected by directory rename{g.n}")
-
     def f(x):
         return list(sorted(x))
-
     return f(files), f(dirs)
 
 
 def Process(files, dirs):
     "Arguments are lists of P objects to rename"
-
     def f(x):
         return x.upper() if d["-u"] else x.lower()
-
     rename = []
     if files:
         arrow, out = f" {g.file}-->{g.n} ", []
