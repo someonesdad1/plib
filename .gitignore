@@ -28,6 +28,7 @@ jim
 put              
 repl_test1       
 
+dpcolornames.py
 __pycache__
 .vi
 .z
