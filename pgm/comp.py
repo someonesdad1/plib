@@ -2,8 +2,7 @@
 Search for text in the components database
 '''
 if 1:  # Data
-    from wrap import dedent
-    todo = dedent('''
+    Todo = '''
     comp.py ToDo list
     
     - Boxes
@@ -27,629 +26,7 @@ if 1:  # Data
             - Spares have box:compartment pointer in their description
     - Look at getting some locking heavy duty plastic boxes for storage that will stack in a
       compact fashion
-      
-    ''')
-    data = dedent('''
-        
-        The compartments of the plastic boxes are numbered from left to right and front to back.
-        These data are free form.  The actual data lines contain three integers separated by
-        colons:
-        
-            Box
-            Compartment
-            Quantity
-        
-        The default quantity parameter is ? at the moment, but will eventually get set to the
-        actual count or a symbol:
-        
-            M   Many
-            *   Few or none, need to purchase more
-        
-        This also allows for another field (maybe called shelf) that locates it on a bookcase,
-        rolling cart, or shelves in another room.
-        
-        Each data line's description is free form and optional keywords follow a no-break space
-        (use 'nbs' in vim).
-        
-        Box 1
-            1:1:M    Component pins   pin
-            1:1:M    Pin rings   pin
-            1:1:M    Pin sockets   pin socket
-            1:1:M    Test pins   pin
-            1:2:1    CAT5 jack connector, female RJ-45, panel mount   jack connector
-            1:2:7    Capacitor, 20 pF   capacitor
-            1:3:1    3-5 V piezo device   sound
-            1:4:4    Various Radio Shack (276-1657) CdS photocells   opto
-            1:4:2    All Elec. 15 V sound modules   sound
-            1:5:9    Small relays   relay switch
-            1:5:9    Sun Hold 12 V relay 400 ohm   relay switch
-            1:6:9    Capacitor, 100 nF   capacitor
-            1:6:1    Buck converter MPJA 35371 4.5-28 V in, > 3 Vout, 3 A max, heat snk > 10 W   converter
-            1:7:M    #6 solder lugs   lug
-            1:7:M    Jumpers   jumper
-            1:8:1    3 V 0.5 mA piezo buzzer (best 2.4 kHz)   sound
-            1:8:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48   sound
-            1:9:1    2 kHz piezo buzzer   sound
-            1:9:2    PS MOD-3 5 V piezo buzzer (use PWM on Arduino)   sound
-            1:10:2    Piezo buzzers 1 kHz sq wv 9 Vpp   sound
-            1:11:3    Microphone   sound
-            1:11:1    Piezo buzzer ?   sound
-            1:12:2    Piezo buzzer All El. 1 kHz 10 Vpp   sound
-            1:13:1    Speaker, small, 8 ohm   sound
-            1:13:1    RS 273-065A buzzer 3-20 V DC   sound
-            1:14:1    Piezo buzzer 60 Hz - 2 kHz 4.5 Vpp   sound
-            1:15:1    Buzzer 2 kHz 9 V   sound
-            1:16:1    RS Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound   sound
-            1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48   sound
-            1:18:1    Piezo buzzer All El. <= 20 Vpp, AVX mfg   sound
-            1:18:1    Piezo buzzer (passive) Amazon, small UM214022 barcode X004LX91BF   sound
-            
-        Box 2
-            2:1:?    LEDs, misc (high brightness, UV)   opto LED
-            2:2:?    120 VAC neon indicator in threaded housing   opto
-            2:2:?    Small red panel mount LEDs in threaded housing   opto LED
-            2:3:?    Threaded housing for 3 mm LED   opto
-            2:3:?    Threaded housing for 5 mm LED   opto
-            2:4:?    LED, red, 3 mm   opto LED
-            2:5:?    Plastic bezels for 5 mm LEDs   opto
-            2:6:?    Lamps with wires, small pea bulbs   opto
-            2:6:?    LED, red, 3 mm, fairly bright with short leads   opto LED
-            2:6:?    Neon bulbs   opto
-            2:7:?    LED, amber, 3 mm   opto LED
-            2:8:?    LED, red, 3 mm   opto LED
-            2:9:?    LED, red, 5 mm   opto LED
-            2:10:?    LED, green, 5 mm   opto LED
-            2:11:?    LED, yellow, 5 mm   opto LED
-            2:12:?    Misc. LEDs   opto LED
-            2:12:?    Thermistor, 10 kohms @ 25 deg C, Radio Shack 271-110   thermistor
-            2:13:?    7 segment LEDs   opto
-            2:14:?    3 mm photodiode   opto diode
-            2:14:?    Radio Shack 276-145A NPN Si IR phototransistor 5 mm 20 mA   opto
-            2:15:?    Radio Shack 276-142 IR detector and emitter pair, 5 mm LED package   opto LED
-            2:16:?    HP alphanumeric LED display   opto
-            2:16:?    LED bars   opto LED
-            2:17:?    2N3704 NPN 30 V 500 mA, hfe=100-300   NPN
-            2:17:?    74HC74N dual D flip-flop   TTL
-            2:17:?    Luxeon star, 1 W, white   LED LED
-            2:17:?    MPQ2222A Motorola, quad NPN transistor (HP 1858-0112)   NPN
-            2:18:?    7 segment LEDs   opto LED
-            
-        Box 3
-            3:1:?    Cable clamps   misc
-            3:1:?    Captured fastener, right angle   fastener
-            3:1:?    Tinnerman fastener   fastener
-            3:2:?    Fastener, 4.2" long, 1/4" dia, plated steel   fastener
-            3:2:?    Fasteners   fastener
-            3:3:?    Fasteners   fastener
-            3:4:?    Star fasteners   fastener
-            3:5:?    Fasteners   fastener
-            3:6:?    Fasteners   fastener
-            3:7:?    Fasteners   fastener
-            3:8:?    Molex pins   pin
-            3:8:?    Rubber fastener   fastener
-            3:9:?    Thumb fasteners   fastener
-            3:10:?    Fasteners, nylon   fastener
-            3:11:?    Fasteners, nylon   fastener
-            3:12:?    Fasteners   fastener
-            
-        Box 4
-            4:1:?    2N5114 transistor, P-channel JFET, < 75 ohm, 30 V, 500 mW   FET transistor
-            4:1:?    4-pin transistor socket   socket
-            4:2:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
-            4:3:?    1854-0019 HP NPN transistor, silicon, TO-18   NPN transistor
-            4:4:?    1853-0316 Dual PNP transistor, ITS-1160, (?) 40 V 200 mA   PNP transistor
-            4:5:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
-            4:6:?    1854-0071 NPN transistor   NPN transistor
-            4:7:?    2N2160 unijunction transistor, GE   misc transistor
-            4:7:?    2N2907 PNP transistor 40 V 800 mA, hfe=100-300 at 150 mA   PNP transistor
-            4:7:?    2N5416 PNP transistor 300 V 1 A, hfe=5 at 5 mA   PNP transistor
-            4:7:?    2N697 NPN transistor 40 V 150 mA, hfe=3-12   NPN transistor
-            4:8:?    1853-0036 PNP transistor 2N3906 40 V 200 mA, hfe=80   PNP transistor
-            4:9:?    1853-0462 PNP transistor   PNP transistor
-            4:9:?    2N3440 NPN transistor 250 V 1 A, hfe=40-160   NPN transistor
-            4:9:?    2N3635 PNP transistor 140 V 1 A, hfe=100-300   PNP transistor
-            4:10:?    1854-0045 NPN transistor  hfe=150   NPN transistor
-            4:11:?    1854-0045 NPN transistor  hfe=150   NPN transistor
-            4:12:?    1854-0404 NPN transistor small signal transistor, National NS04008   NPN transistor
-            4:13:?    LM725 op amp   opamp
-            4:13:?    Small 600 uA meter (from old Omega TC box)   misc
-            4:14:?    2N2369A NPN transistor 40 V 200 mA, hfe=20-40   NPN transistor
-            4:15:?    2N2907A PNP transistor 60 V 600 mA, hfe=100-450   PNP transistor
-            4:16:?    LF353AH Dual input JFET op amp, 8-pin metal can   opamp
-            4:17:?    1826-0217 HP IC, op amp, TO-99 8 pin package   opamp
-            4:18:?    2N3251 PNP transistor 40 V 200 mA, hfe>90   PNP transistor
-            
-        Box 5
-            5:1:?    Switches, pushbutton   switch
-            5:2:?    Switch, rotary, 7 position, single deck    switch
-            5:2:?    Switch, slide    switch
-            5:3:?    Ring terminals, various   terminal
-            5:3:?    Switch, toggle, momentary   switch
-            5:4:?    Switch, toggle, single throw   switch
-            5:5:?    Switch, toggle, double throw   switch
-            5:6:?    Switch fasteners   hardware
-            5:6:1    Momentary on pushbutton switch with leads (old demagnetizer)   switch
-            5:7:?    Switch, DIP   switch
-            5:8:?    Switch, various PC mount plastic toggle   switch
-            5:9:?    Switch, toggle, DPDT, momentary, large   switch
-            5:9:?    Thermal sensors (switches) (?)   thermostat
-            5:10:?    Switch, rocker   switch
-            5:11:?    Switch, rocker   switch
-            5:12:?    Switch, rocker   switch
-            5:12:?    Switch, small microswitches   switch
-            
-        Box 6
-            6:1:?    4 mm banana jacks, mostly salvaged HP   jack
-            6:2:?    CalTest 4 mm shrouded banana plug, fastener, red and black   plug
-            6:3:?    CalTest 4 mm banana plug, red or black   plug
-            6:4:?    CalTest 4 mm banana plug, no fastener needed, red or black   plug
-            6:5:?    4 mm banana jacks, salvaged, red and black, single and double   jack
-            6:6:?    4 mm banana jacks, tall, red and black   jack
-            6:7:?    4 mm banana jacks, mostly salvaged HP   jack
-            6:8:?    Red pin jacks   jack
-            6:9:?    Misc. banana plugs   plug
-            6:10:?    Ground banana jacks, nickel plated   jack
-            6:11:?    CalTest low profile banana jacks, black   jack
-            6:12:?    CalTest low profile banana jacks, red   jack
-            
-        Box 7
-            7:1:?    1N3600 silicon diode 100 PIV, 200 mA   diode
-            7:1:?    Zener diode 12 V 30 mA   zener
-            7:1:?    1N759 zener diode 12 V 30 mA   zener
-            7:1:?    1N965 zener diode 15 V 400 mA   zener
-            7:1:?    1N4728 zener diode 3.3 V @ 100 mA   zener
-            7:1:?    9.5 V rated silicon diode   diode
-            7:1:?    Assorted small signal diodes, silicon   diode
-            7:1:?    C battery holder (holds one battery)   battery
-            7:1:?    Zener diode 1/2 W: 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30 V   zener
-            7:2:?    Various AGC fuses   fuse
-            7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from Steve K.)   diode
-            7:4:?    DC micromotor, 1 rev/s at 6 VDC, 10 mA no load current, 100 mA under load   misc
-            7:5:?    1N4004 diode 400 PIV, 1 A marked GI010159, typ voltage 0.59 V   diode
-            7:5:?    Round fluorescent starters, two pin   opto
-            7:6:?    D battery holder (holds one battery)   battery
-            7:6:?    Misc. resistors (can toss)   resistor
-            7:7:?    OPB1941 photodiode/phototransistor (?)   opto
-            7:8:?    9 volt battery adapter   battery
-            7:9:?    Surface mount to PCB adapters, various sizes   adapter
-            7:10:?    12 VDC LED assembly   opto
-            7:10:?    USB connector to PC board   USB connector
-            7:10:?    Lithium coin cell battery holder (20 mm, fits 2025 and 2032)   battery
-            7:11:?    10 W resistor, 20 ohm   resistor
-            7:11:?    10 W resistor, 24 mohm   resistor
-            7:11:?    Precision resistor, 200.9 ohms   resistor
-            7:12:?    MPJA level sensors   sensor
-            7:12:?    Incandescent flashlight bulbs   opto
-            7:12:?    Small incandescent bulb (old Heathkit fn gen) 66 Ω   opto
-            
-        Box 8
-            8:1:?    Pot, 10 ohm, 10 turn PC mount   pot
-            8:2:?    Pot, 20 ohm, 10 turn PC mount   pot
-            8:3:?    Pot, 50 ohm, 10 turn PC mount   pot
-            8:4:?    Pot, 100 ohm, 10 turn PC mount   pot
-            8:4:?    Pot, 100 ohm, square & round, 1 turn PC mount   pot
-            8:5:?    Pot, 200 ohm, round, 1 turn PC mount, facing normal to board, finger turn   pot
-            8:6:?    Pot, 500 ohm, 10 turn PC mount   pot
-            8:6:?    Pot, 500 ohm, round, 1 turn PC mount, facing normal to board   pot
-            8:6:?    Pot, 500 ohm, round, 1 turn PC mount, facing normal to board, finger turn   pot
-            8:7:?    Pot, 1 kohm, round, 1 turn PC mount, facing normal to board, finger turn   pot
-            8:8:?    Pot, 2 kohm, 10 turn PC mount   pot
-            8:9:?    Pot, 5 kohm, 1 turn PC mount, round, finger turn   pot
-            8:9:?    Pot, 5 kohm, 10 turn PC mount   pot
-            8:10:?    Pot, 10 kohm, 10 turn PC mount   pot
-            8:11:?    Pot, 20 kohm, 1 turn PC mount, round   pot
-            8:11:?    Pot, 20 kohm, 10 turn PC mount   pot
-            8:12:?    Pot, 50 kohm, 1 turn PC mount, round, facing normal to board, miniature   pot
-            8:12:?    Pot, 50 kohm, 1 turn PC mount, square, facing normal to board   pot
-            8:13:?    Pot, 100 kohm, 10 turn PC mount   pot
-            8:14:?    Pot, 200 kohm, 10 turn PC mount   pot
-            8:15:?    Pot, 500 kohm, 10 turn PC mount   pot
-            8:16:?    Pot, 1 Mohm, 10 turn PC mount   pot
-            8:17:?    Pot, 2 Mohm, 10 turn PC mount   pot
-            8:18:?    World War 2 1/4" pot shaft waterproof feedthrough   hardware
-            
-        Box 9
-            9:1:?    Socket, transistor, TO-92   socket
-            9:2:?    Relay, 12 V, DPDT, latching   relay switch
-            9:3:?      
-            9:4:?    Luxeon star LED, 350 mA max   opto
-            9:5:?    555 timer   linear
-            9:5:?    556 timer (dual 555)   linear
-            9:6:?    8-pin DIP sockets   socket
-            9:7:?    1826-0065 LM311 comparator   linear
-            9:7:?    1826-0311 LM201A op amp   opamp
-            9:7:?    74LS14 hex inverter with Schmitt trigger   TTL
-            9:7:?    CD4051 8 channel analog mux CMOS   CMOS
-            9:8:?    74LS151 8-channel digital mux   TTL
-            9:9:?    CA3094E transconductance amplifier, Intersil   linear
-            9:10:?    Orthodontic rubber bands   misc
-            
-        Box 10
-            10:1:?    Pot, 2 kohm, PC mount, finger dial   pot
-            10:2:?    Pot, 250 ohm, PC mount, finger dial   pot
-            10:3:?    Pot, 2.4 kohm, PC mount, finger dial   pot
-            10:4:?    Pot, 800 kohm, PC mount, fastener driver dial   pot
-            10:5:?    Pot, 500 ohm, PC mount, finger dial   pot
-            10:6:?    Pot, 2 kohm, PC mount, finger dial   pot
-            10:7:?    Pot, 100 ohm, PC mount, finger dial   pot
-            10:8:?    Pot, 250 kohm, PC mount, finger dial   pot
-            10:9:?    Pot, 50 kohm, PC mount, finger dial   pot
-            10:10:?    Pot, 480 ohm, PC mount, finger dial   pot
-            
-        Box 11
-            11:1:?    Capacitor, adjustable, 3 to 9 pF   capacitor
-            11:2:?    Power jack, takes 5.5/2.1 mm plug, also plugs   jack
-            11:3:?    1 A, 120 VAC SSR solid state relay, Grayhill 70YY14350   relay switch
-            11:4:?    2 A, 120 VAC SSR solid state relay, Kyotto KB20C02A, 3-32 VDC in   relay switch
-            11:5:?    1 A, 120 VAC SSR solid state relay, Grayhill 70YY14350   relay switch
-            11:6:?    TIP120 NPN transistor Darlington 60 V 5 A, TO220, BCE from front, tab is B   NPN transistor
-            11:7:?    12 VDC reed relay, 1 kohm coil, single pole NO   relay switch
-            11:8:?    2N2222 NPN transistor 30 V 600 mA, hfe=35-300   NPN transistor
-            11:9:?    LF353 Dual JFET op amp, 8-pin DIP   opamp
-            11:9:?    PT27311 current transformer, 30-200 kHz   transformer
-            11:10:?    Photosensitive resistors from 1960's HP differential voltmeter   opto
-            
-        Box 12
-            12:1:?    Chunk of broken UV glass   opto
-            12:2:?    Frosted neon bulbs, short   opto
-            12:3:?    741 op amp   opamp
-            12:4:?    4066 quad bilateral switch CMOS   CMOS
-            12:4:?    74LS04 hex inverter   TTL
-            12:5:?    fasteners, red LED, 2N3904 transistor   misc
-            12:6:?    10 kohm resistor   resistor
-            12:7:?    470 ohm resistor   resistor
-            12:8:?    Various disk capacitors   capacitor
-            12:9:?    Diodes   diode
-            12:10:?    Capacitor, 10 nF, bypass   capacitor
-            
-        Box 13
-            13:1:?      
-            13:2:?      
-            13:3:?      
-            13:4:?      
-            13:5:?      
-            13:6:?      
-            13:7:?      
-            13:8:?      
-            13:9:?      
-            13:10:?      
-            
-        Box 14
-            14:1:?    Various inductors (coils) around 0.5 uH   inductor
-            14:2:?    Various inductors (coils) around 0.2 uH   inductor
-            14:3:?    Small matching transformer, 1:1, around 500 mH   transformer
-            14:4:?    Various inductors (coils) around 0.2 uH   inductor
-            14:5:?    Various inductors (coils) around 10 uH   inductor
-            14:6:?    Ferrite toroid, square, 10 mm dia, 3 mm thick   ferrite
-            14:7:?    Ferrite toroid, square, 13 mm dia, 5 mm thick, 7 mm ID   ferrite
-            14:8:?    Ferrite toroid, square, 19 mm dia, 10 mm thick, 9 mm ID   ferrite
-            14:9:?    Ferrite toroid, square, 13 mm dia, 6 mm thick, 7 mm ID   ferrite
-            14:10:?    Ferrite toroid, square, 10 mm dia, 5 mm thick, 5 mm ID, with 2 wires, 2 turns   ferrite
-            
-        Box 15
-            15:1:?    Capacitor, 68 uF, 15 V, electrolytic, 1970's Sprague salvaged from Ithaca lock-in   capacitor
-            15:2:?    Capacitor, 15 uF, 20 V, electrolytic, 1970's Sprague salvaged from Ithaca lock-in   capacitor
-            15:3:?    Capacitor, 100 pF, 1 kV, ceramic?   capacitor
-            15:4:?    US Sensor PT502J2 bead thermistor, 5 kohm @ 25 °C, 0.2 °C accuracy   thermistor
-            15:5:?    5 V 5 mW 650 nm lasers   opto
-            15:6:?    D battery holder (holds one battery)   battery
-            15:6:?    Capacitor, 100 nF, 100 V, 1970's GE salvaged from Ithaca lock-in   capacitor
-            15:7:?    Capacitor, 205 uF, 10 V, 1970's Kemet salvaged from Ithaca lock-in   capacitor
-            15:8:?    Capacitor, 2 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
-            15:9:?    Capacitor, 0.977 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
-            15:10:?      
-            
-        Box 16
-            16:1:M    Ring terminal, blue, #10   terminal
-            16:2:M    Ring terminal, blue, #8   terminal
-            16:3:M    Spade terminal, blue, #10   terminal
-            16:4:M    Spade terminal, blue, #10   terminal
-            16:5:M    Spade terminal, blue, #8   terminal
-            16:6:M    Spade terminal, blue, #8   terminal
-            16:7:M    Spade terminal, red, #8   terminal
-            16:8:M    1/4" Faston terminal, male, 10-12 ga   terminal
-            16:9:M    Spade terminal, red, #6   terminal
-            16:10:M   1/4" Faston terminal, female, 12-14 ga   terminal
-            
-        Box 17
-            17:1:?    Resistor, precision, 1 kohm, HP from June 1968, 0.1%   resistor
-            17:2:?    Resistor, precision, 1.001 kohm, HP from June 1968, 0.0075%   resistor
-            17:2:?    Resistor, Dale, 10 W, 0.025 ohm   resistor
-            17:3:?    Resistor, precision, 1111 ohm, Daven   resistor
-            17:4:?    Resistor, precision, 10.101 kohm, HP from May 1968, 0.02%   resistor
-            17:5:?    Resistor, precision, 206.1, IRC   resistor
-            17:6:?    Resistor, precision, 2 kohm, RCL, 0.05%   resistor
-            17:7:?    Resistor, precision, 4 kohm, Daven   resistor
-            17:8:?    Resistor, power, 55 kohm, Dale, 10 W   resistor
-            17:8:?    Resistor, power, 20 ohm, Dale, 10 W   resistor
-            17:8:?    Resistor, power, 25.49 mohm, Dale, 10 W   resistor
-            17:9:?    Resistor, precision, 89.975 kohm, HP from Mar 1966, 0.02%   resistor
-            17:10:?    Resistor, power, Dale, 0.1337 ohm, about 3 W, three resistors in parallel   resistor
-            
-        Box 18
-            18:1:?    AGC fuse holder, end   fuse
-            18:2:?    Pins, gold-plated, and matching sockets   pin
-            18:3:?    AGC fuse holder, panel mount   fuse
-            18:3:?    10 A and 0.25 A multimeter fuses (for Aneng DMMs)   fuse
-            18:3:?    1N5817G Schottky diode, 20 PIV, 1 A   diode
-            18:4:?    AGC fuse holder, panel mount   fuse
-            18:4:?    2 A AGC slo-blo fuses   fuse
-            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 290 mΩ 62 °C/W TO-220   MOSFET
-            18:5:?    Socket, 8-pin DIP   socket
-            18:6:?    16 pin ZIF socket   socket
-            18:6:?    Jumper, 0.1 inch   jumper
-            18:7:?    Fuse, AGC, various sizes   fuse
-            18:8:?    Jumper, fits 8-pin DIP socket   jumper
-            18:9:?    Fuse, AGC, various sizes   fuse
-            18:10:?    1A 250 V lever snap action microswitch   switch
-            18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOSFET
-            18:12:?    IC tube pin (closes IC antistatic tube off)   misc
-            18:12:?    0.2 A AGC-size fuse for Aneng 870 DMM   fuse
-            
-        Box 19
-            19:1:2    LF353 dual JFET op amp, 8-pin DIP   opamp
-            19:2:M    LM224 quad op amp, 14-pin DIP   opamp
-            19:2:M    LM324 quad op amp, 14-pin DIP   opamp
-            19:3:0    CA3140  op amp, 8-pin DIP   opamp
-            19:3:2    LM2904 dual op amp (like LM358), 8-pin DIP   opamp
-            19:4:9    741 op amp, 8-pin DIP   opamp
-            19:4:2    747 dual op amp, 14-pin DIP   opamp
-            19:5:4    CA3130 op amp, 8-lead metal can   opamp
-            19:6:1    LM386 low power audio amplifier, 8-pin DIP   linear
-            19:6:4    CA3140EZ (Intersil) BiMOS op amp, MOSFET input, bipolar output   opamp
-            19:6:1    TS912IN dual CMOS op amp   opamp
-            19:7:3    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
-            19:7:1    2N1487 NPN transistor 40 V 6 A, hfe=15-45   NPN transistor
-            19:8:1    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
-            19:8:3    LM339 quad comparator, 14-pin DIP (HP part no. 1826-0138)   linear
-            19:9:1    ECG56020 triac, 25 A, 400 V, 2.5 V gate voltage, 50 mA gate current   misc
-            19:9:2    NTE5638 triac, 400 V, 8 A, 80 A surge, 2 V gate voltage max, 10 mA gate current   misc
-            19:10:1    LM350 adjustable regulator, 3 A, TO-3   linear
-            19:11:2    LM338 regulator, 1.2-32 V, 5 A, TO-3   linear
-            19:12:3    LM338 regulator, 1.2-32 V, 5 A, TO-3   linear
-            
-        Box 20
-            20:1:1    LM285Z-1.2 voltage reference, TO-92   linear
-            20:1:2    LM285Z-2.5 voltage reference, TO-92   linear
-            20:1:2    MAX8069 1.2 volts voltage reference, TO-92   linear
-            20:2:1    CD40106/74C14 hex inverter Schmitt trigger CMOS   CMOS
-            20:2:2    CD40192/74C192 synchronous 4-bit up/down decade counter CMOS   CMOS
-            20:2:2    CD4047 monostable/astable multivibrator CMOS   CMOS
-            20:2:1    CD4082 dual 4-input AND gate CMOS   CMOS
-            20:3:10   4001AE RCA quad 2-in NOR CMOS   CMOS
-            20:3:2    4093BCN National quad 2-in NAND Schmitt trigger CMOS   CMOS
-            20:3:4    4093BP Philips quad 2-in NAND Schmitt trigger CMOS   CMOS
-            20:3:5    74AC14 hex inverter with Schmitt trigger   TTL
-            20:3:4    7555 CMOS version of 555   CMOS
-            20:4:8    1N5818 Schottky diode 30 V 1 A, 0.26 V @ 10 mA   diode
-            20:4:4    4N25 opto isolator   opto
-            20:4:5    4N26 opto isolator   opto
-            20:4:1    6N139 opto isolator Darlington   opto
-            20:4:8    Diac   misc
-            20:4:1    HP 6N139 optocoupler   opto
-            20:5:15   IRF540 MOSFET 33 A, 100 V, 44 mohm   MOSFET
-            20:6:1    74F240 octal buffer with 3-state outputs   TTL
-            20:7:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220    misc
-            20:8:1    74LS251M 3 state 1-of-8 line data selector/mux   TTL
-            20:9:10   7812 voltage regulator TO220   linear
-            20:10:10  7805 voltage regulator TO220   linear
-            20:11:2   210A102 SIP resistors, 1 kohm, Allen-Bradley   resistor
-            20:11:1   DIP resistors, 1 kohm   resistor
-            20:12:1   TL780-05C 5 V voltage regulator, TO-220   linear
-            20:11:2   LM317K adjustable voltage regulator, TO-3   linear
-            20:12:2   LM317K adjustable voltage regulator, TO-3   linear
-            20:12:2   LM317T adjustable voltage regulator, TO-220   linear
-            20:12:1   7818C voltage regulator TO220   linear
-            20:12:2   HP 1826-0393, LM317T adjustable voltage regulator, TO-220   linear
-            
-        Box 21
-            21:1:?    Alligator clips   misc
-            21:2:?    BNC all-female tees and angles   adapter
-            21:3:?    BNC splices (male and female)   adapter
-            21:4:?    BNC tees   adapter
-            21:5:?    BNC female to double banana plug   adapter
-            21:6:?    BNC male to double banana jack   adapter
-            21:7:?    Sheathed banana (female) to unsheathed banana plug   adapter
-            21:8:?    Photodiode with BNC mount   opto
-            21:8:?    UHF male to BNC female adapter   adapter BNC
-            21:8:?    BNC female to N male   adapter BNC
-            21:9:?    Dual banana plugs   plug
-            21:10:?    BNC 50 ohm terminators and feedthroughs   adapter
-            21:11:?    Banana jack to 120 VAC ground male   adapter
-            21:12:?    Lug to banana jack adapter   adapter
-            
-        Box 22
-            22:1:?    PICDEM lab parts -- short wires   misc
-            22:2:?    PICDEM lab parts -- jumpers   jumper
-            22:3:?    PICDEM lab parts -- 1 k resistors   resistor
-            22:4:?    PICDEM lab parts -- LEDs   LED
-            22:5:?    PICDEM lab parts -- 10 uF 35 V cap   capacitor
-            22:6:?    PICDEM lab parts -- resistors, pot   resistor
-            22:7:?    PICDEM lab parts -- resistor   resistor
-            22:8:?    PICDEM lab parts -- resistor   resistor
-            22:9:?    PICDEM lab parts -- resistor   resistor
-            22:10:?    PICDEM lab parts -- 10 uF cap   capacitor
-            
-        Box 23 is the cardboard box of resistors
-            23:1:?    inductor (coil), 2 uH, 0.77 ohm   inductor
-            23:1:?    inductor (coil), 150 uH, 4.41 ohm   inductor
-            23:1:?    inductor (coil), 10 uH, 0.72 ohm   inductor
-            23:1:?    inductor (coil), 6.8 uH, 0.42 ohm   inductor
-            23:1:?    inductor (coil), 2.2 uH, 0.86 ohm   inductor
-            23:1:?    inductor (coil), 22 uH, 2.25 ohm   inductor
-            23:1:?    inductor (coil), 0.55 uH, 0.19 ohm   inductor
-            23:1:?    inductor (coil), 2.6 uH, 0.49 ohm   inductor
-            23:1:?    inductor (coil), 33 uH, 2.44 ohm   inductor
-            23:1:?    inductor (coil), 1.5 uH, 0.36 ohm   inductor
-            23:1:?    inductor (coil), 1 mH, 15 ohm   inductor
-            23:1:?    FET, 100 A (Rch < 1 mohm if Vgs > 5.39 V)   FET transistor
-            
-        Box 24
-            24:1:?    Various small batteries   battery
-            24:2:?    Precision current transformer 50 A = 10 mA, 20 Hz to 20 kHz banggood 991591   ferrite transformer
-            24:3:?    16-pin DIP header (socket) for 8 resistor-type components   socket
-            24:4:?    Super capacitors   capacitor
-            24:5:?    Mercury switch, 2 A rating   switch
-            24:6:10   LED, white, 10 mm   opto
-            24:7:M    Black and yellow wire nuts
-            24:8:?    9812 regulators TO220   IC
-            24:9:?    MPJA stereo amp 3 W/channel 33087   amplifier
-            24:10:2   DPDT 20 A toggle switch   switch
-            24:11:?    Full wave diode bridge
-            24:12:?    
-            24:13:?    Fahnestock clips   terminal
-            24:14:?    5.5/2.1 mm jacks, PC mount MPJA 38134   connector
-            24:15:?    LTC1968 RMS-to-DC converter 500 kHz   IC
-            24:16:?    Rubber feet   hardware
-            24:17:?    DPDT toggle switch   switch
-            24:18:?    DPDT toggle switch   switch
-            24:19:?    1/8" phone plug adapters   adapter
-            24:20:?    RCA jack adapters   adapter
-            24:21:?    F adapters   adapter
-            24:22:?    N, UHF adapters   adapter
-            24:23:?    Mini toggle switch DPDT on-off-mom 6 A at 125 V AC   switch
-            24:24:?    Grayhill 240 VAC SSR 3.5 A solid state relay   relay
-            
-        Box 25
-            25:1:M    5 mm RGB LEDs (12 cents each from banggood)   LED
-            25:1:4    GR precision wirewound resistors (1, 10, 100, 1000 kΩ) from 1656 impedance bridge   resistor
-            25:1:4    Vishay precision 2 MΩ foil resistor   resistor
-            25:1:10   0.6 Ω 3 W resistor (from Richard)   resistor
-            25:2:13   650 nm laser 5 mW, 5 V, two wires   opto
-            25:2:1    LM34 temperature IC   IC
-            25:2:1    MPJA 37543 3 digit green LED mini voltmeter   LED
-            25:3:M    Green 5 mm LED   LED
-            25:4:M    Red 5 mm LED   LED
-            25:5:M    Blue 5 mm LED   LED
-            25:6:M    Yellow 5 mm LED   LED
-            25:6:1    High gain μV/mV amplifier module, MPJA 35489, gain 1.5 to 1000   IC
-            25:7:M    White 5 mm LED   LED
-            25:8:M    Miniature DPDT center-off toggle switches 6 A 120 V   switch
-            
-        Box 26
-            26:1:?    8 and 10 pin SIP, resistor, 1k   resistor
-            26:2:?    10 pin SIP, resistor, 1.5k   resistor
-            26:3:?    8 pin SIP, resistor, 10k   resistor
-            26:4:?    8 pin SIP, resistor, 10k   resistor
-            26:5:?    Resistor SIP & DIP, various   resistor
-            26:6:?    10 pin SIP, resistor, 3.3k   resistor
-            26:7:?    Roller microswitches, 5 A 120/240 VAC, 20x10x5 mm   switch
-            26:8:?    2 channel push stereo/speaker connectors, red & black, panel mount   terminal
-            26:9:?    5 pin mini connector, bulkhead, 10 mm, male & female   connector
-            26:9:?    DPDT emergency switch, mushroom head, mechanical latching in activated position   switch
-            26:10:?    High gain μV/mV amplifier module, MPJA 35489, gain 1.5 to 1000   amplifier
-            26:11:?    Encoder from MPJA with pushbutton switch   misc
-            26:12:?      
-            26:13:?    0.6 Ω wirewound resistor 1% 3 W MPJA 27042   resistor
-            26:14:?    TO-220 style heat sink kit   misc
-            26:15:?    91 MΩ resistor   resistor
-            26:15:?    10k, 50k, and 100k NTC thermistors 5%   thermistor
-            26:15:?    200 mA fuses for Aneng 8009 meter   fuse
-            
-        Box 27
-            27:1:?    3 mm LED, yellow, 2.04 V @ 10 mA   LED
-            27:2:?    3 mm LED, green, 2.02 V @ 10 mA   LED
-            27:3:?    3 mm LED, red, 1.91 V @ 10 mA   LED
-            27:4:?    3 mm LED, blue, 2.99 V @ 10 mA   LED
-            27:5:?    3 mm LED, white, 2.96 V @ 10 mA   LED
-            
-        Box 28
-            28:1:?    Connector pair, locking 8-pin MPJA 32426   connector
-            28:2:?    Connector pair, locking 8-pin MPJA 32426   connector
-            28:3:?    1N4007 diode 1000 V PIV, 1 A   diode
-            28:4:10   10 W 0.1 Ω power resistor (from Richard)   resistor
-            28:5:?    Red boot 35 mm alligator clips MPJA 16452   misc
-            28:6:?    Capacitor 2.2 μF 16 V (from Richard)   hardware
-            28:7:?      
-            28:8:?    Banana plugs, screw attach MPJA 30045   plug
-            28:9:?    DPDT on-on mini toggle switch MPJA 31886   switch
-            28:10:?    Black boot 35 mm alligator clips MPJA 16453   misc
-            28:11:?      
-            28:12:?      
-            28:12:10   5 W 0.1 Ω power resistor (from Richard)   resistor
-            28:13:?      
-            28:14:?    Dual banana jack MPJA 14492   jack
-            28:15:?    Feed-throughs   connector
-            28:16:?      
-            28:17:?    Plastic tips for Soldapullt   misc
-            28:18:?    Dual banana jack MPJA 14492   jack
-            
-        Box 29
-            29:1:?    Dual banana jack MPJA 14492   jack
-            29:1:w    USB-A 5 V to 12 V output boost converter   converter
-            29:1:?    BNC jacks & hardware (in plastic bag)   connector
-            29:2:?    BNC jacks & hardware   connector
-            29:3:20   2N7000 MOSFET transistor TO92 60 V 200 mA   MOSFET
-            29:3:1    120 V blue voltage monitor MPJA 34660   module
-            29:4:?    Normally closed thermostats 40, 50, 60, 65[5]150 °C, MPJA 38152   thermostat
-            29:4:15   STP40NF10L N-Ch MOSFET 100 V 40 A ProtoSupplies XTR-82   MOSFET
-            29:5:?    Rubber tips & plugs for banana test leads   probe
-            29:6:?    Normally open thermostats 40, 50, 60, 65[5]150 °C, MPJA 35719   thermostat
-            29:7:?    Standard toggle switch safety cover   switch
-            29:8:?    Hamon 0.1 and 0.01 divider parts   misc
-            29:8:20   LM358P dual op amp MPJA 36231   opamp
-            
-        Box 30
-            30:1:1    Buck CV/CC converter 3 A MPJA 33370   converter
-            30:1:?    Dupont jumper wires, assorted, 100 mm   connector
-            30:1:19   100 μF 35 V surface mount capacitors   capacitor
-            30:1:4    47 μF 35 V surface mount capacitors (from Richard)   capacitor
-            30:1:4    220 μF 35 V surface mount capacitors (from Richard)   capacitor
-            30:1:1    MPJA 37882 looping relay PCB (from Richard)   relay
-            30:1:1    Small prototyping PC boards (from Richard)   PCB
-            30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
-            30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOSFET
-            30:4:7    Buck converter banggood 30Dec2019 $1.2   PCB
-            30:5:?    5 V relay, 2.5 mA @ 5 V, 15 A 125 V (new 7 Aug 2017 banggood)   relay
-            30:6:?    12 V 10 A relay, 60 mA closed (new 19 May 2022, Amazon, $2)   relay
-            
-        Box 31
-            31:1:?    Header 1x10 pin   socket
-            31:2:?    Header 2x3 pin   socket
-            31:3:?    Header 1x10 pin   socket
-            31:4:?    Header 1x6 pin   socket
-            31:5:?    Header 1x8 pin   socket
-            
-        Box 32
-            32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
-            32:2:?      
-            32:3:?      
-            32:4:?    PWM modules 2 A   PCB
-            32:5:12   5/16-18 inch Penta-nuts
-            32:6:M    Ring terminal, blue, 1/4 inch   terminal
-            32:7:20   1/4-20 inch Penta-nuts
-            32:8:?      
-            32:9:?      
-            32:10:?      
-            32:11:?      
-            32:12:?      
-            32:13:M   Boost converter 2 A 2-24 V banggood 2017/2020 ~80¢   PCB
-            
-        Box 33
-            33:1:? IEC type C jack MPJA 37461   jack
-            33:2:? 
-            33:3:? 
-            33:4:? 
-            33:5:? 
-            33:6:? 
-            33:7:? 
-            33:8:? 
-            33:9:? 
-            33:10:? 
-            33:11:? 
-            33:12:? 
-            33:14:? 
-            33:15:? 
-            33:16:? 
-            33:17:? 
-            33:18:? 
-            
-    ''')
-    if 0:  # For testing/debugging
-        data = dedent('''
-                32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
-                32:2:?      
-        ''')
+    '''
 if 1:  # Header
     if 1:  # Imports
         from collections import defaultdict
@@ -663,6 +40,7 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from columnize import Columnize
+        from wrap import dedent
         import dpseq
         import trm
         t = trm.TrmDP()
@@ -671,6 +49,7 @@ if 1:  # Header
             debug.SetDebugger()
     if 1:  # Global variables
         beginning_lines_to_ignore = 3
+        box_data = None
 if 1:  # Classes
     class Entry:
         def __init__(self, line_number, info, description, keywords):
@@ -735,8 +114,7 @@ if 1:  # Utility
         t.warn = t("orn") if on else ""  # Color for a missing category warning
         t.err = t("red") if on else "" 
     def Usage(status=0):
-        print(
-            dedent(f'''
+        print(dedent(f'''
             {sys.argv[0]} [options] [regex [regex2...]]
                 Searches the components database for the indicated regular expressions AND'd
                 together.  The search is case-insensitive.  Prefix a regex with '-' and anything
@@ -749,7 +127,7 @@ if 1:  # Utility
                 d   Inspect the data, showing problem areas
                 D   Dump raw data to stdout
                 e   Edit the source file
-                l   List keywords
+                k, l  List keywords
                 m   Show empty compartments
                 n   Show box numbers in use
                 t   Dump the todo list
@@ -771,20 +149,20 @@ if 1:  # Utility
                 -o        OR the regexes instead of AND
                 -t        Dump the ToDo list
                 -v        Print out color code and numbering key 
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False  # Dump all records
-        d["-b"] = None  # Specifies box number to list
+        d["-b"] = None   # Specifies box number to list
         d["-C"] = False  # Turn off color highlighting
         d["-c"] = False  # Show category
         d["-d"] = False  # Inspection
         d["-e"] = False  # Show empty compartments
-        d["-i"] = True  # Ignore case
-        d["-k"] = ""  # Show this keyword
+        d["-i"] = True   # Ignore case
+        d["-k"] = ""     # Show this keyword
         d["-l"] = False  # List the keywords
         d["-o"] = False  # OR the regexes on the command line
+        d["-t"] = False  # Print the ToDo list
         d["-v"] = False  # Print color coding & numbering key
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "ab:CcDdehik:lotv")
@@ -793,13 +171,14 @@ if 1:  # Utility
             exit(1)
         if len(sys.argv) < 2:
             Usage()
+        GetBoxData()
         for o, a in optlist:
-            if o[1] in "aCcdeilov":
+            if o[1] in "aCcdeilotv":
                 d[o] = not d[o]
             elif o in ("-b",):
                 d["-b"] = int(a)
             elif o in ("-D",):
-                print(data)
+                print(box_data)
                 exit(0)
             elif o in ("-h",):
                 Usage()
@@ -809,26 +188,32 @@ if 1:  # Utility
                 ShowEmptyCompartments()
             elif o in ("-n",):
                 ShowBoxNumbersInUse()
-            elif o in ("-t",):
-                PrintToDo()
-                exit(0)
         SetColors(False) if d["-C"] else SetColors()
-        if len(args) == 1 and args[0] == "e":
-            EditFile()
         return args
 if 1:  # Core functionality
+    def GetBoxData():
+        'Fill the global box_data with the data lines'
+        global box_data
+        with open("/plib/pgm/comp.txt", "r") as f:
+            box_data = f.read()
     def PrintToDo():
-        print(todo)
-    def EditFile():
-        subprocess.call(["vi", "/plib/pgm/comp.py"])
-        exit(0)
+        print(dedent(Todo))
+    def EditDataFile(box_number=""):
+        'Edit the data file'
+        file = "/plib/pgm/comp.txt"
+        if box_number:
+            cmd = ["vi", f"-c /Box {box_number}", file]
+            #print(cmd)
+            subprocess.call(cmd)
+        else:
+            subprocess.call(["vi", file])
     def GetData():
         "Return a list of Entry items"
         items = []
         # This regex should find lines beginning with two integers, each with a colon after
         # them, then a string.
         r = re.compile(r"^(\s*\d+\s*:\s*\d+\s*:)")
-        for i, line in enumerate(data.split("\n")):
+        for i, line in enumerate(box_data.split("\n")):
             line = line.strip()
             mo = r.search(line)
             if mo:
@@ -843,9 +228,9 @@ if 1:  # Core functionality
                     # location is of the form 'n:m:s' where n and m are integers and s is a
                     # string.  remainder is the description followed by a non-breaking space,
                     # followed by optional keyword(s).
-                    nbs = "\xa0"  # Non-breaking space character
-                    if nbs in remainder:  # Has one or more keywords
-                        description, keywords = remainder.split(nbs)
+                    separator = "🟦"  # Large blue square U+1F7E6
+                    if separator in remainder:  # Has one or more keywords
+                        description, keywords = remainder.split(separator)
                     else:  # Has no keywords
                         description = remainder.strip()
                         keywords = ""
@@ -1002,9 +387,9 @@ if 1:  # Core functionality
                     needs_counting[box] += 1
             if needs_counting:
                 o = []
-                t.print(f"{t.orn}Boxes:compartments that still need parts counting:")
+                t.print(f"{t.orn}Box:(number of compartments) that still need parts counting:")
                 for box in needs_counting:
-                    o.append(f"{box:2d}: {needs_counting[box]}")
+                    o.append(f"{box:2d}: ({needs_counting[box]})")
                 for i in Columnize(o, columns=5, sep=" " * 5):
                     print(i)
     def PrintKeywords():
@@ -1071,6 +456,12 @@ if __name__ == "__main__":
             elif letter == "D":
                 print(data)
                 exit(0)
+            elif letter == "e":
+                if len(args) > 1:
+                    EditDataFile(args[1])
+                else:
+                    EditDataFile()
+                exit(0)
             elif letter in "kl":
                 d["-l"] = True
             elif letter == "m":
@@ -1110,6 +501,8 @@ if __name__ == "__main__":
             if kw in ikw:
                 print(item)
         PrintColorCoding()
+    elif d["-t"]:  # Print the ToDo list
+        PrintToDo()
     elif not args:
         Usage()
     else:
