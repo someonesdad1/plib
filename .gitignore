@@ -28,6 +28,7 @@ jim
 put              
 repl_test1       
 
+__pycache__
 .vi
 .z
 0lint_list
