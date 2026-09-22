@@ -1,3 +1,6 @@
+'''
+Removes comments, includes, and blank lines from C/C++ files
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -24,19 +27,13 @@ if 1:  # Global variables
     one_line_C_comment = re.compile(r".*(/\*.*\*/).*$")
     cpp_comment = re.compile(r".*(//.*$)")
     include = re.compile(r"^\s*#\s*include\s+.*$")
-
-
 def Usage():
-    print(
-        dedent(f"""
+    print(dedent(f'''
     Usage:  {sys.argv[0]} file1 [file2 ...]
       Removes comments, includes, and blank lines from C/C++ files and prints
       the resulting file to stdout.
-    """)
-    )
+    '''))
     exit(1)
-
-
 def RemoveCComments(lines):
     # Any comments extending over multiple lines will be replaced with
     # blank lines to maintain line numbering.
@@ -68,8 +65,6 @@ def RemoveCComments(lines):
                 lines[i] = "\n"
                 continue
     return lines
-
-
 def RemoveBlankLines(lines):
     return [i for i in lines if i.strip()]
     # Remove all blank lines.  We go backwards so as not to mess the
@@ -81,15 +76,11 @@ def RemoveBlankLines(lines):
         if len(line) == 0:
             del lines[i]
     return lines
-
-
 def DumpLines(lines, msg):
     print(msg)
     for line in lines:
         print(line)
     print()
-
-
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         Usage()

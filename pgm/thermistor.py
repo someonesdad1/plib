@@ -37,7 +37,6 @@ if 1:  # Imports
     import getopt
     import os
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from f import flt, log as ln

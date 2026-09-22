@@ -1,4 +1,4 @@
-"""
+'''
 Script to double-space text files and insert a line of hyphens between each
 file on the command line.
 
@@ -6,9 +6,8 @@ file on the command line.
     to plain text so I can convert them to LaTeX.  The first step is to
     save the *.odt files as UTF-8-encoded text files, then coalesce them
     into one document with this script.
-
-"""
-
+    
+'''
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -29,24 +28,22 @@ if 1:  # Header
         from pathlib import Path as P
         import re
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.TrmDP()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
         L = int(os.environ.get("LINES", "50"))
         nl = "\n"
 if 1:  # Utility
-
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-
     def Usage(status=1):
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] file1 [file2...]
           Print the lines of the text files to stdout with every newline
           replaced by two newlines.  A line of hyphens will separate the
@@ -55,10 +52,8 @@ if 1:  # Utility
         Options:
             -h      Print a manpage
             -v      Treat the files verbatim
-        """)
-        )
+        '''))
         exit(status)
-
     def ParseCommandLine(d):
         d["-v"] = False  # Treat files verbatim
         if len(sys.argv) < 2:
@@ -74,10 +69,7 @@ if 1:  # Utility
             elif o in ("-h", "--help"):
                 Usage(status=0)
         return files
-
-
 if 1:  # Core functionality
-
     def ProcessFile(file, hyphens=True):
         s = open(file, "r").read()
         if d["-v"]:
@@ -88,8 +80,6 @@ if 1:  # Core functionality
         print(s)
         if hyphens:
             print("-" * 70, end=nl * 2)
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     r = re.compile(r"\n+", re.S)

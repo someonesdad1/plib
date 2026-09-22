@@ -20,13 +20,11 @@ if 1:  # Imports
     import sys
     import getopt
     import random
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     import dpstr
     from wrap import dedent
     from columnize import Columnize
     from get import GetWords
-    from util import RandomIntegers
 if 1:  # Global variables
     PunctuationFilter = dpstr.FilterStr(
         string.punctuation, " "*len(string.punctuation)

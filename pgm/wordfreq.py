@@ -36,7 +36,6 @@ import getopt
 import fileinput
 from collections import defaultdict
 from string import ascii_letters
-from pdb import set_trace as xx
 
 if 1:  # Header
     if 1:  # Copyright, license

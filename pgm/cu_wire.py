@@ -1,12 +1,13 @@
 '''
 TODO:
 
-    - Remove old color stuff (oc)
+    - Compare with stuff in /plib/wire.py and move/delete relevant stuff
+    - Remove old color stuff 
+    - sig & fpformat needed?
     - Change default output to SI units only
     - Get -i working, the interactive determination of L, D, ρ, R.  Use u.py library so common
       units can be input.
     - Add -L option to specify a length.  Then table should print resistance of that length.
-    - Finish MIL5088(gauge, ΔT) function.
     - In -a printout, Freq is mentioned, so this column needs to be printed.
     - In ampacity, discuss NEC briefly
 
@@ -14,7 +15,6 @@ TODO:
 Output a copper wire table.  Other useful things are done too (use the
 -h option for help and -H for a manpage).
 '''
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -36,18 +36,17 @@ if 1:  # Header
         from math import pi, log, sqrt, log10
     if 1:  # Custom imports
         import termtables as tt
-        from color import t
+        import trm
+        t = trm.TrmDP()
         from wrap import dedent
         from fpformat import FPFormat
         from columnize import Columnize
-        from roundoff import RoundOff
+        from dpmath import RoundOff
         from wire import AWG, Ampacity, ChassisCurrent
         from sig import sig
         from u import u, ParseUnit
         from f import flt, ceil
-        from dpprint import PP
         import termtables as tt
-        pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
             debug.SetDebugger()
@@ -86,14 +85,14 @@ if 1:  # Header
             }
         else:
             popular_sizes = {
-                10: t.grnl,
-                12: t.denl,
-                14: t.brnl,
-                16: t("whtl", "mag"),
-                18: t("denl"),
-                20: t.magl,
-                24: t.denl,
-                28: t.ornl,
+                10: t.grn,
+                12: t.den,
+                14: t.brn,
+                16: t("wht", "mag"),
+                18: t("den"),
+                20: t.mag,
+                24: t.den,
+                28: t.orn,
             }
         # Used for formatting numbers
         fp = FPFormat(4)
@@ -319,7 +318,7 @@ if 1:  # Utility
               be ignored
         
         The treatment results in a first order linear differential equation for the wire
-        temperature as a function of time.  The "short time" should probably no more
+        temperature as a function of time.  The "short time" should probably be no more
         than a few seconds.  The derivation ignores the heat of fusion of the conductor,
         which is probably reasonable, as once the conductor is at the melting point,
         mechanical disruption is likely due to the mass of the conductor (i.e., its own
@@ -1122,18 +1121,21 @@ if 1:  # Core functionality
         t.title = t.ornl
         t.si = t.yell
         t.insul = t.lavl
+        t.res = t.grnl
+        t.awg = t.ygr
         s = "       "
         t.print(f"{t.title}{s}Maximum current in A for single copper wire in air")
         print(f"{s}  Ambient temperature about 30 °C (86 °F, 303 K)")
-        def f(s, clr=None):
+        def Dec(s, clr=None):
+            'Decorate s with the indicated color'
             if clr is not None:
                 return f"{clr}{s}{t.n}"
             return f"{s}"
-        header = ["AWG", "mm", "mΩ/m", "m/kg", "60", "75", "90", "100", f("200", t.si), "250"]
+        header = ["AWG", "mm", "mm²", Dec("mΩ/m", t.res), "m/kg", "60", "75", "90", "100", Dec("200", t.si), "250"]
         s = "-"
-        ncols = 10
+        ncols = 11
         c = [s*4]*ncols
-        c[8] = f"{f(c[8], t.si)}"
+        c[8] = f"{Dec(c[8], t.si)}"
         data = [c]
         Tambient = 30
         x = flt(0)
@@ -1141,7 +1143,10 @@ if 1:  # Core functionality
         x.rlz = True
         for awg in list(range(-3, 1)) + list(range(2, 26, 2)):
             row = []
-            row.append(f"{Size(awg)}")
+            if awg in (12, 16, 20):
+                row.append(Dec(f"{Size(awg)}", t.awg))
+            else:
+                row.append(f"{Size(awg)}")
             if 1:   # Get wire data
                 dia_in = AWG(awg)
                 dia_mm = flt(str(dia_in*25.4))
@@ -1150,11 +1155,12 @@ if 1:  # Core functionality
                 ohm_per_m = resistivity/area_m2
                 m_per_kg = 1/(density*area_m2)
             row.append(f"{dia_mm}")
-            row.append(f"{1000*ohm_per_m}")
+            row.append(f"{area_m2*1e6}")
+            row.append(Dec(f"{1000*ohm_per_m}", t.res))
             row.append(f"{m_per_kg}")
             for T in (60, 75, 90, 100, 200, 250):
                 i = ChassisCurrent(dia_mm, T - Tambient)
-                row.append(f(i, t.si if T == 200 else ""))
+                row.append(Dec(i, t.si if T == 200 else ""))
             data.append(row)
         print(" "*37, f"{t.lavl}Insulation rating, °C{t.n}")
         tt.print(data, header, style=" "*15, alignment="c"*ncols)
@@ -1229,7 +1235,7 @@ if 1:  # Core functionality
                 24: 10.7,
                 26: 8,
             }
-            from util import AWG
+            from dputil import AWG
             
             for n in intercept:
                 mm = round(AWG(n)*25.4, 3)
@@ -1298,7 +1304,7 @@ if 1:  # Core functionality
         x = flt(0)
         x.rtz = False
         # Thin double termtables style
-        header = "AWG mm mΩ/m Chass 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%".split()
+        header = "AWG mm mm² mΩ/m Chass 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%".split()
         header = [f" {t.lill}{i} " for i in header]
         C = {6: t.lipl, 10: t.yell, 12: t.grnl, 16: t.ornl}
         o = []
@@ -1309,6 +1315,8 @@ if 1:  # Core functionality
             with x:
                 x.N = 2
                 q.append(f"{clr}{flt(dia_mm)}{t.n}")
+                area = flt(dia_mm**2*pi/4)
+                q.append(f" {clr}{flt(area)}{t.n} ")
                 q.append(f"{clr}{flt(res)}{t.n} ")
                 q.append(f"{clr}{flt(i_chass)}{t.n} ")
             for p in pct:

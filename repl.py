@@ -178,7 +178,7 @@ if 1:  # Header
     # you want to see), so you don't see all the annoying digits common
     # in floating point calculations.
     ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
+    ##∞test∞# notest #∞test∞#
     # Standard imports
     from atexit import register
     from collections import defaultdict
@@ -188,41 +188,40 @@ if 1:  # Header
     import io
     import os
     import pathlib
-    import readline  # History and command editing
-    import rlcompleter  # Command completion
+    import readline  # History and command editing  # noqa
+    import rlcompleter  # Command completion    # noqa
     import subprocess
     import sys
     import tempfile
     import time
-    from pdb import set_trace as xx
     # Custom imports
-    from wrap import wrap, dedent, indent, Wrap
+    import dptypes
+    from wrap import wrap, dedent
     from columnize import Columnize
-    # import kolor as C
-    from color import TRM as t
+    #from color import TRM as t
+    import trm 
+    t = trm.TrmDP()
     # Global variables
     _ = sys.version_info
-    class G:  # Container for global variables
-        pass
-    g = G()
-    g.P = pathlib.Path
-    g.name = g.P(sys.argv[0])
-    g.datafile = g.P(g.name.stem + ".data")
-    g.editor = os.environ["EDITOR"]
-    g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
-    g.ii = isinstance
-    # Color coding using ANSI escape codes
-    g.blu = t("blul")
-    g.brn = t("brn")
-    g.grn = t("grnl")
-    g.cyn = t("cynl")
-    g.red = t("redl")
-    g.yel = t("yel")
-    g.wht = t("whtl")
-    g.whtblu = t("whtl", "blu")
-    g.err = t("redl")
-    g.ital = t(attr="it")
-    g.n = t.n
+    g = dptypes.Constant()
+    with g:
+        g.name = pathlib.Path(sys.argv[0])
+        g.datafile = pathlib.Path(g.name.stem + ".data")
+        g.editor = os.environ["EDITOR"]
+        g.pyversion = f"{_.major}.{_.minor}.{_.micro}"
+        g.ii = isinstance
+        # Color coding using ANSI escape codes
+        g.blu = t.blu
+        g.brn = t.brn
+        g.grn = t.grn
+        g.cyn = t.cyn
+        g.red = t.red
+        g.yel = t.yel
+        g.wht = t.wht
+        g.whtblu = t("wht", "blu")
+        g.err = t("red")
+        g.ital = t(attr="it")
+        g.n = t.n
 if 1:  # Utility
     def eprint(*p, **kw):
         "Print to stderr"
@@ -268,11 +267,10 @@ if 1:  # Core functionality
             raise TypeError("string must be a str object")
         # We'll edit this string in a new temporary file in the
         # current directory.
-        cwd = console.cwd
         tempname = tempfile.mkstemp(
             prefix="repl", suffix=".py", dir=console.cwd, text=True
         )[1]
-        file = g.P(tempname)
+        file = pathlib.Path(tempname)
         file.write_text(string)
         subprocess.call([g.editor, str(file)])
         newstring = file.read_text()
@@ -280,39 +278,36 @@ if 1:  # Core functionality
         return newstring
     def GetSymbols():
         "Return a dict of favorite symbols"
-        from pprint import pprint as pp
-        from decimal import Decimal as D, getcontext as ctx
-        from dpdecimal import dec
-        from pathlib import Path as P
-        from fractions import Fraction as F
-        from pdb import set_trace as xx
+        from pprint import pprint as pp # noqa
+        from decimal import Decimal as D, getcontext as ctx # noqa
+        from dpdecimal import dec   # noqa
+        from fractions import Fraction as F  # noqa
         try:
-            from u import u, dim, to
+            from u import u, dim, to    # noqa
         except ImportError:
             pass
         try:
-            from uncertainties import ufloat as uf
+            from uncertainties import ufloat as uf  # noqa
         except ImportError:
             pass
         try:
-            from matrix import Matrix, vector
+            from matrix import Matrix, vector   # noqa
         except ImportError:
             pass
         # NOTE:  Edit Special() to change the built-in commands.  You also
         # need to edit IsCommand() for the command to be recognized as
         # special.
         try:
-            from f import acos, acosh, asin, asinh, atan, atan2, atanh
-            from f import ceil, copysign, cos, cosh
-            from f import cpx, dedent, degrees, erf, erfc
-            from f import exp, expm1, fabs, factorial, floor, flt, fmod
-            from f import frexp, fsum, gamma, gcd, hypot, inf, infj
-            from f import isclose, isfinite, isinf, isnan, ldexp, lgamma
-            from f import log, log10, log1p, log2, modf, nan, nanj, phase
-            from f import pi, polar, pow, radians, rect, remainder, sin
-            from f import sinh, sqrt, tan, tanh, tau, trunc
-            # I comment this out because it overshadows the edit command
-            from f import e
+            from f import acos, acosh, asin, asinh, atan, atan2, atanh  # noqa
+            from f import ceil, copysign, cos, cosh     # noqa
+            from f import cpx, dedent, degrees, erf, erfc   # noqa
+            from f import exp, expm1, fabs, factorial, floor, flt, fmod     # noqa
+            from f import frexp, fsum, gamma, gcd, hypot, inf, infj     # noqa
+            from f import isclose, isfinite, isinf, isnan, ldexp, lgamma    # noqa
+            from f import log, log10, log1p, log2, modf, nan, nanj, phase   # noqa
+            from f import pi, polar, pow, radians, rect, remainder, sin     # noqa
+            from f import sinh, sqrt, tan, tanh, tau, trunc     # noqa
+            from f import e     # noqa
             i = cpx(0, 1)
             i.i = True
             i.f = True
@@ -384,7 +379,7 @@ if 1:  # Core functionality
             return bp
         s = "s = input(self.ps).rstrip()"
         u = "returnvalue = console.push(line)"
-        lines = g.P(sys.argv[0]).read_text().split("\n")
+        lines = pathlib.Path(sys.argv[0]).read_text().split("\n")
         Print(
             dedent(f'''
         Set a breakpoint at line {Find(s)} to stop before each input
@@ -496,12 +491,12 @@ if 1:  # Special commands
             elif first_char == "<":
                 # Read stringbuffer
                 if arg:
-                    file = g.P(arg)
+                    file = pathlib.Path(arg)
                     console.stringbuffer = file.read_text()
             elif first_char == ">":
                 # Write stringbuffer
                 if arg:
-                    file = g.P(arg)
+                    file = pathlib.Path(arg)
                     file.write_text(console.stringbuffer)
             elif cmd == "c" or cmd == "cls":
                 # Clear the screen
@@ -544,7 +539,7 @@ if 1:  # Special commands
                     return
                 # Run it as a script
                 try:
-                    p = g.P(console.file).resolve()
+                    p = pathlib.Path(console.file).resolve()
                     if cmd == "ri":
                         c = [sys.executable, "-i", str(p)]
                     else:
@@ -567,7 +562,6 @@ if 1:  # Special commands
                 )
             elif cmd == "x":
                 # Run stringbuffer
-                fn = "<stringbuffer>"
                 if not console.stringbuffer:
                     Print("String buffer is empty")
                     return
@@ -583,7 +577,7 @@ if 1:  # class Console
         def __init__(self, locals=None):
             super().__init__(locals=locals)
             self.locals.update(GetSymbols())
-            self.cwd = g.P(".").cwd()
+            self.cwd = pathlib.Path(".").cwd()
             self.stringbuffer = ""
             self.filebuffer = ""
         @property
@@ -636,6 +630,7 @@ if 1:  # Setup
     else:  # Colored
         sys.ps1 = f"{g.whtblu}{'▶' * 3}{g.n} "
     sys.ps2 = f"{g.whtblu}{'·' * 3}{g.n} "
+
 if __name__ == "__main__":  # Run the console REPL
     stdout, stderr = io.StringIO(), io.StringIO()
     cmdlog = io.StringIO()  # Used to log commands

@@ -1,0 +1,152 @@
+/plib refactor roadmap (23 Mar 2026 summarized by Mike)
+
+23 Mar 2026 status:  2/5 of the dp*.py file type annotations are finished with 628
+kBytes of total file size.
+
+          Pct
+  * 125k   20   dpstr.py
+  * 118k   19   dpseq.py
+     78k   12   dpmath.py
+     72k   12   dproot.py
+     64k   10   dpastro.py
+     40k    6   dputil.py
+     39k    6   dptypes.py
+     30k    5   dppath.py
+     30k    5   dpdecimal.py
+     21k    3   dpdb.py
+     21k    3   dparith.py
+     20k    3   dptime.py
+     11k    2   dpphys.py
+      5k    1   dpelec.py
+      4k    1   dpdata.py
+       0    0   dpshop.py
+
+- Universal constants
+    - The Identity Transformation: Identify where pathlib.Path(p) or similar
+      constructors can normalize inputs in a single, idempotent line.
+    - AnyStr Duality: Are str and bytes handled as distinct but symmetric states? Use
+      ty.TypeVar('AnyStr', str, bytes) for generic functions.
+    - The Central Element: Look for functions that "commute" with others—utility
+      functions that don't change the global state.
+    - Look for important invariants, include them in documentation, and test them with
+      asserts
+    - Document and test conservation laws e.g. len(out) <= len(in)
+    - Enforce pre-conditions:  Use assert to verify domain specific constraints
+    - Phase symmetry:  ensure return types match input types (no str/bytes leaking)
+    - Canonical normalization:  use identity transformations to reach a standard state
+      early
+    - Numbers: 1, 1.0 and 1+0j are the same point in a mathematical sense, but are
+      different types in python
+        - Every string input should map to the simplest possible representation that
+          preserves the information
+        - If s represents an int, it should return an int; if it has a decimal point or
+          "e", then a float. If it has an i or a j, it's a complex.
+    - Phase symmetry (input/output stability):  processing strings into numbers:
+      dimensionality preserved
+        - Check:  len(StringToNumbers(s_list) == len(s_list))
+        - If a string cannot be mapped, the system shouldn't drop it, which violates
+          conservation of mass.  Either raise a ValueError or return a NaN/None
+          placeholder to maintain the sequence's index symmetry.
+    - Closure under transformation
+        - If you take a number, turn it into a string, then convert it back to a number,
+          this should be the identity transformation
+        - assert ConvertToNumber(str(x)) == x
+    - Domain constraints
+        - Before the conversion even begins, verify the "Physics" of the string.
+        - The Assert: assert any(c.isdigit() or c in "+-.ij/" for c in s), "String
+          contains no numeric potential."
+        - The Logic: Don't wait for float() to fail with a cryptic message. Define the
+          "Numeric Concept" at the door.
+    - Algebraic conversion
+        - Does "1.0" return a float and "1" return an int?
+        - Information Conservation: Does StringToNumbers preserve the length of the
+          input sequence?
+        - Round-trip Symmetry: Does ConvertToNumber(str(n)) == n?
+        - Concept Validation: Does the function assert that the string is "Numeric"
+          before attempting a cast?
+- Symmetry audit (tests & types)
+    - Type hinting with mypy: Are all 56+ functions annotated? (prioritize ty.Sequence
+      over ty.Container for iterables).
+    - Test-Function mapping: does every 'def func()' have a corresponding 'def
+      Test_func()'?
+    - Edge case check: have i tested the "empty set" singularity (empty strings, null
+      sets)?
+    - Pathlib validation: do the tests pass an actual pathlib.path object instead of
+      just a string?  . Non-abelian zones (high risk)
+    - Identify functions that have side effects (IO, file deletion, global state) or
+      complicated non-zer commutators.
+        - Function X: Requires [specific setup/mocking].
+        - Function Y: Order of execution relative to [other Function] matters.
+- The MIT Handshake
+    - License check: ensure the header includes or references the MIT license
+    - Lesson(s) learned
+        - Insert a note on any new "Aha!" moment found during refactoring/annotating a
+          module, like the Pathlib idempotency
+- Quick-reference "Mike station" commands
+    - Assert(A == B): Use the lwtest framework for all observables
+    - raises(ValueError, func, args): Always test the "Negative Energy" states (errors).
+    - p = pathlib.Path(p): The "normalization filter" pattern for all file inputs.
+
+- Testing
+    - The Seam & Corner Principle:
+        - Testing is not "verification of success"; it is a systematic attempt to find
+          the leak.
+        - If a function is a welded box, the bugs are never in the middle of the
+          sheet—they are at the joints where data types meet and the corners where
+          values hit their limits.
+    - The "Material Stress" Checklist (Input Ranges):
+        - The Zero Singularity: Does it handle 0, 0.0, 0+0j, and empty strings ""?
+        - Infinite Horizons: Test with the "Large Numbers" (e.g., 1e308 or massive
+          integers) to check for overflow or precision decay.
+        - Negative Energy States: Ensure signed values (-1, -1.0) don't break logic
+          assuming absolute magnitudes.
+        - The Null Vacuum: How does the code react to None or an empty Sequence[]?
+    - The "Weird User" Manifold (Input Quality):
+        - Dirty Signals: Test with "Human" formatting (spaces, tabs, mixed case, and
+          locale-specific commas).
+        - Type Violations: Pass a float where an int is expected, or a list where a
+          tuple is required.
+    - The Conservation Laws (Observables):
+        - Dimensionality: Assert that len(input) == len(output) for all mapping
+          functions.
+        - Idempotency: Assert that f(f(x)) == f(x). If you "clean" a string twice, it
+          should be no cleaner the second time.
+        - Round-Trip Symmetry: Assert that ConvertToNumber(str(n)) == n. If the signal
+          can't return to its origin, the "leak" is in the transformation logic.
+    - The "Safety Net" Philosophy:
+        - High-quality tests are the "gyroscopic stabilizer" for the engineer.
+        - They allow for "Fearless Refactoring"—the ability to swap out the internal
+          "machining" (implementation) without changing the "external dimensions" (the
+          API).
+
+- Example:  /plib Stress Test: dpstr:StringToNumbers (The Sheet Metal Protocol)
+    - The Objective: - Verify that a sequence of strings transforms into a sequence of
+      numbers without "Leaking" or "Cracking" under pressure.
+    - The Invariants:
+        - Conservation of Mass: len(input_items) == len(output_items).
+        - Phase Consistency: Every element must reach its simplest stable state.
+- 1. The "Ground State" (Normal Operation)
+    - Test: ["1", "2.5", "1/3", "1+j"]
+    - Expected: [1, 2.5, Fraction(1, 3), (1+1j)]
+    - Goal: Verify all four numeric manifolds (int, float, rational, complex) are
+      accessible in a single pass.
+- 2. The "Vacuum" Test (Empty/Null Inputs)
+    - Test: [] (Empty List)
+        - Expected: []
+    - Test: [""] (Empty String)
+        - Expected: ValueError (or None if the function is designed to "buffer" errors).
+    - Goal: Ensure the "Empty Set" doesn't trigger a crash or a dimensionality mismatch.
+- 3. The "Dirty Joint" Test (Human Formatting)
+    - Test: [" 1 ", "1 / 3", "1 + 1i", "1,5"]
+    - Expected: [1, Fraction(1, 3), (1+1j), 1.5]
+    - Goal: Verify the "Targeted Compactor" and "Locale Shield" are functioning within
+      the loop.
+- 4. The "Brittle Material" Test (Boundary Conditions)
+    - Test: ["1e308", "-1e308", "0", "-0"]
+    - Expected: [1e308, -1e308, 0, 0]
+    - Goal: Check the extremes of the floating-point manifold and signed zero.
+- 5. The "Structural Failure" Test (Invalid Input)
+    - Test: ["1", "abc", "3"]
+    - Expected: ValueError: 'abc' is not a valid numeric representation.
+    - Goal: Confirm the "High Wire Safety Net" catches the error and reports exactly
+      which joint failed.

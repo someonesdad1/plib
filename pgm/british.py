@@ -25,7 +25,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.TrmDP()
     if 1:  # Global variables
         stdin = "stdin"
         # regexp to convert all 7-bit punctuation to spaces

@@ -1,4 +1,5 @@
 '''
+Examine files for unmatched pairs of characters
     
 Todo
     - Change architecture:  no exception for parity error.  Focus on getting test data
@@ -56,7 +57,8 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.TrmDP()
         from lwtest import Assert, run
         from dpprint import PP
         pp = PP()   # Get pprint with current screen width

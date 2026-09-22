@@ -24,7 +24,6 @@ if 1:  # Header
     import re
     import sys
     from io import StringIO
-    from pdb import set_trace as xx
     # Custom imports
     from wrap import wrap, dedent
     # Global variables

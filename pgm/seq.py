@@ -26,12 +26,10 @@ if 1:  # Header
         from string import ascii_letters, digits, punctuation
         from fractions import Fraction
         from math import *
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
-        from frange import frange, Rational as R
+        from dpseq import frange, Rational as R
         from f import flt
-        from sig import sig
         from columnize import Columnize
 if 1:  # Utility
     def Error(*msg, status=1):

@@ -9,7 +9,6 @@ import operator
 import color as C
 from pprint import pprint as pp
 
-from pdb import set_trace as xx
 
 if 0:
     import debug

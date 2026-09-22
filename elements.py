@@ -11,41 +11,45 @@ The index is 1 minus the atomic number.
         https://en.wikipedia.org/wiki/List_of_chemical_elements
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2023 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Module to get element information.  Also see the elements1.py module.
-        ##∞what∞#
-        ##∞test∞# #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Get a list of named tuples with the properties of the elements oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2023 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ sci oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - ∞∞2 Refactor to unpollute the global namespace
+        
+        oo>
+    '''
     if 1:  # Standard imports
+        import collections 
         import getopt
-        import os
         import re
         import string
         import sys
         import webbrowser
-        from pprint import pprint as pp
-        from collections import deque, namedtuple
     if 1:  # Custom imports
-        from wrap import wrap, dedent
-        from color import Color, TRM as t
-        from lwtest import Assert
-        from columnize import Columnize
-        from f import flt
-        if 1:
+        import dptypes 
+        import columnize 
+        import f
+        import lwtest
+        import trm
+        import wrap
+        if 0:
             import debug
             debug.SetDebugger()
+    if 1:  # Global variables
+        t = trm.Trm()
         t.dbg = t("brnl")
         t.err = t("ornl")
-    if 1:  # Global variables
-        ii = isinstance
         elements = '''
             Hydrogen       H    1
             Helium         He   2
@@ -167,20 +171,20 @@ if 1:  # Header
             Oganesson      Og   118
             '''
         # Mappings for element names, symbols, atomic numbers
-        class g:
-            pass
-        g.sym2num = {}  # {('h', 1), ('he', 2), ...
-        #  ('H', 1), ('He', 2)}
-        g.num2sym = {}  # {(1, 'h'), (2, 'he')}
-        g.num2Sym = {}  # {(1, 'H'), (2, 'He')}
-        g.num2name = {}  # {(1, 'hydrogen'), (2, 'helium')}
-        g.num2Name = {}  # {(1, 'Hydrogen'), (2, 'Helium')}
-        g.name2num = {}  # [('hydrogen', 1), ('helium', 2)]
-        g.Name2num = {}  # [('Hydrogen', 1), ('Helium', 2)]
-        g.names = []  # ['hydrogen', 'helium', ...
-        #  'Hydrogen', 'Helium']
-        g.symbols = []  # ['h', 'he', 'li', 'be', ...
-        #  'H', 'He', 'Li', 'Be']
+        g = dptypes.Constant()
+        with g:
+            g.sym2num = {}  # {('h', 1), ('he', 2), ...
+            #  ('H', 1), ('He', 2)}
+            g.num2sym = {}  # {(1, 'h'), (2, 'he')}
+            g.num2Sym = {}  # {(1, 'H'), (2, 'He')}
+            g.num2name = {}  # {(1, 'hydrogen'), (2, 'helium')}
+            g.num2Name = {}  # {(1, 'Hydrogen'), (2, 'Helium')}
+            g.name2num = {}  # [('hydrogen', 1), ('helium', 2)]
+            g.Name2num = {}  # [('Hydrogen', 1), ('Helium', 2)]
+            g.names = []  # ['hydrogen', 'helium', ...
+            #  'Hydrogen', 'Helium']
+            g.symbols = []  # ['h', 'he', 'li', 'be', ...
+            #  'H', 'He', 'Li', 'Be']
 if 1:  # Element data
     # Screen-scraped from https://en.wikipedia.org/wiki/List_of_chemical_elements
     # Edits made
@@ -324,7 +328,7 @@ if 1:  # Element data
     # 13  Abundance in Earth's crust, ppm
     # 14  Origin
     # 15  Phase at 25 °C, 100 kPa
-    Element = namedtuple(
+    Element = collections.namedtuple(
         "Element",
         '''
         Z
@@ -345,6 +349,7 @@ if 1:  # Element data
         phase
     ''',
     )
+if 1:  # Core functionality
     if 0:
         def Analyze(d):
             "Use to look at set of each element's contents"
@@ -389,157 +394,6 @@ if 1:  # Element data
                 f[i] = int(f[i])
             o.append(Element(*f))
         return o
-if 1:  # Utility
-    def Error(*msg, status=1):
-        print(*msg, file=sys.stderr)
-        exit(status)
-    def Manpage():
-        print(
-            dedent(
-                f'''
-        This script is intended to let you see physical properties of the elements through the
-        following features:
-            
-            - A list of properties printed to stdout with no arguments, one element per line.  This
-              gives the symbol, name, number of protons, atomic weight, melting and boiling points,
-              density, and abundance in the Earth's crust.  I use this mode the most frequently.
-            - You can print the data for selected elements on the command line, identified by
-              atomic number, symbol (case needs to be correct), or a regular expression.  The
-              printed data are a little more extensive than the previous item.
-            - The -o and -i options allow you to open the wikipedia web pages on the element and
-              the element's isotopes, respectively, for the arguments on the command line.
- 
-        Short list
-        ----------
- 
-        The default behavior is to print out data for the elements from 1 to 92, one line per
-        element.  Things are color-coded to help with interpretation.
- 
-        The items that print out in the color for unknown phase exist in such tiny quantities that
-        this property (and others) are impossible to measure with present technology, either
-        because they are only found as decay products of other materials or they are artificially
-        generated and not enough atoms are available to measure.
- 
-        Example [3]:  a sample of pure astatine has never been created because any macroscopic
-        specimen would be vaporized by the heat of its own radioactivity.  Even so, small amounts
-        of astatine are used in nuclear medicine research (see Uses section of [3]).
- 
-        The atomic weight is of course more properly called an atomic mass, but the use of "weight"
-        is entrenched.  The unit is in daltons, a non-Si unit of mass equal to
-        1.66053906660(50)×10−27 kg and is defined to be 1/12 of the mass of an unbound neutral atom
-        of carbon 12.  A more sensible unit would be yg to be compatible with SI (and one wouldn't
-        need to look up conversion factors), but like with things like the American Wire Gauge,
-        we're stuck with these conventions.   
- 
-        Data
-        ----
- 
-        This script uses data scraped from the web page [1] around the middle of February 2023.
-        The table includes information on 118 elements.  Note that you won't see all 118 elements
-        unless you use the -a option.
- 
-        A useful feature of [1]'s table is that the controls in the fourth row can be used to sort
-        the table on the column's information.  For example, if you sort descending on abundance,
-        you'll see that the most common elements in the Earth's crust are oxygen, silicon,
-        aluminum, and iron.
- 
-        References
-        ----------
- 
-          [1] https://en.wikipedia.org/wiki/List_of_chemical_elements
-          [2] https://www.rsc.org/periodic-table
-          [3] https://en.wikipedia.org/wiki/Astatine
- 
-        '''.rstrip()
-            )
-        )
-        exit(0)
-    def Usage(status=1):
-        print(
-            dedent(f'''
-        Usage:  {sys.argv[0]} [options] [el1 [el2 ...]]
-          Print the properties of the matched elements.  The el strings can be the element's
-          symbol, a regular expression for the name, or the atomic number.  There are {d["n"]}
-          elements in the script.  If no arguments on the command line are given, the short list of
-          elements is printed.  The data were screen scraped from the web page
-          https://en.wikipedia.org/wiki/List_of_chemical_elements
-        Notation:
-          [223] means an atomic weight of a radioactive element
-          (223) means a predicted number, not yet observed
-          ~223  means an approximate number (difficult to measure)
-          x±u   I assume means a value x with standard uncertainty u, but the web page used doesn't
-          explicitly state this
-        Options:
-            -a      Show all elements (default is to show up to Z = 92)
-            -c      Include colorizing even if stdout isn't a terminal
-            -D      Dump data structures
-            -d n    Set number of significant digits
-            -i      Launch page on isotopes
-            -H      Show manpage
-            -h      Usage statement
-            -l      Launch page on list of elements
-            -n m    Allow up to m pages to be opened [{d["-n"]}]
-            -o      Open wikipedia page on matched elements
-            -t      Run self-tests
-        ''')
-        )
-        exit(status)
-    def ParseCommandLine(d):
-        d["-a"] = False  # Show all elements
-        d["-c"] = False  # Use color if stdout isn't terminal
-        d["-D"] = False  # Dump data structures
-        d["-d"] = 4  # Significant digits
-        d["-H"] = False  # Manpage
-        d["-h"] = False  # Usage
-        d["-i"] = False  # Open isotopes page
-        d["-l"] = False  # Launch page on list of elements
-        d["-n"] = 5  # Number of allowed pages
-        d["-o"] = False  # Open web page instead of printing to stdout
-        d["-t"] = False  # Run self-tests
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "acDd:Hhiln:ot")
-        except getopt.GetoptError as e:
-            print(str(e))
-            exit(1)
-        for o, a in opts:
-            if o[1] in list("acDHhilost"):
-                d[o] = not d[o]
-            elif o in ("-d",):
-                try:
-                    d["-d"] = int(a)
-                    if not (1 <= d["-d"] <= 15):
-                        raise ValueError()
-                except ValueError:
-                    msg = "-d option's argument must be an integer between 1 and 15"
-                    Error(msg)
-            elif o == "-n":
-                try:
-                    n = int(a)
-                    if n < 1:
-                        raise ValueError
-                except ValueError:
-                    Error("-n argument must be an integer > 0")
-        GetData()
-        d["el"] = GetElementNamedTuples()
-        d["n"] = len(g.num2sym)  # Number of elements in the script
-        x = flt(0)
-        x.N = d["-d"]
-        # Set formatting for flts to use Unicode for scientific notation
-        x.u = True
-        if d["-c"]:
-            t.always = True
-        if d["-t"]:
-            TestGetElements()
-        if d["-l"]:
-            LaunchWebPage("")
-        if d["-h"]:
-            Usage(status=0)
-        if d["-H"]:
-            Manpage()
-        if not args:
-            ShortList()
-        return args
-if 1:  # Core functionality
     def Uppercase(word):
         assert word
         return word[0].upper() + word[1:]
@@ -565,7 +419,8 @@ if 1:  # Core functionality
             g.names.append(Name)
             g.names.append(name)
         #  Set of capitalized element names
-        g.all = set(i for i in g.names if i[0] in string.ascii_uppercase)
+        with g:
+            g.all = set(i for i in g.names if i[0] in string.ascii_uppercase)
         if d["-D"]:  # Dump data structures
             def L(di):
                 return list(di.items())[:2]
@@ -645,41 +500,41 @@ if 1:  # Core functionality
     def TestGetElements():
         "Check that GetElements returns reasonable values"
         # Valid atomic number
-        Assert(GetElements("1") == ["Hydrogen"])
+        lwtest.Assert(GetElements("1") == ["Hydrogen"])
         # Invalid atomic number
-        Assert(GetElements("0", test=True) == [])
+        lwtest.Assert(GetElements("0", test=True) == [])
         # Valid symbol
-        Assert(GetElements("H") == ["Hydrogen"])
+        lwtest.Assert(GetElements("H") == ["Hydrogen"])
         # Invalid symbol
-        Assert(GetElements("Zz", test=True) == [])
+        lwtest.Assert(GetElements("Zz", test=True) == [])
         # Valid full element name
-        Assert(GetElements("Hydrogen") == ["Hydrogen"])
-        Assert(GetElements("hydrogen") == ["Hydrogen"])
+        lwtest.Assert(GetElements("Hydrogen") == ["Hydrogen"])
+        lwtest.Assert(GetElements("hydrogen") == ["Hydrogen"])
         # Invalid full element name
-        Assert(GetElements("Zydrogen") == [])
+        lwtest.Assert(GetElements("Zydrogen") == [])
         # Valid regex
-        Assert(GetElements("[YZ]") == ["Zinc", "Yttrium", "Zirconium", "Ytterbium"])
+        lwtest.Assert(GetElements("[YZ]") == ["Zinc", "Yttrium", "Zirconium", "Ytterbium"])
         # Invalid regex
-        Assert(GetElements("Zydrogen") == [])
-        Assert(GetElements("") == [])
+        lwtest.Assert(GetElements("Zydrogen") == [])
+        lwtest.Assert(GetElements("") == [])
         #
         print("Tests passed")
         exit(0)
     def DumpElements():
-        for i in Columnize(sorted(g.found_names)):
+        for i in columnize.Columnize(sorted(g.found_names)):
             print(i)
     def ToFlt(s):
         try:
-            return flt(s)
+            return f.flt(s)
         except ValueError:
             return s
     def F(K):
         "Convert temperature in K to °F"
-        assert ii(K, flt)
+        assert isinstance(K, f.flt)
         return (K - 273.15) * 9 / 5 + 32
     def C(K):
         "Convert temperature in K to °C"
-        assert ii(K, flt)
+        assert isinstance(K, f.flt)
         return K - 273.15
     def PrintElement(Name):
         # Must subtract 1 because the array is 0-based
@@ -687,11 +542,10 @@ if 1:  # Core functionality
         e = d["el"][num]
         i, w = " " * 4, 20
         Da2yg = 1.66053906660
-        Da2kg = Da2yg * 1e-27
         print(f"{Name} ({e.sym})    Z = {e.Z}")
         # Atomic weight
         aw = ToFlt(e.aw_Da)
-        if ii(aw, flt):
+        if isinstance(aw, f.flt):
             # print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw*Da2kg} kg")
             # Print in yg
             print(f"{i}{'Atomic weight':{w}s}{aw} Da = {aw * Da2yg} yg")
@@ -703,14 +557,14 @@ if 1:  # Core functionality
         # Melting point
         mp = ToFlt(e.mp)
         print(f"{i}{'Melting point':{w}s}{mp} K", end=" ")
-        if ii(mp, flt):
+        if isinstance(mp, f.flt):
             print(f"= {C(mp)} °C = {F(mp)} °F")
         else:
             print()
         # Boiling point
         bp = ToFlt(e.bp)
         print(f"{i}{'Boiling point':{w}s}{bp} K", end=" ")
-        if ii(bp, flt):
+        if isinstance(bp, f.flt):
             print(f"= {C(bp)} °C = {F(bp)} °F")
         else:
             print()
@@ -737,7 +591,7 @@ if 1:  # Core functionality
     def ShortList():
         "This is printed if there are no arguments.  One element per line."
         # Print header
-        hdr = dedent('''
+        hdr = wrap.dedent('''
         Sym  Z      Name     AtWt, Da       mp/bp K         g/cm³      ppm
         --- -- ------------- --------- ----------------- ---------- ----------
         ''')
@@ -779,17 +633,165 @@ if 1:  # Core functionality
             "at 25 °C and 100 kPa"
         )
         print(f"{t.rad}[209]{t.n} means the atomic weight of the most stable isotope")
-        print(f"(1125) means a predicted property")
-        print(f"1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
+        print("(1125) means a predicted property")
+        print("1 Da is 1.66054×10⁻²⁴ g (i.e., yg)")
+
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    if 1:  # Utility
+        def Error(*msg, status=1):
+            print(*msg, file=sys.stderr)
+            exit(status)
+        def Manpage():
+            print(wrap.dedent('''
+            This script is intended to let you see physical properties of the elements through the
+            following features:
+                
+                - A list of properties printed to stdout with no arguments, one element per line.  This
+                gives the symbol, name, number of protons, atomic weight, melting and boiling points,
+                density, and abundance in the Earth's crust.  I use this mode the most frequently.
+                - You can print the data for selected elements on the command line, identified by
+                atomic number, symbol (case needs to be correct), or a regular expression.  The
+                printed data are a little more extensive than the previous item.
+                - The -o and -i options allow you to open the wikipedia web pages on the element and
+                the element's isotopes, respectively, for the arguments on the command line.
+    
+            Short list
+            ----------
+    
+            The default behavior is to print out data for the elements from 1 to 92, one line per
+            element.  Things are color-coded to help with interpretation.
+    
+            The items that print out in the color for unknown phase exist in such tiny quantities that
+            this property (and others) are impossible to measure with present technology, either
+            because they are only found as decay products of other materials or they are artificially
+            generated and not enough atoms are available to measure.
+    
+            Example [3]:  a sample of pure astatine has never been created because any macroscopic
+            specimen would be vaporized by the heat of its own radioactivity.  Even so, small amounts
+            of astatine are used in nuclear medicine research (see Uses section of [3]).
+    
+            The atomic weight is of course more properly called an atomic mass, but the use of "weight"
+            is entrenched.  The unit is in daltons, a non-Si unit of mass equal to
+            1.66053906660(50)×10−27 kg and is defined to be 1/12 of the mass of an unbound neutral atom
+            of carbon 12.  A more sensible unit would be yg to be compatible with SI (and one wouldn't
+            need to look up conversion factors), but like with things like the American Wire Gauge,
+            we're stuck with these conventions.   
+    
+            Data
+            ----
+    
+            This script uses data scraped from the web page [1] around the middle of February 2023.
+            The table includes information on 118 elements.  Note that you won't see all 118 elements
+            unless you use the -a option.
+    
+            A useful feature of [1]'s table is that the controls in the fourth row can be used to sort
+            the table on the column's information.  For example, if you sort descending on abundance,
+            you'll see that the most common elements in the Earth's crust are oxygen, silicon,
+            aluminum, and iron.
+    
+            References
+            ----------
+    
+            [1] https://en.wikipedia.org/wiki/List_of_chemical_elements
+            [2] https://www.rsc.org/periodic-table
+            [3] https://en.wikipedia.org/wiki/Astatine
+    
+            '''.rstrip()
+                )
+            )
+            exit(0)
+        def Usage(status=1):
+            print(wrap.dedent(f'''
+            Usage:  {sys.argv[0]} [options] [el1 [el2 ...]]
+            Print the properties of the matched elements.  The el strings can be the element's
+            symbol, a regular expression for the name, or the atomic number.  There are {d["n"]}
+            elements in the script.  If no arguments on the command line are given, the short list of
+            elements is printed.  The data were screen scraped from the web page
+            https://en.wikipedia.org/wiki/List_of_chemical_elements
+            Notation:
+            [223] means an atomic weight of a radioactive element
+            (223) means a predicted number, not yet observed
+            ~223  means an approximate number (difficult to measure)
+            x±u   I assume means a value x with standard uncertainty u, but the web page used doesn't
+            explicitly state this
+            Options:
+                -a      Show all elements (default is to show up to Z = 92)
+                -c      Include colorizing even if stdout isn't a terminal
+                -D      Dump data structures
+                -d n    Set number of significant digits
+                -i      Launch page on isotopes
+                -H      Show manpage
+                -h      Usage statement
+                -l      Launch page on list of elements
+                -n m    Allow up to m pages to be opened [{d["-n"]}]
+                -o      Open wikipedia page on matched elements
+                -t      Run self-tests
+            '''))
+            exit(status)
+        def ParseCommandLine(d):
+            d["-a"] = False  # Show all elements
+            d["-c"] = False  # Use color if stdout isn't terminal
+            d["-D"] = False  # Dump data structures
+            d["-d"] = 4  # Significant digits
+            d["-H"] = False  # Manpage
+            d["-h"] = False  # Usage
+            d["-i"] = False  # Open isotopes page
+            d["-l"] = False  # Launch page on list of elements
+            d["-n"] = 5  # Number of allowed pages
+            d["-o"] = False  # Open web page instead of printing to stdout
+            d["-t"] = False  # Run self-tests
+            try:
+                opts, args = getopt.getopt(sys.argv[1:], "acDd:Hhiln:ot")
+            except getopt.GetoptError as e:
+                print(str(e))
+                exit(1)
+            for o, a in opts:
+                if o[1] in list("acDHhilost"):
+                    d[o] = not d[o]
+                elif o in ("-d",):
+                    try:
+                        d["-d"] = int(a)
+                        if not (1 <= d["-d"] <= 15):
+                            raise ValueError()
+                    except ValueError:
+                        msg = "-d option's argument must be an integer between 1 and 15"
+                        Error(msg)
+                elif o == "-n":
+                    try:
+                        n = int(a)
+                        if n < 1:
+                            raise ValueError
+                    except ValueError:
+                        Error("-n argument must be an integer > 0")
+            GetData()
+            d["el"] = GetElementNamedTuples()
+            d["n"] = len(g.num2sym)  # Number of elements in the script
+            x = f.flt(0)
+            x.N = d["-d"]
+            # Set formatting for flts to use Unicode for scientific notation
+            x.u = True
+            if d["-c"]:
+                t.always = True
+            if d["-t"]:
+                TestGetElements()
+            if d["-l"]:
+                LaunchWebPage("")
+            if d["-h"]:
+                Usage(status=0)
+            if d["-H"]:
+                Manpage()
+            if not args:
+                ShortList()
+            return args
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     # Find all the element names referenced by the command line
-    g.found_names = []
+    with g:
+        g.found_names = []
     for el in args:
         for name in GetElements(el):
-            if name not in g.found_names:
-                g.found_names.append(name)
+            if name not in g.found_names:   # type: ignore[attr-defined]
+                g.found_names.append(name)  # type: ignore[attr-defined]
     if d["-D"]:  # Dump for debugging
         print("Found the following elements:")
         DumpElements()

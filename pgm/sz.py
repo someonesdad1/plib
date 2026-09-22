@@ -25,14 +25,14 @@ if 1:  # Imports
     import os
     import subprocess
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     cold = False  # Use old color methods
     if cold:
         import color as C
     else:
-        from color import t
+        import trm
+        t = trm.TrmDP()
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)

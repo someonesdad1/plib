@@ -22,7 +22,6 @@ if 1:  # Imports
     import os
     import pathlib
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from PIL import Image, ImageGrab

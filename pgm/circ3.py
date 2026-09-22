@@ -20,7 +20,6 @@ if 1:  # Imports
     import sys
     import getopt
     from math import sqrt, cos, acos, sin
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from sig import sig
     from wrap import dedent

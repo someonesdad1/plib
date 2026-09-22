@@ -30,7 +30,8 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.TrmDP()
         from get import GetLines
         from columnize import Columnize
     if 1:  # Global variables
@@ -133,7 +134,8 @@ if 1:  # Core functionality
         "Print the function report"
         sentinel = None
         dq = deque(sorted(function_set))
-        breakpoint() #xx 
+        if 1:
+            breakpoint()
         dq.append(sentinel)  # Identifies end of deque
         results = []
         while dq:

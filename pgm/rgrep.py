@@ -12,10 +12,9 @@ if 1:  # Copyright, license
     ##∞what∞#
     # Recursive grep
     ##∞what∞#
-    ##∞test∞# ["rgrep_test.py"] #∞test∞#
+    ##∞test∞# notest #∞test∞#
     pass
 if 1:  # Imports
-    from pdb import set_trace as xx
     from textwrap import dedent
     import getopt
     import os
@@ -28,7 +27,9 @@ if 1:  # Imports
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent, wrap
-    from color import t as T, RegexpDecorate
+    from dpstr import RegexpDecorate
+    import trm
+    T = trm.TrmDP()
     from lwtest import run, raises, assert_equal, Assert
     if 0:
         import debug

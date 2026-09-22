@@ -34,12 +34,13 @@ if 1:  # Header
     # Custom imports
     from wrap import wrap, dedent
     import get
-    from color import t, RegexpDecorate
+    import trm
     from wsl import wsl
     if 0:
         import debug
         debug.SetDebugger()
     # Global variables
+    t = trm.TrmDP()
     P = pathlib.Path
     ii = isinstance
     class g:
@@ -55,9 +56,9 @@ if 1:  # Header
     g.at = "@"  # Designates a silent alias
     g.editor = os.environ["EDITOR"]
     # Colors for terminal printing
-    t.C = t.cynl
-    t.R = t.redl
-    t.y = t.yell
+    t.C = t.cyn
+    t.R = t.red
+    t.y = t.yel
     # Regular expressions describing configuration file lines that
     # should be ignored
     g.ignore = ()

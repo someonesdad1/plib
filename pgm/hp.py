@@ -27,7 +27,8 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from columnize import Columnize
-        from color import t
+        import trm
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()
@@ -167,13 +168,13 @@ if 1:  # Open catalogs
         return files
     def ShowYears():
         'Print the catalog years that are valid'
-        print("The following are the HP catalog years (invalid years are gray):")
+        print("The following are the HP catalog years (missing years are gray):")
         yrs = []
         for year in range(1950, 2004):
             if year in g.years:
                 yrs.append(f"{t.whtl}{year}{t.n}")
             else:
-                yrs.append(f"{t.gryd}{year}{t.n}")
+                yrs.append(f"{t.gryl}{year}{t.n}")
         for i in Columnize(yrs, columns=5, col_width=10, indent=" " * 4):
             print(i)
         print("You can use 2 digit or 4 digit years.  If you give an invalid year,")

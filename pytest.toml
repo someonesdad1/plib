@@ -1,0 +1,5 @@
+[pytest]
+norecursedirs = ["."]
+python_files = ["dpseq.py"]
+python_classes = ["Test_"]
+python_functions = ["Test_", "_Test", "test_", "_test"]

@@ -27,11 +27,10 @@ if 1:  # Header
         from collections import deque
     if 1:  # Custom imports
         from wrap import dedent
-        from color import t
-
+        import trm
+        t = trm.TrmDP()
         if 0:  # Drops into debugger on exception
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
 

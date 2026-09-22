@@ -19,25 +19,22 @@ driving force behind this transliteration, primarily because I am not a linguist
 
 '''
 if 1:   # Header
-    ##∞test∞# ignore #∞test∞#
-    import unicodedata as U
-    import re
-    import pickle
-    import string
-    import sys
-    import time
-    import getopt
-    import os
-    from ucd import ucd
-    from textwrap import dedent
-    from itertools import combinations, chain
-    from columnize import Columnize
-    from pprint import pprint as pp
-    from collections import defaultdict
-    from pdb import set_trace as xx
-    if 0:
-        import debug
-        debug.SetDebugger()
+    if 1:   # Standard imports
+        import unicodedata as U
+        import re
+        import pickle
+        import string
+        import sys
+        import time
+        import getopt
+        from textwrap import dedent
+        from itertools import combinations, chain
+        from collections import defaultdict
+    if 1:   # Custom imports
+        from ucd import ucd
+        if 0:
+            import debug
+            debug.SetDebugger()
 if 1:  # Utility
     def ShowAll(cpset, arg="all"):
         '''Print all codepoints in cpset to stdout that contain the regular
@@ -183,20 +180,20 @@ if 1:  # Utility
     def flatten(listOfLists):
         "Flatten one level of nesting"
         return chain.from_iterable(listOfLists)
-        def Usage(d, status=1):
-            name = sys.argv[0]
-            print(
-                dedent(
-                    f'''
-            Usage:  {name} [options] [output_file]
-        
-            -d dbg      Debug level
-            -f          Force a rebuild
-            -s          Set select to True
-            '''[1:-1]
-                )
+    def Usage(d, status=1):
+        name = sys.argv[0]
+        print(
+            dedent(
+                f'''
+        Usage:  {name} [options] [output_file]
+    
+        -d dbg      Debug level
+        -f          Force a rebuild
+        -s          Set select to True
+        '''[1:-1]
             )
-            exit(status)
+        )
+        exit(status)
     def ParseCommandLine(d):
         d["-d"] = 0
         d["-f"] = False
@@ -977,7 +974,7 @@ if 1:  # Make the files
             s.append((cp, repr(decomp[cp])))
         for cp, c in sorted(s):
             print(f"    0x{cp:x}: {c},", file=f)
-        print(dedent(f'''
+        print(dedent('''
         }}
         if __name__ == "__main__": 
             import sys
@@ -1002,10 +999,10 @@ if 1:  # Make the files
         print(f"Wrote '{file}'", file=sys.stderr)
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
-    decomp = {}  # Codepoints that could be decomposed
-    trans = {}  # Contains the final translate dictionary
+    decomp: dict[object, object] = {}  # Codepoints that could be decomposed
+    trans: dict[object, object] = {}  # Contains the final translate dictionary
     fmt = "  {:30s} {:8d}"  # Used for debug printing to stderr
     # If select is True, only do the tasks currently being worked on
     select = True if d["-s"] else False
@@ -1013,3 +1010,13 @@ if __name__ == "__main__":
     dbg = d["-d"]
     stream = sys.stdout
     GetTranslations()
+
+def GetGist():
+    g = {}
+    g["gist"] = "Build a transliteration table for ASCII characters"
+    g["copy"] = "Copyright © 2019 Don Peterson"
+    g["lic"] = "MIT License (see /plib/_lic.mit)"
+    g["test"] = "notest"
+    g["cat"] = "text"
+    g["todo"] = ''' '''
+    return g

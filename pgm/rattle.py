@@ -36,11 +36,12 @@ if 1:  # Header
         import os
         from pathlib import Path as P
         import sys
-        from pdb import set_trace as xx
         from functools import partial
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, t
+        from color import Color
+        import trm
+        t = trm.TrmDP()
         from u import u
         from f import flt, sqrt
         import get
@@ -201,7 +202,7 @@ if 1:  # Core functionality
             else:
                 print("Leave one variable undefined")
             if dbg:
-                exit(0)  # xx
+                exit(0)
 
     def PitchRattle():
         pass

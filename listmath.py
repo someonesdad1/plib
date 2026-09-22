@@ -1,38 +1,34 @@
-"""
+'''
 Prints out math/cmath functions and their syntax
-"""
-
+'''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2024 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # Prints out math/cmath functions and their syntax
-        ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Prints out math/cmath functions and their syntax oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2024 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
         from collections import namedtuple
         import cmath
         import math
         import os
         import platform
-        import sys
     if 1:  # Custom imports
-        from color import t
-        from dpprint import PP
-
-        pp = PP()  # Screen width aware form of pprint.pprint
         from columnize import Columnize
-if 1:
-
+    if 1:  # Global variables
+        pass
+if 1:  # Core functionality
     def GetSymbols():
-        data = """
+        data = '''
             # num_args signature
             1 math.ceil(x)
             2 math.comb(n, k)
@@ -125,7 +121,7 @@ if 1:
             0 cmath.infj
             0 cmath.nan
             0 cmath.nanj
-        """
+        '''
         o = []
         for line in data.split("\n"):
             line = line.strip()
@@ -140,13 +136,11 @@ if 1:
                 fname, arg = func.split(sep="(", maxsplit=1)
                 arg = "(" + arg
             clr = t.m if module[0] == "m" else t.c
-            e = entry(module[0], numargs, fname, arg, clr)
+            e = Entry(module[0], numargs, fname, arg, clr)
             o.append(e)
         return o
-
     def uniq(x):
         return list(sorted(set(x)))
-
     def Prt1(title, s):
         "Print the columnized colorized names"
         t.print(title)
@@ -158,7 +152,6 @@ if 1:
             out.append(f"{entry.color}{name}{t.n}")
         for i in Columnize(out, indent=ind, esc=True):
             print(i)
-
     def Prt2(title, s):
         "Print the names"
         t.print(title)
@@ -173,7 +166,6 @@ if 1:
             out.append(s)
         for i in Columnize(out, indent=ind, esc=True):
             print(i)
-
     def MathReport():
         "Show the math/cmath symbols"
         if 1:  # Get & check data
@@ -197,13 +189,11 @@ if 1:
                 if i not in c:
                     print("Error:  cmath.{i!r} not in data")
         # Report
-        t.print(
-            f"{t('ornl')}math/cmath functions for python {platform.python_version()}"
-        )
+        t.print(f"{t.title}math/cmath functions for python {platform.python_version()}")
         print(f"{ind}Produced by {__file__}")
         t.print(f"{ind}Colors:  {t.m}math{t.n}  {t.c}cmath")
         if 1:  # All symbols
-            t.print(f"{t('grnl')}All symbols")
+            t.print(f"{t.type}All symbols")
             sym = []
             for i in o:
                 sym.append((i.name, i))
@@ -242,13 +232,15 @@ if 1:
             Prt2(f"{t.type}List of arguments", list_of_arguments)
             Prt2(f"{t.type}Other", other)
 
-
 if __name__ == "__main__":
-    entry = namedtuple("Entry", "lib n name args color")
-    t.m = t("brnl")
-    t.c = t("denl")
-    t.type = t("grnl")
+    import trm
+    t = trm.Trm()
+    Entry = namedtuple("Entry", "lib n name args color")
+    t.title = t.ygr
+    t.m = t.wht
+    t.c = t.sky
+    t.type = t.trq
     t.hdr = t("whtl", "royd")
-    ind = " " * 2
+    ind = " "*2
     W = int(os.environ.get("COLUMNS", "80")) - 1
     MathReport()

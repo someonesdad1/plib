@@ -1,49 +1,35 @@
 """
 Run the unit test files.
 """
-
 # Copyright (C) 2021 Don Peterson
 # Contact:  gmail.com@someonesdad1
-
 #
 # Licensed under the Academic Free License version 3.0.
 # See http://opensource.org/licenses/AFL-3.0.
 #
-
 import getopt
 import os
 import pathlib
 import subprocess
 import sys
-
 # Debugging stuff
 from pdb import set_trace as xx
-
 if 0:
     import debug
-
     debug.SetDebugger()  # Start debugger on unhandled exception
-
 P = pathlib.Path
-
-
 def eprint(*p, **kw):
     "Print to stderr"
     print(*p, **kw, file=sys.stderr)
-
-
 def Error(msg, status=1):
     eprint(msg)
     exit(status)
-
-
 def Usage(status=1):
     name = sys.argv[0]
     s = f"""
 Usage:  {name} [options] [file1 ...]
   Run the indicated unit test files.  If there is a failure, the file
   name that failed is printed.
-
 Options:
     -a      Run all the files
     -q      No output; exit status = 0 means all passed, = 1 means at
@@ -52,8 +38,6 @@ Options:
 """[1:-1]
     print(s)
     exit(status)
-
-
 def ParseCommandLine(d):
     d["-a"] = False
     d["-q"] = False
@@ -71,8 +55,6 @@ def ParseCommandLine(d):
     if not args and not d["-a"]:
         Usage(status=1)
     return args
-
-
 def RunFile(file: P, failed: list):
     cmd = [sys.executable, str(file)]
     r = subprocess.run(cmd, capture_output=True)
@@ -82,8 +64,6 @@ def RunFile(file: P, failed: list):
             out = "  stdout:\n" + r.stdout.decode().rstrip()
             err = "  stderr:\n" + r.stderr.decode().rstrip()
         failed.append((f"{file}", out, err))
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine(d)

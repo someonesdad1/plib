@@ -22,10 +22,11 @@ if 1:  # Header
         from pathlib import Path as P
         import sys
         from math import *
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.TrmDP()
         from u import u, ParseUnit
         from f import flt
         from lwtest import Assert, check_flt

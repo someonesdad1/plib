@@ -26,12 +26,13 @@ if 1:  # Header
         from wrap import dedent
         from get import GetNumbers as GN
         from interpolate import LinearInterpFunction
-        from frange import frange
+        from dpseq import frange
         from f import flt
         from resistors import FindClosest
         from fpformat import FPFormat
-        from color import t
-        from dpprint import PP
+        import trm
+        t = trm.TrmDP()
+        from dputil import PP
     if 1:  # Global variables
         pp = PP()   # Get pprint with current screen width
         P = pathlib.Path

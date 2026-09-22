@@ -1,60 +1,86 @@
 '''
-TODO:
+Module for a) getting data from files, strings, and streams, b) getting numbers
+interactively from user.
 
-    - GetNumber uses the boolean use_unit to allow the user to append a unit string.
-      Change it to also allow use_unit to be a string; then a unit string, if appended,
-      must have the same dimensions as the given string.
-    - GetLine needs a keep=[] keyword argument to be used on lines that aren't removed
-      by the ignore argument.
-    - GetLine1 staged to be removed by commenting out
-    - See if GetLines and GetLines1 can be combined
-    - Add number kw to GetLines which then causes a list of tuples (linenum, str) to be
-      returned
-    - Add Zn to GetNumbers
-    - Change GetFraction to also handle integers
-    
-Module for a) getting data from files, strings, and streams, b) getting numbers interactively from
-user.
-
+Getting text, lines, bytes
+    GetText             Get text from file, string, bytes, or a stream
+    GetLinesFromString  Return a list of lines from a string with newlines
+    GetLines            Return a list of strings from file, string, bytes, or stream
+    GetTextLines        Convenience instance of GetLines
+    GetLine             GetLines but is a generator
+    GetNumberedLines    Return a tuple of (linenum, line)
+    GetBinary           Read in file and return bytes
+Getting numbers
+    GetNumber           Get number from user with prompt
+    GetNumbers          Uses GetText() to get a string, then recognizes numbers
+    GetNumberArray      Return a list of vectors gotten from multiline string
+    GetFraction         Return Fraction from string if it contains '/'
+    ParseUnit           Return (num, unit_string)
+    ParseUnitString     Return (prefix_str, unit_str)
+    GetComplex          Return complex number from a string
+    GetClosest          Return number in seq closest to x (seq must be sorted)
+    GetInt              Convert a number or string to an integer
+Getting choices         
+    GetChoice           Prompt user for their choice in a sequence
+Tokenizing          
+    GetWords            Return a list of words separated by a sep string
+    GetTokens           Generator form of GetWords
+    GetWordlist         Get list of words from files, strings, or streams
+    class wrd           Word type for Tokenize
+    class pnc           Punctuation type for Tokenize
+    Tokenize            Return a deque with all the words in a string
+Miscellaneous           
+    IsPunctuation       Return True if all characters in seq are punctuation
+    GetWireDiameter     Return wire diameter from a string
+    GetFileSize         Return a file's size
+    GetIndent           Return number of leading spaces in a string
 '''
 if 1:  # Header
-    if 1:   # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <programming> Module for getting data from files, strings, and
-        # streams.  An example is reading a text file, getting all the lines
-        # except for those that match a sequence of regular expressions.
-        # Other examples are getting all the words (tokens) from a file or a
-        # set of numbers.  Handles a number of common programming tasks.
-        ##∞what∞#
-        ##∞test∞# run #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Get data from files, strings, and streams oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2019 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ run oo>
+        <oo todo ∞ 
+        
+            - GetNumber uses the boolean use_unit to allow the user to append a unit
+              string.  Change it to also allow use_unit to be a string; then a unit
+              string, if appended, must have the same dimensions as the given string.
+            - GetLine needs a keep=[] keyword argument to be used on lines that aren't
+              removed by the ignore argument.
+            - GetLine1 staged to be removed by commenting out
+            - See if GetLines and GetLines1 can be combined
+            - Add number kw to GetLines which then causes a list of tuples (linenum,
+              str) to be returned
+            - Add Zn to GetNumbers
+            - Change GetFraction to also handle integers
+        
+        oo>
+    '''
     if 1:   # Standard imports
         import bisect
         import locale
         import math
+        import pprint
         import pathlib
         import re
         import string
         import sys
         from collections import deque
-        from collections.abc import Iterable
-        from enum import Enum
         from io import StringIO
         from fractions import Fraction
         from decimal import Decimal
     if 1:   # Custom imports
         import u
         from f import flt
-        from columnize import Columnize
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
+        pp = pprint.pprint
         try:
             from uncertainties import ufloat_fromstr, UFloat
             have_unc = True
@@ -160,7 +186,7 @@ if 1:  # Getting text, lines, bytes
         return o
     def GetLines(thing, enc=None, ignore=[], script=False, ignore_empty=False,
                  strip=False, nonl=False):
-        '''Return text from thing, which is
+        r'''Return list of strings from thing, which is
            string      It's a file name.  If get a read exception, then
                        use string itself for the text.  "-" means stdin.
            bytes       or
@@ -627,10 +653,10 @@ if 1:  # Getting numbers
                     x = int(s)
                 lst.append(x)
         return lst
-    def GetNumberArray(string, row=False, numtype=float):
-        '''Return a list of vectors gotten from the indicated multiline string.
-        The numbers are separated on each line by whitespace.  If row is
-        True, then the vectors are row vectors.  Lines in string matching
+    def GetNumberArray(string, numtype=float):
+        r'''Return a list of vectors gotten from the indicated multiline string.
+        The numbers are separated on each line by whitespace.  
+        Lines in string matching
         the regular expression with '^\s*#' are ignored.  If string is empty or
         only whitespace, then [[]] is returned.  ValueError will be raised if a
         row contains a different number of elements than the others.
@@ -641,35 +667,29 @@ if 1:  # Getting numbers
                 1 2 3
                 4 5 6
                 """
-            then GetNumberArray(s) returns [[1, 4], [2, 5], [3, 6]].
-            GetNumberArray(s, row=True) returns [[1, 2, 3], [4, 5, 6]].
+            then GetNumberArray(s, numtype=int) returns [[1, 2, 3], [4, 5, 6]].
         '''
         if not string.strip():
             return [[]]
         strings = []
-        # Put valid lines into strings
-        for line in string.strip().split("\n"):
-            if line.strip()[0] == "#":
-                continue
-            strings.append(line)
-        nrows = len(strings)
-        # Get number of columns and verify all rows have the same number of
-        # columns
-        cols = [i.split() for i in strings]
-        ncols = len(cols[0])
-        if not all([len(i) == ncols for i in cols]):
-            raise ValueError(f"Not all rows have {ncols} elements")
-        # Get number array
-        A = []
-        for myrow in strings:
-            a = [numtype(i) for i in myrow.split()]
-            A.append(a)
-        if row:
-            return A  # Return row vectors
-        if ncols == 1 or nrows == 1:
-            return A  # Special case of one column or row vector
-        # Use transpose to return column vectors
-        return [list(i) for i in zip(*A)]
+        if 1:   # Put valid lines into strings
+            for line in string.strip().split("\n"):
+                if not line.strip() or line.strip()[0] == "#":
+                    continue
+                strings.append(line)
+            nrows = len(strings)
+        if 1:   # Get number of columns and verify all rows have the same number of
+                # columns
+            cols = [i.split() for i in strings]
+            ncols = len(cols[0])
+            if not all([len(i) == ncols for i in cols]):
+                raise ValueError(f"Not all rows have {ncols} elements")
+        if 1:   # Get number array
+            A = []
+            for myrow in strings:
+                a = [numtype(i) for i in myrow.split()]
+                A.append(a)
+            return A
     def GetFraction(s):
         '''Return a Fraction object if string s contains a '/' and can be
         interpreted as an improper or proper fraction or if it can be
@@ -824,7 +844,7 @@ if 1:  # Getting numbers
         if not ii(s, str):
             raise TypeError("Parameter s must be a string")
         u = s.lower().replace("j", "i")
-        u = re.sub("\s*", "", u)  # Remove all whitespace
+        u = re.sub(r"\s*", "", u)  # Remove all whitespace
         if not u:
             return None
         if not u.endswith("i"):
@@ -960,9 +980,7 @@ if 1:  # Getting numbers
         else:
             raise ValueError(f"{arg!r} is of improper form")
 if 1:  # Getting choices
-    def GetChoice(
-        seq, default=1, indent=None, col=False, instream=None, outstream=None
-    ):
+    def GetChoice(seq, default=1, indent=None, col=False, instream=None, outstream=None):
         '''Display the choices in seq with numbers and prompt the user for his
         choice.  Note the numbers are 1-based as displayed to the user, but the
         returned value of choice will be 0-based.  Return the choice_number.
@@ -974,27 +992,21 @@ if 1:  # Getting choices
         instream and outstream are used for testing and are passed to
         GetNumber().
         '''
+        import columnize 
         if not seq:
             raise ValueError("seq can't be empty")
         items, n = [], len(seq)
         for i, item in enumerate(seq):
             items.append("{}) {}".format(i + 1, str(item)))
         if col:
-            for i in Columnize(items, indent=indent, sep=" " * 3):
+            for i in columnize.Columnize(items, indent=indent, sep=" " * 3):
                 print(i, file=outstream)
         else:
             s = "" if indent is None else indent
             for i in items:
                 print(s, i, sep="", file=outstream)
-        choice = GetNumber(
-            "Choice? ",
-            numtype=int,
-            default=default,
-            low=1,
-            high=n,
-            instream=instream,
-            outstream=outstream,
-        )
+        choice = GetNumber("Choice? ", numtype=int, default=default, low=1,
+                           high=n, instream=instream, outstream=outstream)
         if choice is None:
             return (None, "")
         choice = int(choice) - 1
@@ -1187,6 +1199,8 @@ if 1:  # Miscellaneous
             if n <= 44:
                 return round(diameter, 4)
             return round(diameter, 5)
+        if not hasattr(GetWireDiameter, "input"):
+            GetWireDiameter.input = None    # Used for self tests
         msg = "Enter wire diameter (use 'ga' suffix for AWG): "
         while True:
             if GetWireDiameter.input is not None:
@@ -1219,12 +1233,12 @@ if 1:  # Miscellaneous
                     return s, value * u(unit) / u(default_unit)
                 elif not unit:
                     return s, value
-    GetWireDiameter.input = None  # Used for self tests
     def GetFileSize(file):
         p = pathlib.Path(file)
         s = p.stat()
         return s.st_size
     def GetIndent(line):
+        'Return number of leading spaces in a string'
         if not ii(line, str):
             raise TypeError("Argument must be a string")
         if not line:
@@ -1237,13 +1251,15 @@ if 1:  # Miscellaneous
         return count
 
 if __name__ == "__main__":
-    # Regression tests
-    if 1:  # Initialization
+    if 1:  # Standard imports
         from collections import deque
+        from io import StringIO
+    if 1:  # Custom imports
         from wrap import dedent
         from lwtest import run, raises, Assert
-        from io import StringIO
+    if 1:  # Global variables
         text_file, S = None, None
+    if 1:  # Initialization
         def SetUp():
             global text_file, S
             text_file = P("get.test")
@@ -1955,52 +1971,50 @@ if __name__ == "__main__":
             Assert(all([ii(i, Fraction) for i in L]))
             Assert(L == [Fraction(3, 8), Fraction(7, 16), Fraction(1, 2)])
         def TestGetNumberArray():
-            s = '''
-                1 2 3
-                4 5 6
-            '''
-            # Empty string
-            a = GetNumberArray("")
-            Assert(a == [[]])
-            a = GetNumberArray(" \t\n \v\r")
-            Assert(a == [[]])
-            # Simple string
-            t = "1"
-            a = GetNumberArray(t)
-            Assert(a == [[1.0]])
-            Assert(isinstance(a[0][0], float))
-            a = GetNumberArray(t, numtype=int)
-            Assert(a == [[1]])
-            Assert(isinstance(a[0][0], int))
-            # Single column vector
-            t = '''
-                1
-                2
-            '''
-            a = GetNumberArray(t)
-            Assert(a == [[1.0], [2.0]])
-            # Single row vector
-            t = "1 2"
-            a = GetNumberArray(t)
-            Assert(a == [[1.0, 2.0]])
-            # Default gets column vector of floats
-            a = GetNumberArray(s)
-            Assert(a == [[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
-            Assert(isinstance(a[0][0], float))
-            # Gets column vector of ints
-            a = GetNumberArray(s, numtype=int)
-            Assert(a == [[1, 4], [2, 5], [3, 6]])
-            Assert(isinstance(a[0][0], int))
-            # Get row vector of ints
-            a = GetNumberArray(s, row=True, numtype=int)
-            Assert(a == [[1, 2, 3], [4, 5, 6]])
-            # Bad data gets exception
-            s = '''
-                1 2 3
-                4 5  
-            '''
-            with raises(ValueError):
+            if 1:   # Empty string
+                a = GetNumberArray("")
+                Assert(a == [[]])
+                a = GetNumberArray(" \t\n \v\r")
+                Assert(a == [[]])
+            if 1:   # Simple string; check numtype functionality
+                t = "1"
+                a = GetNumberArray(t)
+                Assert(a == [[1.0]])
+                Assert(isinstance(a[0][0], float))
+                a = GetNumberArray(t, numtype=int)
+                Assert(a == [[1]])
+                Assert(isinstance(a[0][0], int))
+            if 1:   # Single column vector
+                t = '''
+                    1
+                    2
+                '''
+                a = GetNumberArray(t)
+                Assert(a == [[1.0], [2.0]])
+            if 1:   # Single row vector
+                t = "1 2"
+                a = GetNumberArray(t)
+                Assert(a == [[1.0, 2.0]])
+            if 1:   # A two-dimensional matrix
+                s = '''
+                    1 2 3
+                    4 5 6
+                '''
+                # Default gets row vector of floats
                 a = GetNumberArray(s)
+                Assert(a == [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+                Assert(isinstance(a[0][0], float))
+                # Get row vector of ints
+                a = GetNumberArray(s, numtype=int)
+                Assert(a == [[1, 2, 3], [4, 5, 6]])
+                Assert(isinstance(a[0][0], int))
+                # Bad data gets exception
+                s = '''
+                    1 2 3
+                    4 5  
+                '''
+                with raises(ValueError):
+                    a = GetNumberArray(s)
         def TestGetFraction():
             e = Fraction(5, 4)
             for i in (

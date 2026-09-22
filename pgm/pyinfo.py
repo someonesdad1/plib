@@ -19,7 +19,6 @@ if 1:  # Imports
     # Uncomment the following, move up, and it should work for python 2
     # from __future__ import print_function, division
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent

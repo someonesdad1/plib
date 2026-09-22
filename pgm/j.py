@@ -15,20 +15,20 @@ if 1:  # Header
     ##∞what∞#
     ##∞test∞# #∞test∞#
     # Standard imports
-    import getopt
-    import os
-    import pathlib
-    import sys
-    from collections import deque
-    from pdb import set_trace as xx
+        import getopt
+        import os
+        import pathlib
+        import sys
+        from collections import deque
     # Custom imports
-    from wrap import dedent
-    from color import TRM as t
-    from edit import Edit
+        from wrap import dedent
+        import trm
+        from dpstr import Edit
     # Global variables
-    P = pathlib.Path
-    ii = isinstance
-    t.c = t("sky")
+        t = trm.TrmDP()
+        P = pathlib.Path
+        ii = isinstance
+        t.c = t("skyl")
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
@@ -82,7 +82,9 @@ def DumpConfigFile(start=None, end=None):
     if end is not None:
         print(end, end="")
 def GetLines():
-    "Return a deque of the lines in the config file, ignoring blank lines"
+    '''Return a deque of the lines in the config file, ignoring blank lines and lines
+    that are comments.
+    '''
     keep = deque()
     lines = deque(open(d["-c"]).read().strip().split("\n"))
     while lines:

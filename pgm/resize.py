@@ -1,7 +1,6 @@
 """
 Resize a set of images
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014, 2021 Don Peterson #∞copyright∞#
@@ -16,7 +15,6 @@ if 1:  # Copyright, license
     ##∞test∞# #∞test∞#
     pass
 if 1:  # Imports
-    from pdb import set_trace as xx
     import getopt
     import pathlib
     import sys
@@ -25,30 +23,22 @@ if 1:  # Custom imports
     from PIL import Image, __version__ as pversion
     from color import C
 if 1:  # Global variables
-
     class g:
         pass
-
     P = pathlib.Path
     g.err = C.lred
     g.n = C.norm
     g.dbg = C.yel
     g.dbg_file = C.lmag
     g.debug = False
-
-
 def Error(*msg, status=1):
     print(*msg, file=sys.stderr)
     exit(status)
-
-
 def Debug(*msg, **kw):
     if g.debug:
         print(f"{g.dbg}", end="")
         print(*msg, **kw)
         print(f"{g.n}", end="")
-
-
 def Usage(status=1):
     print(
         dedent(f"""
@@ -67,8 +57,6 @@ def Usage(status=1):
         """)
     )
     exit(status)
-
-
 def ParseCommandLine():
     d["-d"] = None  # Output directory
     d["-e"] = None  # New extension
@@ -117,12 +105,8 @@ def ParseCommandLine():
         """)
         )
     return args[1:]
-
-
 def Int(x):
     return int(x) if x == int(x) else x
-
-
 def ProcessFile(file):
     assert isinstance(file, pathlib.Path)
     Debug(f"{g.dbg_file}Processing '{file}' (size = {file.stat().st_size}){g.dbg}")
@@ -141,8 +125,6 @@ def ProcessFile(file):
             new_name = None
             Debug(f"  Will overwrite the old file")
     ResizeFile(file, d["-p"], new_name=new_name)
-
-
 def ResizeFile(file, percentage, new_name=None):
     """Resizes the image in file and saves it to new_name.  If new_name
     is None, the original file will be overwritten.  percentage must be a
@@ -161,8 +143,6 @@ def ResizeFile(file, percentage, new_name=None):
         file = new_name
     im.save(file)
     Debug(f"  Saved to '{file}' (size = {file.stat().st_size})")
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     files = ParseCommandLine()

@@ -1,7 +1,6 @@
 """
 Find all Mercurial directories at and under the current directory
 """
-
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2014 Don Peterson #∞copyright∞#
@@ -38,8 +37,6 @@ if 1:  # Global variables
         "dirty": lred,
         "clean": (white, black),
     }
-
-
 def Usage(status=0):
     name = sys.argv[0]
     print(
@@ -55,15 +52,11 @@ def Usage(status=0):
     """)
     )
     exit(status)
-
-
 def ProcessDir(dir, d):
     level = 0
     for root, dirs, files in os.walk(dir):
         if ".hg" in dirs:
             Report(root.replace("\\", "/"), d)
-
-
 def Line(indent, letter, text):
     print(indent, end="")
     fg(states[letter])
@@ -71,8 +64,6 @@ def Line(indent, letter, text):
     print(" ", text, end="")
     normal()
     print()
-
-
 def Header(d):
     """Show key to interpret report."""
     sp = " " * 2
@@ -94,8 +85,6 @@ def Header(d):
         print("Clean repository")
     normal()
     print()
-
-
 def Int(letter, count):
     """Print the indicated count in the associated color."""
     fg(states[letter])
@@ -103,12 +92,10 @@ def Int(letter, count):
     print(s, end="")
     normal()
     print(" ", end="")
-
-
 def Status(dir, status, d):
     """Report as if this was a colorized 'hg st' command for this
     directory (which, in fact, is exactly what it is.
-
+    
     status will be a list of the lines from an 'hg st' command.
     """
     # Only display dirty repositories
@@ -123,13 +110,11 @@ def Status(dir, status, d):
         fg(states[letter])
         print(i)
         normal()
-
-
 def Report(dir, d):
     """dir is a Mercurial directory.  Find out if its status indicates
     the repository has changed; if so, print out the name in color.
     Note:  the status command prints out the following prefixes:
-
+    
         M = modified
         A = added
         R = removed
@@ -176,8 +161,6 @@ def Report(dir, d):
             print(dir)
         normal()
     os.chdir(cwd)
-
-
 def ParseCommandLine(d):
     d["-c"] = True  # Don't show clean directories
     d["-s"] = False  # Show 'hg st' type listing
@@ -197,8 +180,6 @@ def ParseCommandLine(d):
     if not args:
         args = ["."]
     return args
-
-
 if __name__ == "__main__":
     d = {}  # Options dictionary
     dirs = ParseCommandLine(d)

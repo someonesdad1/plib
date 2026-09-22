@@ -35,11 +35,12 @@ if 1:   # Header
         from collections import defaultdict
     if 1:   # Custom imports
         from wrap import dedent
+        import trm
         if 0:
             import debug
             debug.SetDebugger()
         # Color coding
-        from color import t
+        t = trm.TrmDP()
         try:
             from color import PrintMatch, lred, black, Style
             MatchStyle = Style(lred, black)
@@ -678,7 +679,7 @@ def Usage(d, status=1):
       -a  Use all valid Unicode characters.  The default set uses the
           Basic Multilingual Plane up to U+FFFF.'''))
     if ucd is not None:
-        print("  -b  Dump block information", end="")
+        print("  -b  Dump block information")
     print(dedent(f'''
       -c  {col}
       -D  Print the descriptions of all valid Unicode characters.

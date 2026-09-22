@@ -20,11 +20,8 @@ if 1:  # Standard imports
     import pathlib
     import sys
     import os
-    from pdb import set_trace as xx
-
     if 1:
         import debug
-
         debug.SetDebugger()
 if 1:  # Custom imports
     from columnize import Columnize

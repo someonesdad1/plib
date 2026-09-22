@@ -1,6 +1,6 @@
 '''
 
-Searches for keywords in the EEVblog video titles.
+Searches for keywords in the EEVblog video titles
 
 To use this script, you must
     - Go to the page https://www.eevblog.com/episodes in your browser and save it as a
@@ -41,10 +41,11 @@ if 1:   # Header
     if 1:   # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.TrmDP()
         from lwtest import Assert
-        from dpprint import PP
-        from months import months
+        from dputil import PP
+        from dptime import Num2Month
         from columnize import Columnize
         import dpstr
         pp = PP()   # Get pprint with current screen width
@@ -60,6 +61,7 @@ if 1:   # Header
         g.data = "/plib/pgm/eevblog.txt"
         g.remove = dpstr.RemoveFilter(string.punctuation + string.digits)
         ii = isinstance
+        Months = Num2Month
 if 1:   # Classes
     class Line:
         r = re.compile(r"(/\d\d\d\d/\d\d/\d\d)")
@@ -74,7 +76,7 @@ if 1:   # Classes
             # Get the date from the URL
             self.date = self.convert_date(Line.r.search(self.url).groups()[0])
         def __str__(self):
-            m = months[self.date.month]
+            m = Months[self.date.month]
             return f"{self.title} {self.date.day}{m}{t.yel}{self.date.year}{t.n}" 
         def __repr__(self):
             return self.title

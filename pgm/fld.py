@@ -17,7 +17,6 @@ if 1:  # Copyright, license
     pass
 if 1:  # Imports
     from io import StringIO
-    from pdb import set_trace as xx
     import functools
     import getopt
     import re

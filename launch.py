@@ -1,32 +1,28 @@
 '''
 Launch files with their registered applications
-
-    Windows:  You can compile the C++ application given below; it worked with Windows NT systems in
-    the 1990's and 2000's.  The start.exe application can do the same thing and it's supplied with
-    Windows.
-    
-    cygwin:  The cygstart.exe program does the work.
-    
-    Linux:  On a real Linux system, xdg-open works.  On WSL, you have to call explorer.exe on the
-    file, but the twist is you have to cd to the file's directory first because Explorer is a
-    strange application.
-    
+    - Windows:  You can compile the C++ application given below; it worked with Windows
+      NT systems in the 1990's and 2000's.  The start.exe application can do the same
+      thing and it's supplied with Windows.
+    - cygwin:  The cygstart.exe program does the work.
+    - Linux:  On a real Linux system, xdg-open works.
+    - WSL:  You have to call explorer.exe on the file, but you have to cd to the file's
+      directory first.
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <utility> Launch files with their registered applications.  Works
-        # on cygwin/Linux/Windows.
-        ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Launch files with their registered application oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
     if 1:  # Standard imports
         from pathlib import Path as P
         import getopt
@@ -35,13 +31,11 @@ if 1:  # Header
         import subprocess
         import sys
     if 1:  # Custom imports
-        from wrap import dedent
-        from wsl import wsl  # If wsl is 1, we're running under WSL under Windows
+        import dptypes
+        import wrap
+        import wsl
     if 1:  # Global variables
-        ii = isinstance
-        class G:
-            pass
-        g = G()
+        g = dptypes.Constant()
         g.system = None
 if 0:  # C++ source code old Windows launcher app.exe
     '''
@@ -237,16 +231,17 @@ if 1:  # Core functionality
         if s.startswith("CYGWIN_NT"):
             g.system = "cygwin"
         elif s.startswith("Linux"):
-            g.system = "wsl" if wsl else "linux"
+            with g:
+                g.system = "wsl" if wsl.wsl else "linux"
         else:
             raise ValueError("{s!r} not supported for platform.system()")
     def RegisteredOpen(file):
         '''Open the indicated file with its registered application.  file must be a string
         or a Path instance.
         '''
-        if ii(file, str):
+        if isinstance(file, str):
             p = P(file)
-        elif ii(file, P):
+        elif isinstance(file, P):
             p = file
         else:
             raise TypeError(f"'{file}' must be a string or a pathlib.Path instance")
@@ -261,10 +256,10 @@ if 1:  # Core functionality
                 # Running under Windows in Windows Subsystem for Linux.  The method is to use
                 # explorer.exe to open files.  To get this to work, we have to cd to the file's
                 # directory.  It appears Explorer returns 1 under all conditions.
-                r = subprocess.run(f"explorer.exe {filename}", shell=True)
+                subprocess.run(f"explorer.exe {filename}", shell=True)
             elif g.system == "cygwin":
                 # Must be cygwin; file can be opened with cygstart.exe.
-                r = subprocess.run(f"cygstart {filename}", shell=True)
+                subprocess.run(f"cygstart {filename}", shell=True)
             elif g.system == "linux":
                 # Older method worked a decade or two ago, needs to be tested on a Linux box
                 subprocess.call(("xdg-open", filename))
@@ -279,18 +274,17 @@ if 1:  # Core functionality
             RegisteredOpen(file)
     # Make sure we know the system when we get imported
     GetSystem()
+
 if __name__ == "__main__":
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
     def Usage(status=1):
         name = sys.argv[0]
-        print(
-            dedent(f'''
+        print(wrap.dedent(f'''
         Usage:  {name} [options] file1 [file2 ...]
           Launch the files with their registered applications. 
-        ''')
-        )
+        '''))
         exit(status)
     def ParseCommandLine(d):
         d["-a"] = False
@@ -307,6 +301,6 @@ if __name__ == "__main__":
         if not args:
             Usage()
         return args
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     files = ParseCommandLine(d)
     Launch(*files)

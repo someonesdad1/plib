@@ -22,7 +22,7 @@ if 1:  # Standard imports
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent
-    from dpprint import PP
+    from dputil import PP
     pp = PP()   # Get pprint with current screen width
     if 0:
         import debug

@@ -48,7 +48,6 @@ if 1:  # Imports
 if 1:  # Custom imports
     from wrap import dedent
     import color as C
-    from pdb import set_trace as xx
     if 1:
         import debug
         debug.SetDebugger()

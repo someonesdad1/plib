@@ -20,10 +20,12 @@ if 1:  # Header
     from pathlib import Path as P
     import re
     import sys
-    from pdb import set_trace as xx
     # Custom imports
     from wrap import wrap, dedent
-    from color import Color, t, RegexpDecorate
+    from color import Color
+    from dpstr import RegexpDecorate
+    import trm
+    t = trm.TrmDP()
     from get import GetLines
     from columnize import Columnize
     if 1:

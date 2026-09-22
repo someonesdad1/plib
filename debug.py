@@ -1,100 +1,159 @@
 '''
-
-- Look at making AutoIndent a context manager.  Then something like
-    with AutoIndent() as f:
-        do stuff
-  and reconnection of stdout would be automatic.
-  
 Debugging tools
-    Set debug.on to True to debug.
+
+    Turning on debugging
+        - Set debug.show to True   OR
+        - Set the environment variable Debug to a nonempty string
+    Turning on Tracing
+        - Set debug.Trace.show to True   OR
+        - Set the environment variable Trace to a nonempty string
     
-    Trace
-        Function decorator to show function calls with their parameters.
+    The following functions/class work regardless of debug.show
+        fln()
+            File & line number string
+        filelinenum()
+            (file, line_number)
+        DumpStack()
+            Print a colorized version of the stack to a stream
+        AutoIndent object
+            Printed messages to a stream are indented according to stack level
+        SetDebugger
+            Execute to go to debugger on unhandled exception
+        DumpException
+            Gives more exception information than a normal backtrace
+
+    Function decorators
+        class Trace
+            Function decorator to print entry/exit of function calls.  Turn on and off
+            with Trace.show.
+        ShowFunctionCall
+            Function decorator to show call & return (logs to the file debug.log by
+            default, but you can make it stdout).  You need to set
+            debug.g.enable_tracing to True for this to work.
+        DumpArgs1
+            Prints a function's arguments when it is called
+        DumpArgs2
+            Similar to DumpArgs1 but you can control which functions are decorated
+            at runtime
+        Memoize
+            Caches function calls in a dictionary
+        TraceExecution  
+            Show execution of each line of a function
+        Passify         
+            Disables a function and makes it return None
+        IgnoreDeprecationWarnings
+            Ignore deprecation warnings in a function
         
-    AutoIndent object
-        Use this object to cause printed messages to a stream to be
-        indented according to the stack level.  The output then gives you a
-        visual image of the call stack.
-        
-    SetDebugger
-        Execute and you'll be dumped into the debugger if your code has an
-        unhandled exception.
-        
-    Put in your code:
+    The following only work when debug.show is True
         watch(variable)
-            Prints out the file and line number along with the
-            value and type of a variable.
+            Print file:linenum with value/type of a variable
         trace(message)
-            Prints file and line number along with the message.
-    To turn off, run python with the -O option or set debug.on to False.
-    
-    DumpException
-        Gives more exception information than a normal backtrace.
-        
-    Identify location:
-            ThisFunctionName()
-            ThisLineNumber()
-            ThisFilename()
-            
-    fln()
-        File & line number string if debug.on is True.
-    filelinenum()
-        (file, line_number) if debug.on is True.
-        
-    ShowFunctionCall decorator [Beazley]
+            Print file:linenum with the message.
+    To turn these off, run python with the -O option or set debug.show to False.
     
     References:
         A. Martelli and D. Ascher, ed., "Python Cookbook", O'Reilly, 2002.
         D. Beazley, "Python Essential Reference", 4th ed. (Kindle version)
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2009, 2014 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <programming> Debugging aids (taken from the "Python Cookbook" and
-        # Beazley's "Python Essential Reference", 4th edition).
-        ##∞what∞#
-        ##∞test∞# ignore #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2009, 2014 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ 
+        
+            - ∞∞1 Python's trace module can probably do many of the things in this file.
+              A core feature to add would be using trace's programmatic interface to
+              assess the coverage in a test file.  Check out
+              https://coderivers.org/blog/python-trace/ as it looks like it has some
+              useful and simple examples for both tracing and profiling.
+            - ∞∞2 'Demonstrate an unhandled exception' demo has incorrect line numbers
+            - ∞∞3 Can stack levels be numbered?  Not a big priority, as dot example
+              doesn't pretty well
+            - https://wiki.python.org/moin/PythonDecoratorLibrary#Function_Timeout looks
+              useful
+  
+        oo>
+    '''
     if 1:   # Standard imports
-        import types
+        import bdb
+        import collections
+        import functools
+        import inspect
+        import linecache
+        import os
+        import pathlib
+        import pdb
+        import re
         import sys
         import traceback as TB
-        import os
-        import re
-        import bdb
-        import pdb
-        from inspect import stack
-        from collections import deque
+        import warnings
     if 1:   # Custom imports
-        from wrap import dedent
-        from color import Color, Trm, t
+        import dptypes
         import dpdb
+        import trm
+        import wrap
+    if 1:   # Import symbols
+        deque = collections.deque
+        stack = inspect.stack
+        Path = pathlib.Path
+        #
+        Constant = dptypes.Constant
+        dedent = wrap.dedent
+        u = trm.Trm()
+
     if 1:   # Global variables
-        # dash_O_on = True  ==> Use python -O to turn debugging on.
-        # dash_O_on = False ==> Use python -O to turn debugging off.
-        dash_O_on = False
-        on = True  # Setting on to True causes debugging output.
-        enable_tracing = False
-        if enable_tracing:
-            debug_log = open("debug.log", "wb")
-        ii = isinstance
-        w = int(os.environ.get("COLUMNS", "80")) - 1
+        g = Constant()      # Class instance to hold global variables
+        g.strict = False    # Note these aren't readonly variables
+        # dash_O_on = True  ==> Use python -O to turn debugging on
+        # dash_O_on = False ==> Use python -O to turn debugging off
+        g.dash_O_on = False
+        # Set this to the name of a file to log function calls to a file with the help
+        # of the ShowFunctionCall decorator
+        g.enable_tracing = ""   # type: ignore
+        if g.enable_tracing:    # type: ignore
+            g.debug_log = open(g.enable_tracing, "wb")  # type: ignore
+        g.noexit = False    # Switch for TraceExecution
+if 1:   # Set key global variables based on environment variables
+    g.W = int(os.environ.get("COLUMNS", "80")) - 1
+    # Global variables to control debugging and tracing
+    if 1:   # show causes debugging output if True
+        show = 0
+        if "Debug" in os.environ:   # True if nonzero integer
+            s = os.environ.get("Debug", "0")
+            try:
+                value = int(s)
+            except Exception:
+                value = 0
+            show = value
+            del s
+    if 1:   # Trace causes the class variable Trace.on set to True
+        g.trace_on = 0
+        if "Trace" in os.environ:   # True if nonzero integer
+            s = os.environ.get("Trace", "0")
+            try:
+                value = int(s)
+            except Exception:
+                value = 0
+            g.trace_on = value
+            del s
 if 1:   # Classes
     class Trace:
         '''Function decorator to print the entry and exit of function calls
         to a stream.  Each nested call results in indentation to help you
-        visually see where in the call stack you are.  If Trace.on is
+        visually see where in the call stack you are.  If Trace.show is
         False, there should be little extra overhead from this decorator,
         so you may want to leave it in production code.
         
-        You may want to set your calling code up so that Trace.on is set to
+        You may want to set your calling code up so that Trace.show is set to
         True if e.g. a particular environment variable is set or your
         program receives a software signal.
         
@@ -108,7 +167,8 @@ if 1:   # Classes
         # starts at 0.
         indent = -increment
         stream = sys.stdout  # Stream that receives the printed output
-        on = False  # Set to True to get tracing output
+        # Set to True to get tracing output
+        show = g.trace_on  # type: ignore
         prefix = "+ "
         def __init__(self, func):
             self.func = func
@@ -117,7 +177,7 @@ if 1:   # Classes
             except AttributeError:
                 self.name = func.__name__
         def __call__(self, *p, **kw):
-            if Trace.on:
+            if Trace.show:
                 Trace.indent += Trace.increment
                 ind, f, prefix = " " * Trace.indent, self.name, Trace.prefix
                 s = ["{prefix}{ind}Entering {f}(".format(**locals())]
@@ -138,13 +198,14 @@ if 1:   # Classes
             else:
                 return self.func(*p, **kw)
     class AutoIndent(object):
-        '''Indent debug output based on function call depth.  Adapted from
-        code by Lonnie Princehouse (submitted 26 Apr 2005) at
+        '''Indent debug output based on function call depth.  Adapted from code by
+        Lonnie Princehouse (submitted 26 Apr 2005) at
         http://code.activestate.com/recipes/411791
         
         Usage example:
-            sys.stdout = AutoIndent()
-            print(msg)
+            with AutoIndent():
+                Execute code you want to watch
+        
         which sends the printed messages through the AutoIndent object to
         be indented based on the stack depth.  Run this file as a script to see
         the example.
@@ -187,6 +248,14 @@ if 1:   # Classes
             self.stream.write(s)
         def flush(self):
             self.stream.flush()
+        def __enter__(self):
+            # Hook up the plumbing to make our instance the substitute for stdout
+            self.stdout = sys.stdout
+            sys.stdout = self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            # Reconnect the old plumbing
+            sys.stdout = self.stdout
+            return False if exc_type is None else True
 if 1:   # Core functionality
     def watch(variables, color=None, stream=sys.stdout):
         '''Watch a variable; variables must be a sequence of variable names.
@@ -199,13 +268,12 @@ if 1:   # Core functionality
             debug.py[384] in test1:  x <int> = 17
         Keywords:
             color  = None, a string that either names a color or is an ANSI escape
-                     string, or a Color instance.
+                     string, or a color.Color instance.
             stream = stream to print the information to
             
         See http://code.activestate.com/recipes/52314; also
         pg 427 of Python Cookbook.
         '''
-        assert color is None or ii(color, str) or ii(color, Color)
         assert hasattr(stream, "write")
         def GetVariableNames(s):
             '''s is a string of the form 'watch([x, y], color=c)'.
@@ -214,13 +282,13 @@ if 1:   # Core functionality
             
             Some possible forms of s are
                 'watch((x,))'
-                'watch((x,), color="xxx")'
+                'watch((x,), color="abc")'
                 'watch([x,])'
-                'watch([x,], color="xxx")'
+                'watch([x,], color="abc")'
                 'watch((x, y))'
-                'watch((x, y), color="xxx")'
+                'watch((x, y), color="abc")'
                 'watch([x, y])'
-                'watch([x, y], color="xxx")'
+                'watch([x, y], color="abc")'
             The first four forms need to return ("x",) or ["x"]; the second
             four need to return ("x", "y") or ["x", "y"].
             '''
@@ -240,27 +308,18 @@ if 1:   # Core functionality
             u = u[1:-1]
             v = [i.strip() for i in u.split(",") if i.strip()]
             return v
-        if ((__debug__ and not dash_O_on) or (not __debug__ and dash_O_on)) and on:
+        if show and ((__debug__ and not g.dash_O_on) or (not __debug__ and g.dash_O_on)):
             fn, ln, method, call = TB.extract_stack()[-2:][0]
             names = GetVariableNames(call)
             if stream == sys.stdout and color is not None:
-                if ii(color, str):
-                    # It's a color name or hex string or an ANSI escape sequence
-                    if "\x1b" in color:
-                        print(color, end="")
-                    else:
-                        print(t(color), end="")
-                elif ii(color, Color):
-                    print(f"t(color)", end="")
-                else:
-                    raise TypeError(f"'{color}' is not a string or Color instance")
+                print(f"{u(color)}", end="")
             for name, value in zip(names, variables):
                 vartype = str(type(value))[8:-2]
                 value = repr(value)
                 s = f"{fn}[{ln}] in {method}:  {name} <{vartype}> = {value}\n"
                 stream.write(s)
             if stream == sys.stdout and color is not None:
-                print(f"{t.n}", end="")
+                print(f"{u.n}", end="")
     def trace(msg, color=None, stream=sys.stdout):
         '''Print a trace message.  You can set the color if the color.py
         module has been loaded.  Example:
@@ -272,15 +331,15 @@ if 1:   # Core functionality
         '''
         # See http://code.activestate.com/recipes/52314; also
         # pg 427 of Python Cookbook.
-        if ((__debug__ and not dash_O_on) or (not __debug__ and dash_O_on)) and on:
+        if show and ((__debug__ and not g.dash_O_on) or (not __debug__ and g.dash_O_on)):
             stack = TB.extract_stack()[-2:][0]
             fn, ln, method, call = stack
             fmt = "{fn}[{ln}] in {method}:  {msg}\n"
             if stream == sys.stdout and color is not None:
-                c.fg(color)
+                print(u(color), end="")
             stream.write(fmt.format(**locals()))
             if stream == sys.stdout and color is not None:
-                c.normal()
+                print(u.n, end="")
     def DumpException(fr_include=None, fr_ignore=None, var_include=None, var_ignore=None,
                       num_levels=0, hl={}, stream=sys.stdout):
         '''Print the traceback information followed by a listing of the
@@ -288,8 +347,6 @@ if 1:   # Core functionality
         used in a try/except block to print the details of an unhandled
         exception.  The keyword parameters give control over what is
         printed and how it's displayed.
-        
-        Note it always works, regardless of debug.on's value.
         
         num_levels
             Controls the number of stack frames to display.  The default
@@ -323,7 +380,7 @@ if 1:   # Core functionality
             - To see levels 1, 2, and 3 only, use 'include=range(1, 4)'.
             - To see levels 1 and 3 only, use 'include=(1, 3)'.
             - To see any variables named 'alpha' in yellow on black, set
-              hl={"alpha" : (Color("yel"), Color("blk"))}.
+              hl={"alpha" : (color.Color("yel"), color.Color("blk"))}.
         '''
         # Derived from Bryn Keller's 7 Mar 2001 post at
         # http://code.activestate.com/recipes/52215.  Also see pg 431 of
@@ -331,10 +388,10 @@ if 1:   # Core functionality
         #
         # Dump the exception
         if stream == sys.stdout:
-            print(f"{t('redl', 'blk')}", end="")
+            print(f"{u('red', 'blk')}", end="")
         print("Unhandled exception:", file=stream)
         if stream == sys.stdout:
-            print(f"{t.n}", end="")
+            print(f"{u.n}", end="")
         for line in TB.format_exc().split("\n"):
             print(" ", line, file=stream)  # Indent the stack trace
         # Get the needed traceback info
@@ -357,56 +414,48 @@ if 1:   # Core functionality
             print("Locals by frame, innermost last", file=stream)
         # Print a note if not all stack frames are shown
         m1, m2 = "Note:", "  only selected %s are shown"
-        if (
-            (fr_include is not None and len(fr_include))
-            or (fr_ignore is not None and len(fr_ignore))
-            or num_levels
-        ):
+        if ((  fr_include is not None and len(fr_include))
+               or (fr_ignore is not None and len(fr_ignore))
+               or num_levels):
             if stream == sys.stdout:
-                print(f"{t('redl', 'blk')}", end="")
+                print(f"{u.red}", end="")
             print(m1, end="", file=stream)
             if stream == sys.stdout:
-                print(f"{t.n}", end="")
+                print(f"{u.n}", end="")
             print(m2 % "stack frames", file=stream)
         # Print a note if not all locals are shown
-        if (
-            (var_include is not None and len(var_include))
-            or (var_ignore is not None and len(var_ignore))
-            or num_levels
-        ):
+        if ((  var_include is not None and len(var_include))
+               or (var_ignore is not None and len(var_ignore))
+               or num_levels):
             if stream == sys.stdout:
-                print(f"{t('redl', 'blk')}", end="")
+                print(f"{u.red}", end="")
             print(m1, end="", file=stream)
             if stream == sys.stdout:
-                print(f"{t.n}", end="")
+                print(f"{u.n}", end="")
             print(m2 % "local variables", file=stream)
         levels_printed = 0
         for i, frame in enumerate(frames):
-            if (fr_include is not None and i not in fr_include) or (
-                fr_ignore is not None and i in fr_ignore
-            ):
+            if (  (fr_include is not None and i not in fr_include) or 
+                  (fr_ignore is not None and i in fr_ignore)):
                 continue
             print("-" * 70, file=stream)
-            print(
-                "Frame %d %s() in %s at line %s"
+            print("Frame %d %s() in %s at line %s"
                 % (i, frame.f_code.co_name, frame.f_code.co_filename, frame.f_lineno),
-                file=stream,
-            )
+                file=stream)
             Locals = list(frame.f_locals.items())
             Locals.sort()
             for key, value in Locals:
-                if (var_include is not None and key not in var_include) or (
-                    var_ignore is not None and key in var_ignore
-                ):
+                if ((  var_include is not None and key not in var_include) or 
+                      (var_ignore is not None and key in var_ignore)):
                     continue
                 try:  # Catch any new errors
                     print("  ", end="", file=stream)
                     if key in hl:
-                        # hl is dict like {'thing': 'yell', 'data': 'blul'}.
+                        # hl is dict like {'thing': 'yel', 'data': 'blu'}.
                         # Values can also be Color instances.
                         if stream == sys.stdout:
                             c = hl[key]
-                            print(f"{t(c)}", end="")
+                            print(f"{u(c)}", end="")
                     # We handle a variable named 'buffer' specially, as it
                     # could contain binary data that hangs a shell window.
                     if key.lower() in ("buf", "buff", "buffer"):
@@ -419,12 +468,10 @@ if 1:   # Core functionality
                     else:
                         print("%s = %s" % (key, str(value)), file=stream)
                     if stream == sys.stdout:
-                        print(f"{t.n}", end="")
+                        print(f"{u.n}", end="")
                 except Exception as e:
-                    print(
-                        "<Error '%s' while printing value for '%s'>" % (str(e), key),
-                        file=stream,
-                    )
+                    print("<Error '%s' while printing value for '%s'>" % (str(e), key),
+                        file=stream)
             levels_printed += 1
             if num_levels and levels_printed >= num_levels:
                 break
@@ -434,14 +481,12 @@ if 1:   # Core functionality
         Also see page 435 of "Python Cookbook".
         '''
         # Updated first test logic from https://gist.github.com/rctay/3169104
-        if (
-            hasattr(sys, "ps1")
-            or not sys.stderr.isatty()
-            or not sys.stdout.isatty()
-            or not sys.stdin.isatty()
-            or issubclass(type, bdb.BdbQuit)
-            or issubclass(type, SyntaxError)
-        ):
+        if (  hasattr(sys, "ps1")
+              or not sys.stderr.isatty()
+              or not sys.stdout.isatty()
+              or not sys.stdin.isatty()
+              or issubclass(type, bdb.BdbQuit)
+              or issubclass(type, SyntaxError)):
             # You are in interactive mode or don't have a tty-like device,
             # so call the default hook.
             sys.__excepthook__(type, value, traceback)
@@ -477,70 +522,214 @@ if 1:   # Core functionality
             )
             print(f"{fn}({args})")
             return func(*p, **kw)
-        return echo_func if on else func
+        return echo_func if show else func
     def ShowFunctionCall(func):
-        '''This is a wrapper function that decorates another function for
-        tracing what happens.  The nice thing is that there is no overhead if
-        enable_tracing is false.  callf is a closure that replaces the original
-        function.
+        '''This function is a decorator to log function calls to g.debug_log.  You must
+        set debug.g.enable_tracing to True for it to work; otherwise there's no overhead.
         '''
-        # This decorator is for showing how a function was called
-        # and its return value comes from Beazley, 4th ed., Ch. 6, section
-        # on decorators.
-        if enable_tracing and on:
+        # This decorator is for showing how a function was called and its return value.
+        # It comes from Beazley, 4th ed., Ch. 6, section on decorators.  callf is a
+        # closure that replaces the original function.
+        if g.enable_tracing:
             def callf(*args, **kwargs):
-                debug_log.write(
-                    "Calling %s: params=%s, kw=%s\n" % (func.__name__, args, kwargs)
-                )
+                g.debug_log.write("Calling %s: params=%s, kw=%s\n" % (func.__name__, args, kwargs))
                 r = func(*args, **kwargs)
-                debug_log.write("        %s returned %s\n" % (func.__name__, r))
+                g.debug_log.write("        %s returned %s\n" % (func.__name__, r))
                 return r
             return callf
         else:
             return func
-    def fln(brackets=True):
-        "Return a string showing the file and line number if debug is on."
-        s = TB.extract_stack()[-2:][0]
-        t = "{}:{}".format(s[0], s[1]) if __debug__ else ""
-        if brackets:
-            t = "[{}]".format(t)
-        return t
+    def fln(brackets=False):
+        'Return "file:linenum" from where this function was called'
+        f, ln = filelinenum()
+        return f"[{f}:{ln}]" if brackets else f"{f}:{ln}"
     def filelinenum():
-        "Return (file, linenum)"
+        'Return (file, linenum) from where this function was called'
         s = TB.extract_stack()[-2:][0]
         return (s[0], s[1]) if __debug__ else tuple()
-    def DumpStack(stream=sys.stdout):
+    def DumpStack(stream=sys.stdout, colorized=False):
         "Print a colorized version of the stack to a stream"
-        def DumpFrameInfo(framenum, fi, t):
+        def DumpFrameInfo(framenum, fi, u):
             parens = "" if fi.function.startswith("<") else "()"
             print(
-                f"{t.frame}Frame {framenum}{t.n} "
-                f"{t.filename}{fi.filename}{t.n}:"
-                f"{t.lineno}{fi.lineno}{t.n} "
-                f"{t.function}{fi.function}{parens}{t.n}"
+                f"{u.frame}Frame {framenum}{u.n} "
+                f"{u.filename}{fi.filename}{u.n}:"
+                f"{u.lineno}{fi.lineno}{u.n} "
+                f"{u.function}{fi.function}{parens}{u.n}"
             )
-            print(f"  Code:  {t.code}{fi.code_context[0].strip()!r}{t.n}")
-        t = Trm()
-        t.always = True
-        t.title = t("purl")
-        t.frame = t("whtl")
-        t.filename = t("yell")
-        t.lineno = t("magl")
-        t.function = t("cynl")
-        t.code = t("sky")
+            print(f"  Code:  {u.code}{fi.code_context[0].strip()!r}{u.n}")
+        u = trm.Trm()
+        u.always = True
+        u.title = u("pur") if colorized else ""
+        u.frame = u("wht") if colorized else ""
+        u.filename = u("yel") if colorized else ""
+        u.lineno = u("mag") if colorized else ""
+        u.function = u("cyn") if colorized else ""
+        u.code = u("sky") if colorized else ""
+        u.N = u.n if colorized else ""
         stk = deque(stack())
         n = len(stk) - 1
-        print(f"{t.title}Stack dump{t.n}")
+        print(f"{u.title}Stack dump{u.N}")
         # Get rid of this function's frame
         stk.popleft()
         count = 1
         while stk:
             fi = stk.popleft()
-            DumpFrameInfo(n - count, fi, t)
+            DumpFrameInfo(n - count, fi, u)
             count += 1
+if 1:   # TraceExecution
+    # I'm not sure where I found this
+    def StreamOut(stream, *s, **kw):
+        # Process keyword arguments
+        sep = kw.setdefault("sep", "")
+        auto_nl = kw.setdefault("auto_nl", True)
+        prefix = kw.setdefault("prefix", "")
+        convert = kw.setdefault("convert", str)
+        # Convert position arguments to strings
+        strings = map(convert, s)
+        # Dump them to the stream
+        stream.write(prefix + sep.join(strings))
+        # Add a newline if desired
+        if auto_nl:
+            stream.write("\n")
+    g.trace = functools.partial(StreamOut, sys.stdout)
+    g.tracen = functools.partial(StreamOut, sys.stdout, auto_nl=False)
+    def TraceExecution(f, ignore_exit=True, noname=True, identity=False):
+        '''Trace execution of lines inside a function.  If ignore_exit is
+        True, typical files like _sitebuiltins.py and threading.py are
+        ignored.  If noname is True, don't preface printed line with
+        'TraceExecution()'.
+        '''
+        def DoNotIgnore(filename):
+            if not ignore_exit:
+                return True
+            if filename.name in set("_sitebuiltins.py threading.py".split()):
+                return False
+            return True
+        def globaltrace(frame, why, arg):
+            if why == "call":
+                return localtrace
+            return None
+        def localtrace(frame, why, arg):
+            h = "" if noname else "TraceExecution() "
+            lc = linecache.getline
+            filename = frame.f_code.co_filename
+            lineno = frame.f_lineno
+            bname = os.path.basename(filename)
+            if why == "line":
+                # Print the file name and line number of every trace
+                if DoNotIgnore(Path(filename)):
+                    g.tracen(f"{u.sky}%s[%s:%d] %s{u.n}" % (h, bname, lineno, lc(filename, lineno)))
+            elif why == "return":
+                if DoNotIgnore(Path(filename)):
+                    retval = "==> returning %s <==\n" % repr(arg)
+                    g.trace(f"{u.pur}%s[%s:%d] %s{u.n}" % (h, bname, lineno, retval))
+            elif why == "exception":
+                if DoNotIgnore(Path(filename)):
+                    g.trace(f"{u.red}%s[%s:%d] %s{u.n}" % (h, bname, lineno, "*** Got exception ***"))
+                    # In Demo_TraceExecution() below, the traceback produces hundreds of
+                    # lines of junk, so the easiest thing is to just exit -- but you
+                    # then don't get a traceback -- and inserting a breakpoint doesn't
+                    # work. 
+                    if not g.noexit:
+                        exit(1)
+            return localtrace
+        def _f(*args, **kwds):
+            sys.settrace(globaltrace)
+            result = f(*args, **kwds)
+            sys.settrace(None)
+            return result
+        def _f1(*args, **kwds):
+            result = f(*args, **kwds)
+            return result
+        if identity:
+            return _f1
+        else:
+            return _f
+if 1:   # Decorators
+    class Memoized(object):
+        '''Decorator that caches a function's return value each time it is called.
+        If called later with the same arguments, the cached value is returned, and
+        not re-evaluated.
+        '''
+        def __init__(self, func):
+            self.func = func
+            self.cache = {}
+        def __call__(self, *args):
+            try:
+                return self.cache[args]
+            except KeyError:
+                self.cache[args] = value = self.func(*args)
+                return value
+            except TypeError:
+                # uncachable -- for instance, passing a list as an argument.
+                # Better to not cache than to blow up entirely.
+                return self.func(*args)
+        def __repr__(self):
+            '''Return the function's docstring.'''
+            return self.func.__doc__
+    def Passify(f):
+        '''Decorator that disables a function.  The function will return None,
+        which may break some code.
+        '''
+        def do_nothing(*args, **kw):
+            pass
+        return do_nothing
+    def IgnoreDeprecationWarnings(func):
+        'Decorator to ignore deprecation warnings occurring in a function'
+        def new_func(*args, **kwargs):
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                return func(*args, **kwargs)
+        new_func.__name__ = func.__name__
+        new_func.__doc__ = func.__doc__
+        new_func.__dict__.update(func.__dict__)
+        return new_func
+if 1:   # Decorators for dumping function arguments
+    def DumpArgs1(func):
+        'Decorator for dumping arguments passed to a function before calling it'
+        # From https://wiki.python.org/moin/PythonDecoratorLibrary (note the code there
+        # is for python 2)
+        argnames = func.__code__.co_varnames[:func.__code__.co_argcount]
+        fname = func.__name__
+        def echo_func(*args,**kwargs):
+            s = ', '.join('%s=%r' % entry for entry in list(zip(argnames, args))
+                          + list(kwargs.items()))
+            u.print(u.sky + fname + u.n, ":", s)    # Print the function name & arguments
+            return func(*args, **kwargs)    # Call the real function
+        return echo_func
+    if 1:  # g.names_to_debug for using DumpArgs2()
+        # The following global variable controls which names in the following set are
+        # allowed to have their arguments shown in class DumpArgs2
+        g.names_to_debug = set("a b".split())  # Names that will show arguments
+    class DumpArgs2:
+        '''Decorator which helps to control which functions have their arguments shown.
+        on per-function basis. Names are provided as list of arguments and control which
+        functions actually get decorated.  It doesn't slow down functions which aren't
+        supposed to be debugged.
+        '''
+        # From https://wiki.python.org/moin/PythonDecoratorLibrary.
+        def __init__(self, names=None):
+            'names should be a sequence of strings'
+            self.names = set(names)
+        def __call__(self, f):
+            if self.names & g.names_to_debug:
+                def newf(*args, **kwds):
+                    u.print(f"{u.sky}{f.__name__} {u.orn}{args} {u.yel}{kwds}")
+                    result = f(*args, **kwds)
+                    u.print(f"  {u.sky}{f.__name__} returned {u.pur}{result}")
+                    return result
+                newf.__doc__ = f.__doc__
+                return newf
+            else:
+                return f
 
 if __name__ == "__main__":
     from wrap import dedent
+    from lwtest import run
+    u.ti = u("brn")
+    show = True
+    Trace.show = True
     def TestDump():
         data = ["1", "2", 3, "4"]
         def pad4(seq):
@@ -555,93 +744,99 @@ if __name__ == "__main__":
             # Highlight the variable 'thing' in yellow and the variable
             # 'data' in blue.
             hl = {"thing": "yell", "data": "roy"}
-            DumpException(fr_ignore=[0], hl=hl)
-    # Print samples to stdout.  After seeing the behavior, set the global
-    # variable on to False (uncomment the next line) to see the debug
-    # printing turned off.
-    # on = False
+            print("\nWe're just about to call DumpException() and we're giving it the")
+            print("argument fr_ignore=[0, 1] to ignore frames 0 and 1, which is useful")
+            print("to avoid seeing lots of stuff from the global frame.\n")
+            DumpException(fr_ignore=[0, 1], hl=hl)
     def Sep():
-        t.print(f"{t('purl')}{'='*(w - 10)}")
-    t.ti = t("brnl")
-    Sep()
-    if 1:  # watch and trace
+        u.print(f"{u('pur')}{'='*(g.W - 10)}")
+    def Demo_1WatchAndTrace():
         print(dedent(f'''
-        {t.ti}watch() and trace(){t.n}
- 
-        These function calls can be put inside functions to allow you to
-        watch how objects change their values.  Note the convenience of
-        colorizing the output (you could add logic that changed the color
-        if a certain condition was true).
-        
-        ''')
-        )
+        {u.ti}watch() and trace(){u.n}
+         
+        These function calls can be put inside functions to allow you to watch how
+        objects change their values.  Note the convenience of colorizing the output (you
+        could add logic that changed the color if a certain condition was true).
+        '''))
         def test1():
             x, y = 17, -44.3
-            watch((x, y), color="grnl")
+            watch((x, y), color="grn")
             trace("Trace message")
         class A:
             def f(self):
                 s = "a string"
-                watch((s,), color="magl")
+                watch((s,), color="mag")
+        print()
         test1()
         a = A()
         a.f()
+        # Now use the Trace decorator
+        @Trace
+        def test2():
+            x, y = 88, -42.0
+            return x, y
+        print("\nThe following is an example of using class Trace, a decorator")
+        test2()
         Sep()
-    if 1:  # Demonstrate an unhandled exception
-        print(
-            dedent(f'''
-        {t.ti}Demonstrate an unhandled exception{t.n}
- 
+    def Demo_2UnhandledException():
+        print( dedent(f'''
+        {u.ti}Demonstrate an unhandled exception{u.n}
+         
         This example shows how DumpException() prints a backtrace followed by
         printing the local variables for each of the stack frames.  If you have
         the color.py module, you'll see the variables 'data' and 'thing'
         highlighted in color.
- 
-        ''')
-        )
+        '''))
         TestDump()
+        print()
+        print(dedent('''
+
+        Inspecting Frame 4 and the backtrace, you see that 
+            - The exception's problem occurred on line 562
+            - Inspecting the return_value list and seq, you can see the problem occurred
+              for the value 'thing = 3'.  The problem is that integers don't have a
+              length.
+        '''))
         Sep()
-    if 1:  # Demonstrate tracing to a stream
-        print(
-            dedent(f'''
-        {t.ti}Demonstrate tracing to a stream{t.n}
- 
+    def Demo_3TracingToAStream():
+        print(dedent(f'''
+        {u.ti}Demonstrate tracing to a stream{u.n}
+        
         This example shows how @ShowFunctionCall decorates a function to allow
         function calls and their return values to be monitored.  If the global
-        variable enable_tracing is False, there's no output and little overhead
-        is added.
- 
-        ''')
-        )
-        enable_tracing = True
-        debug_log = sys.stdout
-        if enable_tracing:
+        variable debug.g.enable_tracing is False, there's no output and little overhead
+        is added.  Normally, output goes to a file 'debug.log', but here we set
+        g.debug_log to sys.stdout so it went to the console.
+        '''))
+        g.enable_tracing = True
+        g.debug_log = sys.stdout
+        if g.enable_tracing:
             @ShowFunctionCall
             def Square_x_and_add_y(x, y=0):
                 return x * x + y
             Square_x_and_add_y(3)
             Square_x_and_add_y(4, 5)
             Square_x_and_add_y(4, y=5)
-        enable_tracing = False
+        g.enable_tracing = False
         Sep()
-    if 1:  # DumpArgs function
+    def Demo_4DumpArgs():
         print(dedent(f'''
-        {t.ti}DumpArgs function demo{t.n}
- 
-        The following code demonstrates the DumpArgs function, a
-        decorator that will dump a function's arguments.
- 
-        ''')
-        )
+        {u.ti}DumpArgs function demo{u.n}
+         
+        The following code demonstrates the DumpArgs function, a decorator that will
+        dump a function's arguments.  We also used debug.fln() to print the file and
+        line number where the function returned.
+        '''))
         @DumpArgs
         def func(a, b):
             print("  Inside func:  a =", a)
             print("  Inside func:  b =", b)
+            u.print(f"  Leaving func() at {u.pur}{fln()}")
         func(2, 3)
         Sep()
-    if 1:  # Demonstrate auto indenting
+    def Demo_5AutoIndenting():
         print(dedent(f'''
-        {t.ti}Autoindent example{t.n}
+        {u.ti}Autoindent example{u.n}
         
         This example demonstrates the use of the AutoIndent object.  The object is used
         to replace sys.stdout and, thus, intercepts calls going to that stream.  Then
@@ -649,37 +844,86 @@ if __name__ == "__main__":
         you're able to see color, note one of the messages is in color; this is helpul
         to focus your attention on a particular function.  Also note there's a call to
         StackDump() in the function C().
+
+        The Autoindent class is a context manager which gives it a simple usage pattern:
+
+            with Autoindent():
+                Code you want to watch...
+
+        The facilities of a context manager allow the Autoindent instance to replace
+        sys.stdout with the Autoindent instance, which then has write() and flush()
+        methods to behave like a stream.  When the context manager block is exited, the
+        standard plumbing is reconnected.
         
-        An advantage of using Autoindent is that you only need two lines
+        Thereafter, all text going to stdout is indented by the stack frame's depth.
         
-            Disconnect stdout:
-                sys.stdout = AutoIndent(indent="|   ")
-            Reconnect stdout:
-                sys.stdout = sys.__stdout__
-                
-        Thereafter, all text going to stdout is indented by the stack
-        frame's depth.
-        
-        Autoindent isn't affected by debug.on.
+        Autoindent isn't affected by debug.show.
+
+        The example here that uses the blue dots is handy because you can see the stack
+        depth and get it by counting the dots:
  
         '''))
-        sys.stdout = AutoIndent(indent=f"{t('sky')}|{t.n}   ")
+        print()
         def A():
             print("Entered A()")
             print("Do something...")
-            B()
+            B(i=42, s="something")
             print("Leaving A()")
-        def B():
+        def B(i=0, s=""):
             print("Entered B()")
-            print("Do something...")
+            print(f"Do something in B() at {fln()}")
             C()
             print("Leaving B()")
         def C():
             print("Entered C()")
-            print(f"{t('grnl')}Do something...{t.n}")
+            print(f"    {u.grn}Indented do something in C() at {fln()}{u.n}")
+            print("    This demonstrates that you could put debug code in the function and")
+            print("    use its indentation to see what's going on in the function.")
+            print("About to call DumpStack()")
             DumpStack()
             print("Leaving C()")
-        A()
-        # Remember to reconnect old stream
-        sys.stdout = sys.__stdout__
+        with AutoIndent(indent=f"{u.sky}·{u.n} "):
+            A()
         Sep()
+    def Demo_6DumpArgs1():
+        u.print(f"{u.ti}DumpArgs1 dumps a function's arguments:")
+        @DumpArgs1
+        def Example1(a, b, hi="OK"):
+            pass
+        Example1(42, 3.14, hi="NotOK")
+        Sep()
+    def Demo_7DumpArgs2():
+        print(dedent(f'''
+        {u.ti}DumpArgs2{u.n} uses a string to determine if the the function should be decorated
+        and prints both the arguments and the return value.
+        '''))
+        @DumpArgs2(["a"])
+        def prn(x):
+            print(x)
+        @DumpArgs2(["b"])
+        def mult(x, y):
+            return x * y
+        prn(mult(2, 2))
+        Sep()
+    def Demo_8TraceExecution():
+        print(dedent(f'''
+        {u.ti}TraceExecution{u.n} prints the line number and line's string for each line in the
+        function.  The program's output is mixed in with the debugging output.
+
+        Unfortunately, I've had to insert an exit() call after an exception encountered
+        while TraceExecution is running; otherwise, a lot of cruft is printed.  If you 
+        want to deal with the exception, comment out the exit() call.
+        you can't insert a breakpoint because I've put an exit() call in
+        the TraceExecution function to avoid lots of cruft that gets printed out on an
+        exception.  If you want to deal with the exception, set the global variable 
+        g.noexit to True.
+        '''))
+        @TraceExecution
+        def Example2():
+            a = 3
+            print()
+            b = a*a**a
+            #raise ValueError()
+            return 42
+        Example2()
+    run(globals(), regexp=r"^Demo_", quiet=1, halt=1, verbose=0)

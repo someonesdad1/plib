@@ -905,6 +905,7 @@ Dydymium
 Dykstal
 Dynac
 Dysart
+EE
 EEVblog
 EIA
 EMFs
@@ -4041,6 +4042,7 @@ amu
 amv
 ans
 anscombes
+ansi
 api
 appendleft
 approx
@@ -4149,6 +4151,7 @@ bitfield
 bitmaps
 bitor
 bitset
+bitsplit
 bldg
 blk
 blkb
@@ -4188,6 +4191,8 @@ butanediol
 butylbenzene
 butyronitrile
 bytearray
+bytearray
+bytearrays
 bytecode
 byteorder
 bytestring
@@ -4263,9 +4268,11 @@ codelines
 collet
 collets
 colorsys
+commonprefix
 comoving
 concat
 conio
+contextlib
 coord
 coords
 copyable
@@ -4304,6 +4311,7 @@ cx
 cxx
 cyanoacrylate
 cygprefix
+cygwin
 cyn
 cynb
 cynd
@@ -4390,6 +4398,8 @@ doz
 dp
 dpi
 dpprint
+dpseq
+dptypes
 drm
 drwgs
 dt
@@ -4399,12 +4409,12 @@ dvi
 dwgs
 earthlink
 earthradius
+ebcdic
 ecl
 ecvt
 edgefinder
 editting
 edn
-EE
 efP
 egrep
 ei
@@ -4492,6 +4502,7 @@ filterfalse
 findall
 finditer
 findpoly
+findsymbol
 fixup
 fld
 floorl
@@ -4560,9 +4571,12 @@ getchar
 getche
 getcwd
 getenv
+getnum
+getvalue
 gigasample
 ginitialize
 glaciale
+globals
 gluons
 gmtime
 gotorc
@@ -4591,6 +4605,7 @@ halfsine
 halfwidth
 handedly
 hapaxes
+hashability
 hdbk
 headspace
 hebrew
@@ -4627,11 +4642,13 @@ hypergeom
 hypergiant
 hyperpolarizability
 hypot
+ibm
 iconv
 idx
 ifdef
 ifndef
 ifstream
+ignorecase
 igor
 imperialis
 importlib
@@ -4662,6 +4679,7 @@ islower
 ismount
 isnan
 isothiocyanate
+isstr
 issubclass
 issubset
 istty
@@ -4700,6 +4718,7 @@ klicks
 klines
 kmol
 kn
+knuth
 kohm
 kohms
 kpsi
@@ -4712,6 +4731,7 @@ kwargs
 kwd
 kwds
 laguerre
+lastgroup
 latin
 lav
 lavb
@@ -4778,6 +4798,7 @@ lshift
 lstat
 ltoa
 ltr
+lukasiewicz
 lunarius
 lvl
 lwht
@@ -4805,13 +4826,16 @@ maketrans
 malloc
 marinum
 martiales
+matchcap
 matherr
 mathworld
 maxcoeff
+maxsize
 maxsplit
 mbstowcs
 mbtowc
 mdBVJbzkoqo
+mdict
 measureable
 memccpy
 memchr
@@ -4887,6 +4911,11 @@ multiset
 multithreading
 muon
 mv
+mydir
+myfile
+mykeys
+mystring
+mytrm
 nF
 nH
 nV
@@ -4915,11 +4944,15 @@ nitrum
 nmi
 nmile
 noboolalpha
+noflag
 nohup
+nomatch
+nomatching
 nonalphanumerics
 nonanol
 nonascii
 nonlinsolve
+nonmatching
 nonprime
 nonprintable
 nonwhitespace
@@ -4928,6 +4961,7 @@ normalvariate
 nounihan
 nov
 november
+nowayray
 npdf
 npl
 npoints
@@ -4939,10 +4973,12 @@ nsf
 nsum
 nt
 nums
+numspaces
 oct
 octanoic
 octanol
 octanone
+octdigits
 octoacetate
 odf
 odg
@@ -4987,6 +5023,7 @@ perf
 perl
 peroxydisulphide
 pg
+pgminfo
 pgrep
 phospholipid
 phyllosilicate
@@ -5010,6 +5047,7 @@ positioners
 powderhandling
 powerstream
 ppb
+prev
 prills
 printf
 println
@@ -5023,6 +5061,7 @@ proteus
 psf
 pspell
 pts
+punczna
 pur
 purb
 purd
@@ -5051,6 +5090,7 @@ redb
 redd
 redl
 refried
+regex
 regexes
 regexp
 regexps
@@ -5069,6 +5109,7 @@ rgbhsv
 rgbhsvHLS
 rgrep
 rhumbline
+rmesc
 rnd
 rosettacode
 roundrobin
@@ -5149,6 +5190,7 @@ sorrol
 sortkey
 sortlist
 sourcefile
+spacecharset
 spaientiae
 spawnl
 spawnle
@@ -5162,6 +5204,7 @@ spgr
 sph
 spherharm
 splasho
+splitlines
 sprintf
 sqlite
 sqrt
@@ -5259,6 +5302,7 @@ tdr
 tempfiles
 templated
 termios
+testcases
 tetrachloroplatinate
 tetraethyllead
 tetrahydronaphthalene
@@ -5270,12 +5314,14 @@ thos
 tiedown
 tiff
 timedelta
+timeline
 timezone
 timezones
 tkinter
 tmp
 tmpfile
 toascii
+todo
 tokendict
 tokeneater
 tokenize
@@ -5302,6 +5348,9 @@ trimethylpentane
 trinitrobenzene
 triphyenylmethane
 trisulfide
+trm
+trm
+trmdp
 trq
 trqb
 trqd
@@ -5313,6 +5362,7 @@ turvy
 twinax
 twip
 twopi
+ty
 typ
 typdef
 typeahead
@@ -5340,6 +5390,7 @@ uniq
 unitscpp
 univariate
 unpad
+unregister
 uohm
 updatedb
 upgoer
@@ -5394,6 +5445,7 @@ wk
 wmf
 wndb
 woodscrews
+wordchars
 wordnet
 workarounds
 worktop
@@ -5435,6 +5487,8 @@ yrs
 zener
 zeners
 zetazero
+zheenl
+zhmmyrd
 zimwiki
 zipcode
 zlib

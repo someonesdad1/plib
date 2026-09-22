@@ -22,13 +22,13 @@ if 1:  # Header
         import os
         import getopt
         from math import *
-        from pdb import set_trace as xx
     if 1:   # Custom imports
         from wrap import dedent
         #from sig import sig
         from f import flt
         import termtables as tt
-        from color import t
+        import trm
+        t = trm.TrmDP()
         try:
             # This option library can generate a PostScript plot of the layout
             from g import *

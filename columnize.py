@@ -1,47 +1,137 @@
 #!/usr/bin/python
-'''TODO
-    - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right
-      in /plib
-    - Columnize(['a'], indent=" "*4) has an exception
-    - Columnize raises a ValueError exception when something is too long.
-      There should be an option to just print this line anyway and
-      continue, as it often breaks some application and you can't see your
-      output.  Typical message is "ValueError: Cannot fit longest string
-      (118 characters) on screen"
-      
+'''
 Function to turn a sequence into columns
-
-Run the module as a script to columnize stdin.  Use -h to get a usage
-statement.
+    - Run the module as a script to columnize stdin.  Use -h to get a usage statement.
 '''
 if 1:  # Header
-    if 1:  # Copyright, license
-        # These "trigger strings" can be managed with trigger.py
-        ##∞copyright∞# Copyright (C) 2012 Don Peterson #∞copyright∞#
-        ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-        ##∞license∞#
-        #   Licensed under the Open Software License version 3.0.
-        #   See http://opensource.org/licenses/OSL-3.0.
-        ##∞license∞#
-        ##∞what∞#
-        # <programming> Function to turn a sequence into columns.  Similar
-        # in output to the pr command for printing in columns.
-        ##∞what∞#
-        ##∞test∞# --test #∞test∞#
-        pass
+    _pgminfo = '''
+        <oo gist ∞ Turn a sequence into columns for printing oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2012 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ text oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+        
+            - Matrix transpose with nested lists
+                - A = [[1, 4], [2, 5], [3, 6]] represents 3 row vectors
+                - Transpose is [list(i) for i in zip(*A)]
+                    - Gives [[1, 2, 3], [4, 5, 6]]
+            - See if this columnizing can be done by using transposes
+                - The numbers would be the indexes of the original list, organized into
+                  a nested structure to give the desired output
+                - If you want the column-major ordering, then you take the transpose and
+                  flatten the list, printing out each element with the linefeed at the
+                  appropriate point
+            - The uncolumnize function is also needed, which takes a multi-line string
+              and gives you back the desired list order
+            - ∞∞1 'res l' displays a serious bug
+            - Feb  5 2024:  'ls --color=always | columnize.py' doesn't work right in
+              /plib
+            - Columnize(['a'], indent=" "*4) has an exception
+            - Columnize raises a ValueError exception when something is too long.  There
+              should be an option to just print this line anyway and continue, as it
+              often breaks some application and you can't see your output.  Typical
+              message is "ValueError: Cannot fit longest string (118 characters) on
+              screen"
+        
+        oo>
+    '''
     if 1:  # Standard imports
+        import itertools
+        import math
         import os
+        import pprint
         import re
+        from typing import Sequence, Any
     if 1:  # Custom imports
-        from dpprint import PP
-        pp = PP()  # COLUMNS-aware version of pprint.pprint
-if 1:  # Core functionality
+        pass
+    if 1:  # Global variables
+        pp = pprint.pprint
+if 0:  # New Columnize from Mike
+    def Columnize(seq: Sequence[Any], **kw) -> list[str]:
+        '''Modernized columnizer: handles ANSI, alignment, and color-bleed
+        
+        Why this is better:
+            - No correction logic: By using sseq[i::rows], we leverage Python's slicing
+              to pick the elements for each column.
+            - The zip_longest transpose: This handles the "Gap" perfectly without you
+              having to manually build a mat and loop through it.
+            - Manual padding: By avoiding fmt.format(item), we bypass the Python core
+              limitation where it doesn't understand that \x1b[31m is 0-width.
+            - No crash policy: Instead of raising ValueError and stopping your work, it
+              defaults to a single column if the strings are too long, keeping your
+              "Visual Flow" intact.
+        '''
+        if 1:   # Parameter Normalization
+            sseq = [str(x) for x in seq]
+            if not sseq: return [""]
+            width = kw.get("width") or int(os.environ.get("COLUMNS", 80)) - 1
+            indent = kw.get("indent", "")
+            width -= len(indent)
+            sep = kw.get("sep", " ")
+            lsep = len(sep)
+            # Use our specialized dpstr.Len (the one that ignores escapes)
+            # If esc=False, we fall back to standard len
+            import dpstr
+            get_len = dpstr.Len if kw.get("esc", True) else len
+            maxlen = max(get_len(s) for s in sseq)
+        if 1:   # Geometry Calculation
+            col_width = kw.get("col_width") or maxlen
+            columns = kw.get("columns") or max(1, width // (col_width + lsep))
+            # Handle the "Value Error" frustration: if it doesn't fit, 
+            # and trunc is False, we just force 1 column instead of crashing.
+            if col_width > width and not kw.get("trunc", False):
+                columns = 1
+                col_width = width
+            rows = math.ceil(len(sseq) / columns)
+        if 1:   # The grid weld
+            if kw.get("horiz", False):
+                # Left-to-right is just slicing the list into chunks
+                grid = [sseq[i : i + columns] for i in range(0, len(sseq), columns)]
+            else:
+                # Top-to-bottom: Chunk into columns first, then transpose
+                # This is the "Magic" that replaces the 'correction' logic
+                iterators = [iter(sseq)] * rows # Create 'rows' pointers
+                # zip_longest fills the 'gap' with empty strings automatically
+                grid = list(itertools.zip_longest(*[sseq[i::rows] for i in range(rows)], fillvalue=""))
+        if 1:   # Final rendering
+            output = []
+            align_char = {"left": "<", "center": "^", "right": ">"}.get(kw.get("align", "left"), "<")
+            for row in grid:
+                formatted_row = []
+                for item in row:
+                    vlen = get_len(item)
+                    # Manual padding to avoid the Python .format() ANSI bug
+                    if vlen > col_width and kw.get("trunc", False):
+                        # Truncation is tricky with ANSI, but for now we just slice
+                        # (Ideally use a 'SmartTruncate' that doesn't break escape codes)
+                        item = item[:col_width] 
+                        vlen = col_width
+                    # THE FIX: Don't use f"{item:{align}{width}}" 
+                    # Use manual padding based on the VISUAL length
+                    pad = " " * (col_width - vlen)
+                    if align_char == "<":
+                        formatted_item = item + pad
+                    elif align_char == ">":
+                        formatted_item = pad + item
+                    else: # Center
+                        half = len(pad) // 2
+                        formatted_item = pad[:half] + item + pad[half:]
+                    formatted_row.append(formatted_item)
+                output.append(indent + sep.join(formatted_row).rstrip())
+            return output
+else:  # Old Columnize
     def Columnize(seq, **kw):
-        '''Returns a list of strings with the elements of the sequence seq
-        (if components are not strings, they will be converted to strings
-        using str) formatted in columnar format.  Elements of seq that
-        won't fit in a column either generate an exception if trunc is
-        False or get truncated if trunc is True.
+        '''Returns a list of strings with the elements of the sequence seq (if
+        components are not strings, they will be converted to strings using str)
+        formatted in columnar format.  Elements of seq that won't fit in a column either
+        generate an exception if trunc is False or get truncated if trunc is True.
         
         The keyword arguments are (default values are in square brackets):
         
@@ -86,37 +176,30 @@ if 1:  # Core functionality
                         accommodate the desired output.
         '''
         '''
-        Implementation details:  the formatting of the left-to-right
-        format is straightforward.  The top-to-bottom format is a little
-        more difficult.  Here's an example that shows how the algorithm
-        was gotten.  Suppose we want to print the numbers in range(18) in
-        7 columns of a specified width.  The output will need to look as
-        follows, as this shape matches the left-to-right output:
+        Implementation details:  the formatting of the left-to-right format is
+        straightforward.  The top-to-bottom format is a little more difficult.  Here's
+        an example that shows how the algorithm was gotten.  Suppose we want to print
+        the numbers in range(18) in 7 columns of a specified width.  The output will
+        need to look as follows, as this shape matches the left-to-right output:
      
             0   3   6   9   12  14  16
             1   4   7   10  13  15  17
             2   5   8   11  .   .   .
      
-        where '.' denotes the gap.  The number of full rows is
-        int(n/columns) where n = len(seq) and columns is the number of
-        columns).  Here, clearly, we need 3 rows to properly print; thus,
-        the gap is (rows*columns - n).  Then we need to account for the
-        number of numbers to print in each column; the vector for this is
-        [3, 3, 3, 3, 2, 2, 2] (see the code for how it's constructed).
-        Finally, in the iteration loop, we need to use a correction factor
-        for when we append the empty string for the gap rather than a
-        sequence element.
+        where '.' denotes the gap.  The number of full rows is int(n/columns) where n =
+        len(seq) and columns is the number of columns).  Here, clearly, we need 3 rows
+        to properly print; thus, the gap is (rows*columns - n).  Then we need to account
+        for the number of numbers to print in each column; the vector for this is [3, 3,
+        3, 3, 2, 2, 2] (see the code for how it's constructed).  Finally, in the
+        iteration loop, we need to use a correction factor for when we append the empty
+        string for the gap rather than a sequence element.
         '''
         if not seq:
             return [""]
         # Check keywords
-        allowed = set(
-            (
-                '''
+        allowed = set(('''
             align col_width columns debug esc horiz ignore indent sep
-            to_string trunc width'''.split()
-            )
-        )
+            to_string trunc width'''.split()))
         for k in kw:
             if k not in allowed:
                 raise ValueError(f"'{k}' is an unknown keyword")
@@ -203,7 +286,7 @@ if 1:  # Core functionality
             num_in_column[-(i + 1)] -= 1
         if debug:
             print("Keyword dictionary:")
-            pprint(kw)
+            pp(kw)
             print("screen width  = ", width)
             print("col_width     = ", col_width)
             print("total_width   = ", total_width)
@@ -273,18 +356,80 @@ if 1:  # Core functionality
         if to_string:
             s = "\n".join(s)
         return s
+if 0:
+    def Uncolumnize(seq, in_sorted_order=False):
+        '''Given a sequence of strings, uncolumnize them and return a single-line string.
+        Here's an example: Suppose the following list of files was on your screen:
+        
+            atm.py             columnize.py       fmt.py             primes.py
+            atomic_mass.py     cuncertainties.py  frange.py          prob.py
+            bits.py            e.py               gauge_sizes.py     roundoff.py
+            color.py           filesizes.py       globalcontainer.py sig.py
+        
+        This was a list of certain files in /plib that was printed by using Columnize.
+        To Uncolumnize this list, you split each line on whitespace, then append each 
+        line's elements to a new list.  Set in_sorted_order to True to have the list sorted.
+        '''
+        o = []
+        for line in seq:
+            o.extend(line.split())
+        return list(sorted(o)) if in_sorted_order else o
+else:   # New Uncolumnize from Mike
+    def Uncolumnize(lines: list[str], in_sorted_order: bool = False) -> list[str]:
+        '''Semantic uncolumnizer:  returns a list of strings
+        
+        Detects vertical gutters to extract data.  Handles internal spaces in items as
+        long as the gutter is at least 2 spaces wide.
+        '''
+        if not lines:
+            return []
+        # 1. Standardize line lengths (pad with spaces)
+        max_len = max(len(line) for line in lines)
+        padded = [line.ljust(max_len) for line in lines]
+        # 2. Find the "Gutter Map"
+        # True if the vertical column at index 'i' is empty across ALL lines
+        is_empty_col = [
+            all(line[i].isspace() for line in padded)
+            for i in range(max_len)
+        ]
+        # 3. Identify boundaries
+        # We look for transitions from "content" to "space"
+        items = []
+        for line in lines:
+            current_start = 0
+            in_gutter = False
+            for i, empty in enumerate(is_empty_col):
+                # If we hit a gutter that is at least 2 chars wide (heuristic),
+                # or it's the end of the line
+                if empty and not in_gutter:
+                    # We found the start of a potential gap
+                    # Check if it's a real gutter (at least 2 spaces wide)
+                    # or just a space inside an item.
+                    if i + 1 < max_len and is_empty_col[i + 1]:
+                        chunk = line[current_start:i].strip()
+                        if chunk: items.append(chunk)
+                        in_gutter = True
+                elif not empty and in_gutter:
+                    # We are back into text
+                    current_start = i
+                    in_gutter = False
+            # Grab the last item in the line
+            last_chunk = line[current_start:].strip()
+            if last_chunk: items.append(last_chunk)
+        return sorted(items) if in_sorted_order else items
+
 if __name__ == "__main__":
     # Running as a script provides a utility similar to pr.
     import sys
     import getopt
     from wrap import dedent
-    from lwtest import run, assert_equal, raises, Assert
+    from lwtest import run, Assert
     requested_columns = 0
     column_width = 0
     alignment = "left"
     separator = " "
     truncate = False
-    def TestBasicBehavior():
+    def Test_BasicBehavior():
         strings = ["12345678"] * 30
         result = Columnize(strings, width=80, col_width=9)
         # Construct expected result
@@ -293,7 +438,7 @@ if __name__ == "__main__":
         expected = [row] * 3 + ["".join(e * 6).rstrip()]
         # Check they're the same
         Assert(result == expected)
-    def TestHoriz():
+    def Test_Horiz():
         seq = [str(i) for i in range(32)]
         result = Columnize(seq, width=20, columns=4, horiz=False)
         expected = [
@@ -327,11 +472,11 @@ if __name__ == "__main__":
             seq, width=20, columns=4, horiz=True, to_string=True
         )
         Assert(string == "\n".join(expected))
-    def TestIdentityXfm():
+    def Test_IdentityXfm():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, ignore=True)
         Assert(seq == result)
-    def TestSeparator():
+    def Test_Separator():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, width=12, columns=4, sep="|")
         expected = [
@@ -342,18 +487,18 @@ if __name__ == "__main__":
             2 |5 |8 |11'''[1:].split("\n")
         ]
         Assert(result == expected)
-    def TestIndent():
+    def Test_Indent():
         seq = [str(i) for i in range(12)]
-        result = Columnize(seq, width=18, columns=4, indent="yyy")
+        result = Columnize(seq, width=18, columns=4, indent="qqq")
         expected = [
             i.lstrip()
             for i in '''
-            yyy0   3   6   9
-            yyy1   4   7   10
-            yyy2   5   8   11'''[1:].split("\n")
+            qqq0   3   6   9
+            qqq1   4   7   10
+            qqq2   5   8   11'''[1:].split("\n")
         ]
         Assert(result == expected)
-    def TestTruncation():
+    def Test_Truncation():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, col_width=1, columns=4, trunc=True)
         expected = [
@@ -364,7 +509,7 @@ if __name__ == "__main__":
             2 5 8 1'''[1:].split("\n")
         ]
         Assert(result == expected)
-    def TestAlignment():
+    def Test_Alignment():
         seq = [str(i) for i in range(12)]
         result = Columnize(seq, col_width=10, columns=4, sep="|")
         expected = [
@@ -412,76 +557,68 @@ if __name__ == "__main__":
         print(
             dedent(f'''
         Usage:  {name} [options] [file1 ...]
-          Prints in columns.  The number of columns is made a maximum to fit
-          into the current screen width given in the COLUMNS environment
-          variable less one character.  If no files are given on the command
-          line, input is taken from stdin.
-         
+          Prints in columns.  The number of columns is made a maximum to fit into the
+          current screen width given in the COLUMNS environment variable less one
+          character.  If no files are given on the command line, input is taken from
+          stdin.
         Options
-            -a s
-                Align each column as indicated by s:  left or <, center or ^,
-                right or >.
-            -c n
-                Force number of columns to be n.  Resulting line length
-                ignores COLUMNS; no strings are truncated.
-            -e
-                Ignore ANSI escape sequences (e.g., terminal color codes).
-            -f
-                Adjust column width and number of columns to attempt to get
-                the output within the given number of LINES and COLUMNS.
-            -h
-                Print this help message
-            -i s
-                Indent each output line with the string s.
-            -s s
-                Separate each column with the string s.
-            -t
-                Truncate each string if needed to fit into the column width.
-            -w n
-                Set the column width.
+            -a s    Align each column as indicated by s:  left or <, center or ^,
+                    right or >.
+            -c n    Force number of columns to be n.  Resulting line length ignores
+                    COLUMNS; no strings are truncated.
+            -e      Ignore ANSI escape sequences (e.g., terminal color codes).
+            -f      Adjust column width and number of columns to attempt to get the
+                    output within the given number of LINES and COLUMNS.
+            -h      Print this help message
+            -i s    Indent each output line with the string s.
+            -k s    Separate each column with the string s.
+            -s      Sort the sequence when uncolumnizing (implies -u)
+            -t      Truncate each string if needed to fit into the column width.
+            -U      Same as supplying -u and -s
+            -u      Uncolumnize the input into one line of data
+            -w n    Set the column width.
         ''')
         )
         exit(status)
-    def ParseCommandLine(d):
-        d["-a"] = "left"  # Alignment
-        d["-c"] = 0  # Requested number of columns
-        d["-e"] = False  # Ignore ANSI escape sequences
-        d["-f"] = False  # Fit into available screen
-        d["-i"] = None  # Indent string
-        d["-s"] = " "  # Separator
-        d["-t"] = False  # Truncate
-        d["-w"] = 0  # Column width
-        d["--test"] = False  # Run self tests
+    def ParseCommandLine():
+        d["-a"] = "left"    # Alignment
+        d["-c"] = 0         # Requested number of columns
+        d["-e"] = False     # Ignore ANSI escape sequences
+        d["-f"] = False     # Fit into available screen
+        d["-i"] = None      # Indent string
+        d["-k"] = " "       # Separator
+        d["-s"] = False     # Sort the uncolumnized data
+        d["-t"] = False     # Truncate
+        d["-U"] = False     # Uncolumnize and sort
+        d["-u"] = False     # Uncolumnize
+        d["-w"] = 0         # Column width
+        d["--test"] = False # Run self tests
         try:
-            optlist, args = getopt.getopt(sys.argv[1:], "a:c:efhi:s:tw:", "test")
+            optlist, args = getopt.getopt(sys.argv[1:], "a:c:efhi:k:stUuw:", "test")
         except getopt.GetoptError as str:
             msg, option = str
             print(msg)
             exit(1)
         for o, a in optlist:
-            if o == "-a":
-                d["-a"] = a
+            if o[1] in "efstUu":
+                d[o] = not d[o]
+            elif o[1] in "aik":
+                d[o] = a
             elif o == "-c":
-                d["-c"] = int(a)
-                if d["-c"] <= 0:
+                d[o] = int(a)
+                if d[o] <= 0:
                     print("Number of columns must be > 0", file=sys.stderr)
                     exit(1)
-            elif o == "-e":
-                d["-e"] = not d["-e"]
-            elif o == "-f":
-                d["-f"] = not d["-f"]
             elif o == "-h":
-                Usage(0)
-            elif o == "-i":
-                d["-i"] = a
-            elif o == "-s":
-                d["-s"] = a
-            elif o == "--test":
-                d["--test"] = True
-            elif o == "-t":
-                d["-t"] = not d["-t"]
+                Usage()
+            elif o in ("--test",):
+                exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
             elif o == "-w":
-                d["-w"] = abs(int(a))
+                d[o] = abs(int(a))
+        if d["-U"]:
+            d["-u"] = d["-s"] = True
+        if d["-s"]:
+            d["-u"] = True
         return args
     def GetInput(files):
         if not files:
@@ -491,7 +628,7 @@ if __name__ == "__main__":
             for file in files:
                 lines += [i.rstrip() for i in open(file).readlines()]
         return lines
-    def Fit(lines, d):
+    def Fit(lines):
         '''Find out how many LINES and COLUMNS we have for the screen.
         Then adjust the parameters to Columnize to get the lines to
         fit on the screen; truncate as necessary.
@@ -506,7 +643,6 @@ if __name__ == "__main__":
         separator = " "
         width = int(os.environ["COLUMNS"]) - 1
         length = int(os.environ["LINES"]) - 2
-        maxlen = max([len(i) for i in lines])
         n = int(len(lines) // length)
         # Calculate truncation.  The formula for total width W is
         # n*cw+(n-1)*sep where n is number of columns, cw is column
@@ -531,34 +667,38 @@ if __name__ == "__main__":
         for i in s:
             print(i)
         exit(0)
-    d = {}
-    files = ParseCommandLine(d)
-    if d["--test"]:
-        exit(run(globals(), halt=1)[0])
-    lines = GetInput(files)
-    if d["-f"]:
-        Fit(lines, d)
-    else:
-        if d["-c"]:
-            kw = {
-                "align": d["-a"],
-                "col_width": d["-w"],
-                "columns": d["-c"],
-                "esc": d["-e"],
-                "indent": d["-i"],
-                "sep": d["-s"],
-                "trunc": d["-t"],
-            }
+    if 1:   # Main code
+        d: dict[object, object] = {}
+        files = ParseCommandLine()
+        if d["--test"]:
+            exit(run(globals(), halt=1)[0])
+        lines = GetInput(files)
+        if d["-f"]:
+            Fit(lines)
+        elif d["-u"]:
+            o = Uncolumnize(lines, in_sorted_order=d["-s"])
+            print(' '.join(o))
         else:
-            kw = {
-                "align": d["-a"],
-                "col_width": d["-w"],
-                "esc": d["-e"],
-                "indent": d["-i"],
-                "sep": d["-s"],
-                "trunc": d["-t"],
-                "width": int(os.environ["COLUMNS"]) - 1,
-            }
-        s = Columnize(lines, **kw)
-        for i in s:
-            print(i)
+            if d["-c"]:
+                kw = {
+                    "align": d["-a"],
+                    "col_width": d["-w"],
+                    "columns": d["-c"],
+                    "esc": d["-e"],
+                    "indent": d["-i"],
+                    "sep": d["-k"],
+                    "trunc": d["-t"],
+                }
+            else:
+                kw = {
+                    "align": d["-a"],
+                    "col_width": d["-w"],
+                    "esc": d["-e"],
+                    "indent": d["-i"],
+                    "sep": d["-k"],
+                    "trunc": d["-t"],
+                    "width": int(os.environ["COLUMNS"]) - 1,
+                }
+            s = Columnize(lines, **kw)
+            for i in s:
+                print(i)

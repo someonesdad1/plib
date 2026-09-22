@@ -1,29 +1,28 @@
-_pgminfo = '''
-<oo desc
-    Call PaperSizes() to get a dictionary of common paper sizes in mm.  The floating 
-    point sizes are returned as type f.flt, which shows you 3 figures of the value by
-    default (the flt class is derived from float).
-oo>
-<oo cr Copyright © 2025 Don Peterson oo>
-<oo license
-    Licensed under the Open Software License version 3.0.
-    See http://opensource.org/licenses/OSL-3.0.
-oo>
-<oo cat Put_category_here oo>
-<oo test none oo>
-<oo todo
-    - 
-oo>
-'''
 if 1:  # Header
-    from f import flt
-    from lwtest import Assert
-    from roundoff import RoundOff
-    from dpprint import PP
-    pp = PP()   # Get pprint with current screen width
-    if 0:
-        import debug
-        debug.SetDebugger()
+    _pgminfo = '''
+        <oo gist ∞ Get a dictionary of paper sizes oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:  # Standard imports
+        pass
+    if 1:  # Custom imports
+        import dpmath
+        import lwtest
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:  # Global variables
+        pass
 if 1:  # Core functionality
     def PaperSizes(scale=1, exact=False, digits=12):
         '''Return a dictionary keyed by a paper size string; the values are the width
@@ -46,7 +45,7 @@ if 1:  # Core functionality
         '''
         def Round(x):
             'Return x rounded to the indicated digits if it is not an integer'
-            return x if isinstance(x, int) else RoundOff(x, digits=digits)
+            return x if isinstance(x, int) else dpmath.RoundOff(x, digits=digits)
         in2mm = 25.4
         sizes = {
             # US sizes
@@ -115,19 +114,19 @@ if 1:  # Core functionality
         if exact:
             # Compute the ISO sizes from formulas
             a, b, c = 1/2**(1/2), 1/2, 1000
-            A = lambda n: (c*a**(n + b), c*a**(n - b))
-            B = lambda n: (c*a**n, c*a**(n - 1))
-            C = lambda n: (c*a**(n + b/2), c*a**(n - 3*b/2))
+            def A(n): return (c*a**(n + b), c*a**(n - b))
+            def B(n): return (c*a**n, c*a**(n - 1))
+            def C(n): return (c*a**(n + b/2), c*a**(n - 3*b/2))
             ISO = {}
             for n in range(11):
-                ISO[f"A{n}"] = A(n)
-                ISO[f"B{n}"] = B(n)
-                ISO[f"C{n}"] = C(n)
+                ISO["A{n}"] = A(n)
+                ISO["B{n}"] = B(n)
+                ISO["C{n}"] = C(n)
             # Manually handle the other sizes
-            ISO[f"4A0"] = A(-2)
-            ISO[f"2A0"] = A(-1)
-            ISO[f"2B0"] = B(-1)
-            ISO[f"2C0"] = C(-1)
+            ISO["4A0"] = A(-2)
+            ISO["2A0"] = A(-1)
+            ISO["2B0"] = B(-1)
+            ISO["2C0"] = C(-1)
         sizes.update(ISO)
         # Check the ISO sizes in the table:  This is a gross check to catch things like
         # unintended edits.
@@ -135,7 +134,7 @@ if 1:  # Core functionality
                        B6 B7 B8 B9 B10 2C0 C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 C10'''.split()
         for i, size in enumerate(iso_sizes):
             w, h = sizes[size]
-            Assert(1.405 < h/w < 1.429)     # Check aspect ratio
+            lwtest.Assert(1.405 < h/w < 1.429)     # Check aspect ratio
         # Round the values
         for i in sizes:
             sizes[i] = tuple(Round(j) for j in sizes[i])
@@ -143,37 +142,31 @@ if 1:  # Core functionality
 
 if __name__ == "__main__":  
     # Print a table of paper sizes
-    from color import t
-    import termtables as tt
     if 1:  # Header
         if 1:   # Standard imports
-            from collections import deque
-            from pathlib import Path as P
             import getopt
             import os
-            import re
+            import pprint
             import sys
         if 1:   # Custom imports
-            from f import flt
-            from wrap import dedent
-            from lwtest import Assert
-            from dpprint import PP
-            pp = PP()   # Get pprint with current screen width
+            import dptypes
+            import f
+            import wrap
+            import termtables as tt
+            import trm
             if 0:
                 import debug
                 debug.SetDebugger()
         if 1:   # Global variables
-            class G:
-                pass
-            g = G()
+            t = trm.Trm()
+            pp = pprint.pprint
+            g = dptypes.Constant()
             g.dbg = False
-            ii = isinstance
     if 1:   # Utility
         def GetColors():
             t.stuff = t.lill
             t.err = t.redl
-            t.dbg = t.lill if g.dbg else ""
-            t.N = t.n if g.dbg else ""
+            t.dbg = t.lill
         def GetScreen():
             'Return (LINES, COLUMNS)'
             return (
@@ -184,14 +177,14 @@ if __name__ == "__main__":
             if g.dbg:
                 print(f"{t.dbg}", end="")
                 print(*p, **kw)
-                print(f"{t.N}", end="")
+                print(f"{t.n}", end="")
         def Warn(*msg, status=1):
             print(*msg, file=sys.stderr)
         def Error(*msg, status=1):
             Warn(*msg)
             exit(status)
         def Usage(status=0):
-            print(dedent(f'''
+            print(wrap.dedent(f'''
             Usage:  {sys.argv[0]} [options] 
               Print dimensions of common paper sizes.
             Options:
@@ -217,16 +210,16 @@ if __name__ == "__main__":
                         if not (1 <= d[o] <= 15):
                             raise ValueError()
                     except ValueError:
-                        Error(f"-d option's argument must be an integer between 1 and 15")
+                        Error("-d option's argument must be an integer between 1 and 15")
                 elif o == "-h":
                     Usage()
-            x = flt(0)
+            x = f.flt(0)
             x.N = d["-d"]
             x.rtz = True
             x.rtdp = True
             GetColors()
             return args
-    d = {}      # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     args = ParseCommandLine(d)
     sizes = PaperSizes()
     a = "─"*6
@@ -238,10 +231,12 @@ if __name__ == "__main__":
     for i in hdr:
         o.append(i)
     o.append(("─"*17, a, a, a, a, a, a, a))
-    for i, size in enumerate(sizes):
-        w, h = [flt(j) for j in sizes[size]]
-        w1, h1 = [flt(j/25.4) for j in sizes[size]]
-        o.append((size, w, h, w*h/100, w1, h1, w1*h1, h/w))
+    # Sizes = dict: key:str (paper size like "A"), value: (215.9, 279.4)
+    for size in sizes:
+        w, h = [f.flt(j) for j in sizes[size]]  # width, height in mm
+        w1, h1 = [f.flt(j/25.4) for j in sizes[size]]   # width, height in inches
+        a = [str(i) for i in (size, w, h, w*h/100, w1, h1, w1*h1, h/w)]
+        o.append(tuple(a))
     for i in hdr:
         o.append(i)
     pad = 1

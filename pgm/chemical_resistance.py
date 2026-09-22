@@ -1,3 +1,9 @@
+'''
+Print the chemical resistance of various plastics
+
+https://www.cplabsafety.com/polypropylene-chemical-compatibility-chart/ might have 
+some tabular data that would be useful to insert.
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2015 Don Peterson #∞copyright∞#
@@ -15,7 +21,6 @@ if 1:  # Imports
     import sys
     import getopt
     import re
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
 if 1:  # Global variables
@@ -42,10 +47,8 @@ if 1:  # Global variables
         "Tecalor/Torlon": "",
         "UHMW": "Ultra-high molecular weight polyethylene",
     }
-
-
 def GetData():
-    """Return (plastics, chemicals) where plastics is a list of the
+    '''Return (plastics, chemicals) where plastics is a list of the
     plastics' names and chemicals is a list of lists:
     [
         ["Chemical name", conc, a, b, ..., z],
@@ -55,7 +58,7 @@ def GetData():
     where conc is the concentration in weight percent and a,..., z are the
     ratings for each of the plastics.  The ratings are in the set of
     strings A, B, C, D, or *.
-    """
+    '''
     # The following data came from
     # http://www.plasticsintl.com/plastics_chemical_resistence_chart.html and
     # was probably copied from some British web page; the British spellings
@@ -63,7 +66,6 @@ def GetData():
     # converted to US usage.  Minor editing has been done to fix small
     # problems.  Data downloaded 27 Jun 2015.
     #
-
     # Legend:
     # A = No Attack, possibly slight absorption.  Negligible effect on
     #     mechanical properties.
@@ -79,8 +81,7 @@ def GetData():
     #
     # Where aqueous solutions are shown the concentration as a weight %
     # is given.
-
-    data = dedent("""
+    data = dedent('''
     Material;Concentration (weight %);ABS;Acetal;Acrylic;CAB;CPVC;ECTFE (Halar);Fluorosint;HDPE;Nylon 6/6;PEEK;PET;Polycarbonate;Polypropylene;Polysulfone;PPS;PVC Type 1;PVC Type 2;PVDF;PTFE;Tecalor/Torlon;UHMW
     Acetaldehyde (aq);40;D;A;D;*;D;*;A;C;B;A;A;*;C;*;A;D;D;D;A;A;A
     Acetic acid (aq);10;*;B;B;C;A;A;A;*;C;A;B;D;*;A;A;A;A;B;A;A;A
@@ -217,7 +218,7 @@ def GetData():
     Xylene;;D;*;D;D;D;A;A;D;D;A;A;*;D;D;A;D;D;A;A;A;B
     Xylenol;;*;*;*;*;A;*;A;*;D;A;*;*;*;*;*;*;*;*;A;A;*
     Zinc chloride (aq);10;*;*;A;A;A;*;A;A;C;A;*;C;A;A;A;A;A;A;A;*;A
-    """)
+    ''')
     chemicals = []
     for i, s in enumerate(data.split("\n")):
         d = s.split(";")
@@ -227,17 +228,12 @@ def GetData():
         else:
             plastics = d[2:]
     return plastics, chemicals
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Usage(d, status=1):
     name = sys.argv[0]
-    print(
-        dedent(f"""
+    print(dedent(f'''
     Usage:  {name} [options] cmd [cmd options]
         Print the chemical resistance of various plastics.  The regexp regular
         expression in the following commands is used to find the relevant
@@ -262,35 +258,38 @@ def Usage(d, status=1):
             chemicals.
         pl
             Show the list of plastics.
-    Example:
+    Examples:
         {name} a acetone
-            will show plastics suitable for containing acetone.
+            Will show plastics suitable for containing acetone.
+        {name} a .
+            Show all plastics that have "not attacked"
+    Options
+      -s    Show the organic materials (e.g., solvents, oils, etc.)
     Notes:
       The data are from
       http://www.plasticsintl.com/plastics_chemical_resistence_chart.html
       downloaded 27 Jun 2015.  The data are assumed to be for room temperature
       resistances and should be considered for reference only.
-    """)
-    )
+    '''))
     exit(status)
-
-
 def ParseCommandLine(d):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h")
+        opts, args = getopt.getopt(sys.argv[1:], "hs")
     except getopt.GetoptError as e:
         print(str(e))
         exit(1)
     for o, a in opts:
+        if o[1] in "s":
+            d[o] = not d[o]
         if o in ("-h", "--help"):
             Usage(d, status=0)
+    if d["-s"]:
+        ShowSolvents()
     if not args:
         Usage(d)
     return args
-
-
 def GetChemicals(regexp, d):
-    """Return a list of the chemicals whose name matches the regexp."""
+    '''Return a list of the chemicals whose name matches the regexp.'''
     try:
         s = re.compile(regexp, re.I)
     except Exception:
@@ -301,12 +300,10 @@ def GetChemicals(regexp, d):
         if mo:
             found.append(i)
     return found
-
-
 def FindChemRes(cmd, regexp, d):
-    """cmd is a, b, c, or d.  Print the plastics that are resistant to the
+    '''cmd is a, b, c, or d.  Print the plastics that are resistant to the
     chemicals that match the regexp.
-    """
+    '''
     plastics = d["plastics"]
     letter = cmd.upper()
     matching_chemicals = GetChemicals(regexp, d)
@@ -326,8 +323,6 @@ def FindChemRes(cmd, regexp, d):
             print(name)
             for i in found:
                 print("  {}".format(plastics[i]))
-
-
 def ShowChemicals(args, d):
     if len(args) > 1:
         matching_chemicals = GetChemicals(args[1], d)
@@ -344,25 +339,71 @@ def ShowChemicals(args, d):
                 # It's a string
                 name = "{} {}".format(name, conc)
         print(name)
-
-
 def ShowPlastics(d):
     for i in d["plastics"]:
         print(i)
         details = plastic_details[i]
         if details:
             print("  {}".format(details))
-
+def ShowSolvents():
+    print(dedent('''
+        Acetone
+        Alcohols
+        Amyl acetate
+        Benzene
+        Butanol
+        Carbon tetrachloride
+        Chloral hydrate
+        Chloroform
+        Creosote
+        Cyclohexanol
+        Cyclohexanone
+        Diesel oil
+        Diethyl ether
+        Ethyl acetate
+        Ethylene dichloride
+        Ethylene glycol
+        Freon 12
+        Gasoline
+        Heptane
+        Isopropyl alcohol
+        Linseed oil
+        Lubricating oils (petroleum)
+        Methyl acetate
+        MEK
+        Methyl ethyl ketone
+        Methyl chloride
+        Mineral oils
+        Naphthalene
+        Paraffin
+        Propane gas
+        Styrene
+        Tallow
+        Tar
+        Toluene
+        Transformer oil
+        Trichlorethylene
+        Triethanolamine
+        Turpentine
+        Vaseline
+        Vegetable oils
+        Vinyl chloride
+        Wax (molten)
+        Mineral spirits
+        Xylene
+        Xylenol
+    '''))
+    exit(0)
 
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d = {"-s": False}  # Options dictionary
     d["ratings"] = {
-        "A": """    Not attacked.  Possibly slight absorption and negligible effect
-    on mechanical properties.""",
-        "B": """    Slight attack; some swelling and a small reduction in mechanical
-    properties are likely.""",
-        "C": """    Moderate attack with appreciable absorption.  Material will have
-    limited life.""",
+        "A": '''    Not attacked.  Possibly slight absorption and negligible effect
+    on mechanical properties.''',
+        "B": '''    Slight attack; some swelling and a small reduction in mechanical
+    properties are likely.''',
+        "C": '''    Moderate attack with appreciable absorption.  Material will have
+    limited life.''',
         "D": "    Will decompose or dissolve in a short period of time.",
         "ND": "    No data available.",
     }

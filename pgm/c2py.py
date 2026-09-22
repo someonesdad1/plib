@@ -4,22 +4,23 @@ TODO
     * Change lines with // to #
 
 Translate C code to python
-    This script will do some of the work, but you'll still be left with
-    some hand translation for pointer stuff and to handle gotos (so it
-    works best on C code with no gotos and few pointers).
+
+    This script will do some of the work, but you'll still be left with some hand
+    translation for pointer stuff and to handle gotos (so it works best on C code with
+    no gotos and few pointers).
 
     Here's how the script works:
 
-    * Comments are converted to python comments.
-    * All lines have the ending ';' removed.
-    * It is an error if any line subsequently contains a ';' character,
-      as this might indicate more than one statement per line.
-    * '&&' is changed to ' and ' and '||' is changed to ' or '.
-    * 'else if' --> 'elif'
-    * 'else' --> 'else:'
-    * An 'if ()' statement is translated into 'if():'.  Note the
-      translation will be wrong if there are multiple tests inside the
-      parentheses; these will cause a python error and be easy to find.
+    - Comments are converted to python comments.
+    - All lines have the ending ';' removed.
+    - It is an error if any line subsequently contains a ';' character, as this might
+      indicate more than one statement per line.
+    - '&&' is changed to ' and ' and '||' is changed to ' or '.
+    - 'else if' --> 'elif'
+    - 'else' --> 'else:'
+    - An 'if ()' statement is translated into 'if():'.  Note the translation will be
+      wrong if there are multiple tests inside the parentheses; these will cause a
+      python error and be easy to find.
 
     Lines are otherwise left alone, so things like #include and #define
     statements will be in the resulting text.
@@ -41,10 +42,10 @@ if 1:  # Copyright, license
 if 1:  # Imports
     import sys
     import re
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
-    from color import C
+    import trm
+    C = trm.TrmDP()
 if 1:  # Global variables
     nl = "\n"
     comment = re.compile(r"/\*(.*?)\*/", re.S)
@@ -52,13 +53,9 @@ if 1:  # Global variables
     elif_stmnt = re.compile(r"(else\s+if)")
     else_stmnt = re.compile(r"(else)")
     not_token = re.compile(r"![^=]")
-
-
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Commentify(s):
     """Split on newlines and prepend '#' to each line.  Return as a
     string."""
@@ -66,8 +63,6 @@ def Commentify(s):
     for line in s.split(nl):
         out.append("# " + line)
     return nl.join(out)
-
-
 def ConvertComments(s):
     """Convert C comments to python comments and return the string."""
     mo = comment.search(s)
@@ -78,8 +73,6 @@ def ConvertComments(s):
         s = s[:i] + t + s[j:]
         mo = comment.search(s)
     return s
-
-
 def RemoveSemicolons(s, file):
     """Note this also removes curly braces."""
     out = []
@@ -99,8 +92,6 @@ def RemoveSemicolons(s, file):
             line = line.replace(";", "")
         out.append(line)
     return nl.join(out)
-
-
 def FixIfs(s, file):
     """Find and translate if statements:
     !  --> not
@@ -123,8 +114,6 @@ def FixIfs(s, file):
         mo = if_stmnt.search(s)
     out.append(s)
     return "".join(out)
-
-
 def FixElif(s, file):
     """Change 'else if' to 'elif' and put a colon after 'else'."""
     out = []
@@ -147,8 +136,6 @@ def FixElif(s, file):
             continue
         out.append(line)
     return nl.join(out)
-
-
 def Translate(file, d):
     """Translate the given file and write it to a new file with '.py'
     appended.
@@ -162,8 +149,6 @@ def Translate(file, d):
     s = FixElif(s, file)
     with open(file + ".py", "w") as fp:
         fp.write(s)
-
-
 def BugNotice():
     print(f"{C.lcyn}", end="")
     print(
@@ -178,8 +163,6 @@ def BugNotice():
     """)
     )
     print(f"{C.norm}", end="")
-
-
 if __name__ == "__main__":
     BugNotice()
     d = {}

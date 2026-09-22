@@ -20,10 +20,11 @@ if 1:  # Header
         import os
         from pathlib import Path as P
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.TrmDP()
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -76,6 +77,30 @@ if 1:  # Header
             1770 UI change == getting old
             1985 Pure math meteorologist
             1994 How well something works after I've fixed it
+            1999 Selection effect
+            2013 Rock
+            2021 Software development
+            2135 M87 black hole size
+
+            2208 last
+
+            2757 Towed message
+            2766 Helium reserve
+            2778 Fusion cuisine
+            2782 Wikipedia article titles
+            2791 Bookshelf sorting
+            2796 Real estate analysis
+            2804 Marshmallow
+            2841 Sign combo
+            2845 Extinction mechanisms
+            2872 Hydrothermal vents
+            2883 Astronaut guests
+            2895 Treasure chests
+            2910 The Wreck of the Edmund Fitzgerald
+            2913 Periodic table regions
+            2944 Magnet fishing
+            2945 Broken model
+            2973 Ferris wheels
             
         '''
 if 1:  # Utility
@@ -119,7 +144,8 @@ if 1:  # Core functionality
         s = f"{p}{i!s}"
         print(f"{s:21s} {di[i]}")
     def PrintResults(keyword):
-        breakpoint()  # xx
+        breakpoint()
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     di = GetDict()

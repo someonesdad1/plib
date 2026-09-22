@@ -1,14 +1,18 @@
-_pgminfo = '''
-<oo 
-    Utility to examine my shell functions
-oo>
-<oo cr Copyright © 2025 Don Peterson oo>
-<oo cat utility oo>
-<oo test none oo>
-<oo todo oo>
-'''
- 
 if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Utility to examine my shell & python functions oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
     if 1:   # Standard imports
         from collections import deque, defaultdict
         from pathlib import Path as P
@@ -19,8 +23,10 @@ if 1:  # Header
     if 1:   # Custom imports
         from columnize import Columnize
         from wrap import dedent
-        from color import t, RegexpDecorate
-        from dpprint import PP
+        from dpstr import RegexpDecorate
+        import trm
+        t = trm.TrmDP()
+        from dputil import PP
         import get
         pp = PP()   # Get pprint with current screen width
         if 0:
@@ -62,27 +68,30 @@ if 1:   # Utility
         exit(status)
     def Usage(status=0):
         print(dedent(f'''
-        Usage:  {sys.argv[0]} [options] [op] [args]
-          Search my shell functions:
+        Usage:  {sys.argv[0]} [options] [cmd] [args]
+          Search my shell functions and python files for functions/classes.  Commands are:
             b   Show my bin executables
             c   Show category names
             l   List (args are optional categories to list)
+            p   Python (args are files to search)
             s   Search for regex
         Options:
+            -a      Include python function arguments
             -i      Make searches case sensitive
         '''))
         exit(status)
     def ParseCommandLine(d):
+        d["-a"] = True     # Include python function arguments
         d["-i"] = True     # Case insensitive searches
         if len(sys.argv) < 2:
             Usage()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ih") 
+            opts, args = getopt.getopt(sys.argv[1:], "aih") 
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("i"):
+            if o[1] in list("ai"):
                 d[o] = not d[o]
         GetColors()
         return args
@@ -216,6 +225,47 @@ if 1:   # Core functionality
             for i in found:
                 s = f"  {i.name:{Func.w}s} {i.descr}"
                 rd(s, insert_nl=True)
+    def SearchForPythonStuff(files):
+        'Find classes and functions in python files'
+        t.fu, t.cl, t.na = t.sky, t.yell, t.ornl
+        # Regex to recognize python functions
+        rfunc = r"def +\w+ *\((.*)\) *:"
+        rclass = r"class +(\w+) *(\(.*\))? *:"
+        # Process files
+        for file in files:
+            with open(file) as f:
+                s = f.read().strip()
+            functions = []
+            for i in re.finditer(rfunc, s, flags=re.MULTILINE):
+                start, end = i.start(), i.end()
+                name = s[i.start():i.end()].strip()
+                if name[-1] == ":":
+                    name = name[:-1]
+                if name.startswith("def "):
+                    name = name[4:].strip()
+                if d["-a"]:
+                    name = name.replace("(" + i.groups()[0] + ")", "")
+                    name = name.replace("()", "")
+                functions.append(f"{name}")
+            classes = []
+            for i in re.finditer(rclass, s, flags=re.MULTILINE):
+                start, end = i.start(), i.end()
+                name = s[i.start():i.end()].strip()
+                if name[-1] == ":":
+                    name = name[:-1]
+                if name.startswith("class "):
+                    name = name[6:].strip()
+                classes.append(f"{name}")
+            # Report
+            if functions or classes:
+                nf, nc = len(functions), len(classes)
+                t.print(f"{t.na}{file}:    {t.fu}{nf} Functions {t.cl}{nc} Classes")
+                functions = [f"{i}" for i in sorted(set(functions), key=str.lower)]
+                classes = [f"{i}" for i in sorted(set(classes), key=str.lower)]
+                for i in Columnize(functions, indent=" "*2, horiz=True):
+                    t.print(f"{t.fu}{i}")
+                for i in Columnize(classes, indent=" "*2, horiz=True, sep=" "*4):
+                    t.print(f"{t.cl}{i}")
 
 if __name__ == "__main__":
     d = {}      # Options dictionary
@@ -231,6 +281,8 @@ if __name__ == "__main__":
             ShowCategoryNames(category)
     elif op == "l":
         List(args)
+    elif op == "p":
+        SearchForPythonStuff(args)
     elif op == "s":
         SearchForRegexes(args)
     else:

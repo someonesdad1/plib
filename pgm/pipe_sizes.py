@@ -1,7 +1,6 @@
 '''
 Print US pipe dimensions
 '''
-
 if 1:  # Header
     if 1:  # Copyright, license
         # These "trigger strings" can be managed with trigger.py
@@ -21,15 +20,15 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from f import flt
-        from color import t
+        import trm
+        t = trm.TrmDP()
         from wrap import dedent
         import termtables as tt
         if len(sys.argv) > 1:
             import debug       
             debug.SetDebugger()
 if 0:   # Original implementation
-    print(
-        dedent(f'''
+    print(dedent(f'''
               Schedule 40 PVC pipe                    Schedule 80 PVC pipe
         Nominal                                 Nominal
          Size      OD      Wall      ID          Size      OD      Wall      ID
@@ -68,6 +67,15 @@ if 0:   # Original implementation
         ''')
     )
 if 1:   # Using dimensions
+    def FF(fraction):
+        'Return a formatted fraction string'
+        i, r = divmod(fraction.numerator, fraction.denominator)
+        if not r:
+            return f"{i}"
+        elif i:
+            return f"{i}-{r}/{fraction.denominator}"
+        else:
+            return f"{r}/{fraction.denominator}"
     def PipeSizes(metric=False):
         o8, oq, oh, tq, t8 = "⅛ ¼ ½ ¾ ⅜".split()
         sch40 = {
@@ -95,29 +103,21 @@ if 1:   # Using dimensions
             Fraction(5, 1): (5563,  258, 8,    5391, 1000*(1.22)),
             Fraction(6, 1): (6625,  280, 8,    6446, 1000*(1.58)),
         }
-        def FF(fraction):
-            'Return a formatted fraction string'
-            i, r = divmod(fraction.numerator, fraction.denominator)
-            if not r:
-                return f"{i}"
-            elif i:
-                return f"{i}-{r}/{fraction.denominator}"
-            else:
-                return f"{r}/{fraction.denominator}"
         # Set up flt formatting
         x = flt(0)
         x.rtz = x.rdp = True
         # Table title
-        t.title = t.purl if metric else t.ornl 
-        t.body = t.sky if metric else t.whtl
+        t.title = t.purl if metric else t.orn
+        t.body = t.denl if metric else t.wht
+        t.s80 = t.yell
         if metric:
-            print(f"{' '*28}{t.title}", "US Pipe sizes in mm", t.body)
+            print(f"{' '*24}{t.title}", "US Pipe sizes (sch 40) in mm", t.body)
         else:
-            print(f"{' '*25}{t.title}", "US Pipe sizes in inches", t.body)
+            print(f"{' '*25}{t.title}", "US Pipe sizes (sch 40) in inches", t.body)
         # Build table data
         p = " "*1
         header = [
-            f"{p}Size{p}",
+            f"{p}{t.body}Size{p}",
             f"{p}OD  {p}",
             f"{p}Wall{p}",
             f"{p}ID {p}",
@@ -125,11 +125,11 @@ if 1:   # Using dimensions
             f"{p}pitch{p}" ,
             f"{p}PD  {p}",
             f"{p}Tap drill{p}",
-            f"{p}Wall80{p}",
-            f"{p}ID80{p}"
+            f"{p}{t.s80}Wall80{t.n}{p}",
+            f"{p}{t.s80}ID80{t.n}{p}"
         ]
         data = [[
-            f"{p}{'-'*5}{p}",   # Size
+            f"{p}{t.body}{'-'*5}{p}",   # Size
             f"{p}{'-'*6}{p}",   # OD
             f"{p}{'-'*5}{p}",   # Wall
             f"{p}{'-'*5}{p}",   # ID
@@ -137,8 +137,8 @@ if 1:   # Using dimensions
             f"{p}{'-'*6}{p}",   # pitch
             f"{p}{'-'*6}{p}",   # PD
             f"{p}{'-'*9}{p}",   # TD
-            f"{p}{'-'*6}{p}",   # Wall80
-            f"{p}{'-'*6}{p}"    # ID80
+            f"{p}{t.s80}{'-'*6}{t.n}{p}",   # Wall80
+            f"{p}{t.s80}{'-'*6}{t.n}{p}"    # ID80
         ]]
         assert(len(header) == len(data[0]))
         for k in sch40:
@@ -157,7 +157,7 @@ if 1:   # Using dimensions
             ID80 = OD - 2*wall80 if wall80 else 0
             if metric:
                 n, m = 1, 25.4
-                elem = [f"{p}{size}{p}", 
+                elem = [f"{p}{t.body}{size}{p}", 
                         f"{p}{m*OD:>.{n}f}{p}", 
                         f"{p}{m*wall:>.{n}f}{p}", 
                         f"{p}{m*ID:>.{n}f}{p}", 
@@ -165,8 +165,8 @@ if 1:   # Using dimensions
                         f"{p}{m*pitch:>.{n}f}{p}", 
                         f"{p}{m*PD:>.{n}f}{p}", 
                         f"{p}{m*TD:>.{n}f}{p}", 
-                        f"{p}{m*wall80:>.{n}f}{p}" if wall80 else f"{p}{p}", 
-                        f"{p}{m*ID80:>.{n}f}{p}" if wall80 else f"{p}{p}", 
+                        f"{p}{t.s80}{m*wall80:>.{n}f}{t.n}{p}" if wall80 else f"{p}{p}", 
+                        f"{p}{t.s80}{m*ID80:>.{n}f}{t.n}{p}" if wall80 else f"{p}{p}", 
                 ]
             else:
                 n = 3
@@ -178,12 +178,27 @@ if 1:   # Using dimensions
                         f"{p}{pitch:>.{n + 1}f}{p}", 
                         f"{p}{PD:>.{n}f}{p}", 
                         f"{p}{TD:>.{n}f}{p}", 
-                        f"{p}{wall80:>.{n}f}{p}" if wall80 else f"{p}{p}",
-                        f"{p}{ID80:>.{n}f}{p}" if wall80 else f"{p}{p}"
+                        f"{p}{t.s80}{wall80:>.{n}f}{t.n}{p}" if wall80 else f"{p}{p}",
+                        f"{p}{t.s80}{ID80:>.{n}f}{t.n}{p}" if wall80 else f"{p}{p}"
                 ]
             assert(len(header) == len(elem))
             data.append(elem)
         tt.print(data, header=header, padding=(0, 0), style=None, alignment="r"*len(header))
+    def ConduitSizes():
+        t.print(f"{t.orn}{' '*30}Conduit Sizes")
+        sz = [
+            ["Size", "OD", "Wall", "ID", "lb/ft"],
+            ["1/2", 0.706, 0.042, 0.622, 0.19],
+            ["3/4", 0.922, 0.049, 0.824, 0.26],
+            ["1", 1.163, 0.057, 1.049, 0.35],
+            ["1.25", 1.510, 0.065, 1.380, 0.49],
+            ["1.5", 1.740, 0.062, 0.610, 0.58],
+        ]
+        tt.print(sz, style=" "*15, alignment="c"*5)
+        print()
+
+if __name__ == "__main__":
+    ConduitSizes()
     PipeSizes(metric=True)
     t.print()
     PipeSizes(metric=False)

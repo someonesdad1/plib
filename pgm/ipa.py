@@ -21,10 +21,11 @@ if 1:  # Header
         from pathlib import Path as P
         import re
         import sys
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
+        from color import Color
+        import trm
+        t = trm.TrmDP()
         from columnize import Columnize
         if 0:
             import debug

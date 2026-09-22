@@ -33,8 +33,10 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        from color import Color, TRM as t
-        if 1:
+        from color import Color
+        import trm
+        t = trm.TrmDP()
+        if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
@@ -1144,7 +1146,6 @@ if 1:  # Core functionality
             # Construct the string to compile
             s = "%s = U((%s))" % (name, repr(U(t)))
             try:
-                breakpoint()  # xx
                 c = compile(s, "", "single")
                 eval(c)  # Evaluate it in our local namespace
                 # Get the object created and put into our dictionary
@@ -1175,7 +1176,6 @@ if 1:  # Core functionality
         # to keep the tasks separate.
         for name in output_strings[Units]:
             try:
-                breakpoint()  # xx
                 s = "%s = U((%s))" % (name, output_strings[Units][name])
                 c = compile(s, "", "single")
                 eval(c)

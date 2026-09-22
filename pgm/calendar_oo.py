@@ -23,7 +23,6 @@ if 1:  # Imports
     import sys
     import getopt
     import calendar
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
 

@@ -1,5 +1,20 @@
 '''
 
+New vision:
+
+    - Delete all blank lines from a python file except for 
+        - Empty or space-filled lines within triple-quoted strings
+        - Between r'#\s*END_CHUNK:.*\n' and r'#\s*CHUNK:.*\n'.  There should be one
+          empty line with no spaces between these two line.
+    - Requirement:  the code can't be broken by these deletions
+    - Rationale
+        - Want high vertical compression for viewing files in editor, as vertical space
+          today is the most precious resource
+        - I use { and } in vi to navigate between blocks of code.  I insert empty lines
+          at my working spot(s) and can quickly get to them (faster than trying to
+          remember a register name).
+        - Quick way to undo the blank lines inserted by e.g. ruff or black
+
 ToDo
     - Need to fix blank lines that the python formatter inserts in functions with nested
       functions
@@ -39,7 +54,6 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from wrap import wrap, dedent
-        #from color import Color, TRM as t
     if 1:  # Global variables
         ii = isinstance
         W = int(os.environ.get("COLUMNS", "80")) - 1
@@ -53,7 +67,8 @@ if 1:  # Utility
         Usage:  {sys.argv[0]} [options] [file1 [file2 ...]]
           Delete blank lines from files.  Note a blank line is a line with no whitespace
           on it except for a newline.  Assumes stdin for no files.  If you include files
-          on the command line, use '-' for stdin.
+          on the command line, use '-' for stdin.  All filtered lines are sent to
+          stdout.
         Options:
             -1      Collapse multiple blank lines to one
         '''))
@@ -74,27 +89,6 @@ if 1:  # Utility
                 Usage()
         return files
 if 1:  # Core functionality
-    def ProcessFileOrig(file):
-        '''Use regex matching to remove blank lines.
-        
-        A problem with this approach is that it will remove the blank lines inside of
-        python multiline strings, which is almost certainly not wanted.
-        ProcessFile2() was made to handle this case.  However, this function's approach
-        is also concise and fast.
-        '''
-        s = sys.stdin.read() if file == "-" else open(file).read()
-        # Remove leading and trailing blank lines
-        s = re.sub(r"^\n+", "", s)
-        s = re.sub(r"\n+$", "", s)
-        if d["-1"]:
-            s = re.sub(r"\n\n\n+", "\n\n", s)
-        else:
-            s = re.sub(r"\n\n+", "\n", s)
-        print(s)
-    def ProcessFile(file):
-        lines = sys.stdin.read() if file == "-" else open(file).read()
-        for line in lines.split("\n"):
-            ProcessLine(line)
     def IsComment(line):
         return line.strip()[0] == "#"
     def ProcessLine(line):
@@ -169,13 +163,17 @@ if 1:  # Core functionality
                     ProcessLine.multiline = double
                 else:
                     print(f"---------- BUG ------------")
-                    breakpoint()  # xx
+                    breakpoint()
         else:
             print(line)
             ProcessLine.previous_line = line
     def Reset():
         ProcessLine.previous_line = None
         ProcessLine.multiline = False
+    def ProcessFile(file):
+        lines = sys.stdin.read() if file == "-" else open(file).read()
+        for line in lines.split("\n"):
+            ProcessLine(line)
 
 if __name__ == "__main__":
     d = {}  # Options dictionary
@@ -187,4 +185,3 @@ if __name__ == "__main__":
         for file in files:
             Reset()
             ProcessFile(file)
-            

@@ -1,40 +1,36 @@
-_pgminfo = '''
-<oo 
-    Utilities that work with binary bits
-oo>
-<oo cr Copyright © 2025 Don Peterson oo>
-<oo cat utility oo>
-<oo test -t oo>
-<oo todo
-
-- Fixed-size integers for python
-- See https://graphics.stanford.edu/%7Eseander/bithacks.html for ideas
-
-oo>
-'''
- 
 if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Utilities that work with binary bits oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2025 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ --test oo>
+        <oo todo ∞ 
+        
+            - Fixed-size integers for python
+            - See https://graphics.stanford.edu/%7Eseander/bithacks.html for ideas
+        
+        oo>
+    '''
     if 1:   # Standard imports
         import logging
+        import string
     if 1:   # Custom imports
         have_bitarray = False
         try:
-            from bitarray import bitarray
             from bitarray.util import int2ba, ba2int
             have_bitarray = True
-        except ImportError:
-            pass
-        have_basencode = False
-        try:
-            import basencode
-            have_basencode = True
         except ImportError:
             pass
         if 0:
             import debug
             debug.SetDebugger()
-    if 1:   # Global variables
-        ii = isinstance
 if 1:   # Functions
     def IntBitReverse(x):
         'Return the integer x with its bits reversed'
@@ -46,7 +42,7 @@ if 1:   # Functions
             a.reverse()
             return sign*ba2int(a)
         else:
-            return sign*int(f"0b" + ''.join(reversed(f"{abs(x):b}")), 2)
+            return sign*int("0b" + ''.join(reversed(f"{abs(x):b}")), 2)
     def ByteReverseDict():
         '''Return a dictionary that reverses the bits in a byte.  Example:
             di = ByteReverseDict()
@@ -66,20 +62,16 @@ if 1:   # Functions
                 di[i] = f(i)
             ByteReverseDict.dict = di
         return ByteReverseDict.dict
-def int2base(x, base):
-    '''Converts the integer x to a string representation in a given base.  base may be
-    from 2 to 94.  Example:  int2base("0xdeadbeef", 90) --> 
-
-    '''
-    if not hasattr(int2base, digits):
-        int2base.digits = digits + ascii_letters + punctuation
-    if not (2 <= base <= len(int2base.digits)):
-        raise ValueError(f"base must be between 2 and {len(int2base.digits)}"))
-    if not isinstance(x, (int, str)):
-        raise ValueError("Argument x must be an integer or string")
-    if have_basencode:   
-        pass
-    else:   
+    def int2base(x, base):
+        '''Converts the integer x to a string representation in a given base.  base may be
+        from 2 to 94.  Example:  int2base("0xdeadbeef", 90) --> 
+        '''
+        if not hasattr(int2base, "digits"):
+            int2base.digits = string.digits + string.ascii_letters + string.punctuation
+        if not (2 <= base <= len(int2base.digits)):
+            raise ValueError(f"base must be between 2 and {len(int2base.digits)}")
+        if not isinstance(x, (int, str)):
+            raise ValueError("Argument x must be an integer or string")
         # Method by Alex Martelli
         # http://stackoverflow.com/questions/2267362/convert-integer-to-a-string-in-a-given-numeric-base-i
         # Modified slightly
@@ -129,7 +121,7 @@ def int2base(x, base):
             ba = int2ba(70)
             for b in (2, 5, 7, 8, 11, 16, 49):
                 print(b, rBitarray(ba, b))
-          produces
+            produces
             2 rBitarray«2»('1000110')
             5 rBitarray«5»('240')
             7 rBitarray«7»('130')
@@ -139,7 +131,6 @@ def int2base(x, base):
             49 rBitarray«17»('1l')
         '''
         i = basencode.Number(ba2int(ba))
-        s = i.repr_in_base(base)
         return f"rBitarray«{base}»('{i.repr_in_base(base)}')"
 if 0:   # Fixed-size integers
     class Int:
@@ -158,7 +149,7 @@ if 0:   # Fixed-size integers
         
         '''
         def __init__(self, value, numbits=32, unsigned=False):
-            if not ii(numbits, int):
+            if not isinstance(numbits, int):
                 raise TypeError("numbits must be an integer")
             if numbits < 1:
                 raise ValueError("numbits must be > 0")
@@ -180,7 +171,6 @@ if 0:   # Fixed-size integers
                     val &= self._base
             if 1:   # Set the Int's value
                 self._value = val
-                
         if 1:   # Methods
             def __abs__(self):
                 pass
@@ -323,50 +313,46 @@ if 0:   # Fixed-size integers
             [3] https://www.electronicsmedia.info/2024/02/10/twos-complement/
             
             '''
-    if 0: #xx
-        x = Int(12)
-        print(x)
-        x = Int(12, 8)
-        print(x)
-        exit()
 
 if __name__ == "__main__":
-    from lwtest import run, Assert, raises
-    from columnize import Columnize
-    from color import t
     import sys
+
+    import lwtest as lw
+    import columnize
+    import trm
+    t = trm.Trm()
     if 1:   # Self-tests
         def Test_int2base():
-            Assert(int2base(0, 10) == "0")
-            Assert(int2base(10, 10) == "10")
-            Assert(int2base(90, 90) == "10")
-            Assert(int2base(90**2, 90) == "100")
+            lw.Assert(int2base(0, 10) == "0")
+            lw.Assert(int2base(10, 10) == "10")
+            lw.Assert(int2base(90, 90) == "10")
+            lw.Assert(int2base(90**2, 90) == "100")
         def Test_IntToBase():
-            raises(TypeError, IntToBase, 1.2, 2)
-            raises(TypeError, IntToBase, 2, 1.2)
-            raises(ValueError, IntToBase, 2, 1)
-            Assert(IntToBase(0, 2) == (0,))
-            Assert(IntToBase(1, 2) == (1,))
-            Assert(IntToBase(2, 2) == (1, 0))
-            Assert(IntToBase(2, 2, msd_first=False) == (0, 1))
-            Assert(IntToBase(10017, 82) == (1, 40, 13))
-            Assert(IntToBase(10017, 82, msd_first=False) == (13, 40, 1))
+            lw.raises(TypeError, IntToBase, 1.2, 2)
+            lw.raises(TypeError, IntToBase, 2, 1.2)
+            lw.raises(ValueError, IntToBase, 2, 1)
+            lw.Assert(IntToBase(0, 2) == (0,))
+            lw.Assert(IntToBase(1, 2) == (1,))
+            lw.Assert(IntToBase(2, 2) == (1, 0))
+            lw.Assert(IntToBase(2, 2, msd_first=False) == (0, 1))
+            lw.Assert(IntToBase(10017, 82) == (1, 40, 13))
+            lw.Assert(IntToBase(10017, 82, msd_first=False) == (13, 40, 1))
         def Test_ByteReverseDict():
             di = ByteReverseDict()
             for i in range(256):
-                Assert(f"{i:08b}" == ''.join(reversed(f"{di[i]:08b}")))
+                lw.Assert(f"{i:08b}" == ''.join(reversed(f"{di[i]:08b}")))
         def Test_IntBitReverse():
-            raises(TypeError, IntBitReverse, 1.2)
-            Assert(IntBitReverse(0b0) == 0b0)
-            Assert(IntBitReverse(0b1) == 0b1)
-            Assert(IntBitReverse(-0b1) == -0b1)
-            Assert(IntBitReverse(0b11000000) == 0b11)
-            Assert(IntBitReverse(-0b11000000) == -0b11)
+            lw.raises(TypeError, IntBitReverse, 1.2)
+            lw.Assert(IntBitReverse(0b0) == 0b0)
+            lw.Assert(IntBitReverse(0b1) == 0b1)
+            lw.Assert(IntBitReverse(-0b1) == -0b1)
+            lw.Assert(IntBitReverse(0b11000000) == 0b11)
+            lw.Assert(IntBitReverse(-0b11000000) == -0b11)
             # Test some bigger integers
             for i in range(100):
                 x = int("0x1" + "0"*i, 16)
-                Assert(IntBitReverse(x) == 1)
-                Assert(IntBitReverse(-x) == -1)
+                lw.Assert(IntBitReverse(x) == 1)
+                lw.Assert(IntBitReverse(-x) == -1)
     if 1:   # Demo
         def Demo():
             t.print(f"{t.purl}Demo of some functions in {sys.argv[0]}")
@@ -377,7 +363,7 @@ if __name__ == "__main__":
                     w = len(int2ba(x))
                     o.append(f"{x:3d} {x:0{w}b} → {IntBitReverse(x):0{w}b}")
                 t.print(f"{t.ornl}Bit reversing:  IntBitReverse(x)")
-                for i in Columnize(o, indent=" "*2):
+                for i in columnize.Columnize(o, indent=" "*2):
                     print(i)
             if 1:   # Showing a bitarray in a desired base using rBitarray
                 t.print(f"{t.ornl}Showing a bitarray in a desired base using rBitarray()")
@@ -388,6 +374,6 @@ if __name__ == "__main__":
                 t.print(f"{t.ornl}Convert an integer to any base using IntToBase()")
                 print(f"{ind}IntToBase(10017, 82) --> {IntToBase(10017, 82)}")
                 print(f"{ind}  Check:  13*82**0 + 40*82**1 + 1*82**2 = 13 + 3280 + 6724 = 10017")
-    if len(sys.argv) > 1 and sys.argv[1] == "-t":
-        exit(run(globals(), halt=True)[0])
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        exit(lw.run(globals(), halt=True)[0])
     Demo()

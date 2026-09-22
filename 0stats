@@ -24,5 +24,6 @@ printf "$c3" kB
 GetData .
 GetData pgm 
 GetData test
-GetData g
+GetData lib
+GetData doc
 #Report

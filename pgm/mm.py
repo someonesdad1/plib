@@ -17,14 +17,14 @@ if 1:  # Copyright, license
 if 1:  # Imports
     import getopt
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     from sig import sig
     from f import flt
     from frange import frange
     from columnize import Columnize
-    from color import t
+    import trm
+    t = trm.TrmDP()
 if 1:  # Global variables
     in2mm = flt(25.4)
     class g:

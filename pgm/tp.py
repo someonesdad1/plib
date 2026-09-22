@@ -36,17 +36,17 @@ if 1:  # Header
         import re
         import sys
     if 1:   # Custom imports
-        from wrap import dedent
-        from color import t
+        from dptypes import Constant
+        import trm
         import dt
+        from wrap import dedent
         if 0:
             import debug
             debug.SetDebugger()
     if 1:   # Global variables
+        t = trm.TrmDP()
         d = {"-l": "", "-p": "", "-s": ""} # Options dictionary
-        class G:
-            pass
-        g = G()
+        g = Constant()
         g.dbg = False
         g.file = 0      # File being processed
         g.on = True     # Output state
@@ -65,7 +65,8 @@ if 1:   # Utility
             {a}({p}include)|
             {a}({p}sinclude)
         '''
-        g.command_line_regex = re.compile(r, re.I|re.X)
+        with g:
+            g.command_line_regex = re.compile(r, re.I|re.X)
     def GetColors():
         t.Hash = t.sky
         t.On = t.grnl
@@ -115,10 +116,10 @@ if 1:   # Utility
         
             I've got a project that's pushing 20000 lines of text and it uses this
             🟦on/🟦off functionality in a number of ways.  For the case of showing only
-            the stuff I'm currently working on, I use the lines '🟦on xx' and '🟦off
-            xx', showing that you can put extra text on the command line and it's
-            ignored.  This lets me later search for 'xx' to find these temporary
-            commands.  I also use '🟦# xx To do item' to mark items that need attention.
+            the stuff I'm currently working on, I use the lines '🟦on ∞∞' and '🟦off
+            ∞∞', showing that you can put extra text on the command line and it's
+            ignored.  This lets me later search for '∞∞' to find these temporary
+            commands.  I also use '🟦# ∞∞ To do item' to mark items that need attention.
         
             Another use is for making internal notes to the document about questions,
             thoughts, or tasks that need to be done.  I might use '🟦on Note...' and

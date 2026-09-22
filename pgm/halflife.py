@@ -26,7 +26,7 @@ if 1:  # Copyright, license
     ##∞test∞# #∞test∞#
     pass
 if 1:  # Imports
-    from pdb import set_trace as xx
+    pass
 if 1:  # Custom imports
     from wrap import dedent
     from f import flt

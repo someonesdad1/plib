@@ -18,7 +18,6 @@ if 1:  # Copyright, license
 if 1:  # Imports
     import pathlib
     import sys
-    from pdb import set_trace as xx
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print("Need a path argument", file=sys.stderr)

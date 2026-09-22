@@ -141,13 +141,13 @@ if 1:  # Standard imports
     import subprocess
     import sys
     from collections import defaultdict
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import wrap, dedent
-    from color import TRM as t
+    import trm
+    t = trm.TrmDP()
     from columnize import Columnize
     from wsl import wsl  # wsl is True if we're running under WSL
-    from dpprint import PP
+    from dputil import PP
     pp = PP()
     if 0:
         import debug

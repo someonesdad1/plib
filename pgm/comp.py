@@ -3,15 +3,14 @@ Search for text in the components database
 '''
 if 1:  # Data
     from wrap import dedent
-
     todo = dedent('''
     comp.py ToDo list
-
+    
     - Boxes
         - Color code the box numbers
-            - yell My existing plastic boxes
-            - cynl The Plano box
-            - ornl Cardboard boxes devoted to e.g. MPJA or Proto Supply parts
+            - yel My existing plastic boxes
+            - cyn The Plano box
+            - orn Cardboard boxes devoted to e.g. MPJA or Proto Supply parts
     - Inventory
         - Quantities
         - Symbols:  M = many, F = few, * = few or none and need to order
@@ -28,7 +27,7 @@ if 1:  # Data
             - Spares have box:compartment pointer in their description
     - Look at getting some locking heavy duty plastic boxes for storage that will stack in a
       compact fashion
-
+      
     ''')
     data = dedent('''
         
@@ -42,7 +41,7 @@ if 1:  # Data
         
         The default quantity parameter is ? at the moment, but will eventually get set to the
         actual count or a symbol:
-
+        
             M   Many
             *   Few or none, need to purchase more
         
@@ -51,7 +50,7 @@ if 1:  # Data
         
         Each data line's description is free form and optional keywords follow a no-break space
         (use 'nbs' in vim).
-
+        
         Box 1
             1:1:M    Component pins   pin
             1:1:M    Pin rings   pin
@@ -63,12 +62,13 @@ if 1:  # Data
             1:4:4    Various Radio Shack (276-1657) CdS photocells   opto
             1:4:2    All Elec. 15 V sound modules   sound
             1:5:9    Small relays   relay switch
+            1:5:9    Sun Hold 12 V relay 400 ohm   relay switch
             1:6:9    Capacitor, 100 nF   capacitor
             1:6:1    Buck converter MPJA 35371 4.5-28 V in, > 3 Vout, 3 A max, heat snk > 10 W   converter
             1:7:M    #6 solder lugs   lug
             1:7:M    Jumpers   jumper
             1:8:1    3 V 0.5 mA piezo buzzer (best 2.4 kHz)   sound
-            1:8:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
+            1:8:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48   sound
             1:9:1    2 kHz piezo buzzer   sound
             1:9:2    PS MOD-3 5 V piezo buzzer (use PWM on Arduino)   sound
             1:10:2    Piezo buzzers 1 kHz sq wv 9 Vpp   sound
@@ -80,9 +80,10 @@ if 1:  # Data
             1:14:1    Piezo buzzer 60 Hz - 2 kHz 4.5 Vpp   sound
             1:15:1    Buzzer 2 kHz 9 V   sound
             1:16:1    RS Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound   sound
-            1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48 
+            1:17:M    Buzzer, mechanical 3 V 10 mA MPJA 34102 48   sound
             1:18:1    Piezo buzzer All El. <= 20 Vpp, AVX mfg   sound
-
+            1:18:1    Piezo buzzer (passive) Amazon, small UM214022 barcode X004LX91BF   sound
+            
         Box 2
             2:1:?    LEDs, misc (high brightness, UV)   opto LED
             2:2:?    120 VAC neon indicator in threaded housing   opto
@@ -112,7 +113,7 @@ if 1:  # Data
             2:17:?    Luxeon star, 1 W, white   LED LED
             2:17:?    MPQ2222A Motorola, quad NPN transistor (HP 1858-0112)   NPN
             2:18:?    7 segment LEDs   opto LED
-
+            
         Box 3
             3:1:?    Cable clamps   misc
             3:1:?    Captured fastener, right angle   fastener
@@ -130,34 +131,34 @@ if 1:  # Data
             3:10:?    Fasteners, nylon   fastener
             3:11:?    Fasteners, nylon   fastener
             3:12:?    Fasteners   fastener
-
+            
         Box 4
             4:1:?    2N5114 transistor, P-channel JFET, < 75 ohm, 30 V, 500 mW   FET transistor
             4:1:?    4-pin transistor socket   socket
             4:2:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
             4:3:?    1854-0019 HP NPN transistor, silicon, TO-18   NPN transistor
-            4:4:?    1853-0316 Dual PNP, ITS-1160, (?) 40 V 200 mA   PNP transistor
+            4:4:?    1853-0316 Dual PNP transistor, ITS-1160, (?) 40 V 200 mA   PNP transistor
             4:5:?    1855-0078 TI932 N-channel JFET, depletion mode   FET transistor
-            4:6:?    1854-0071 NPN   NPN transistor
+            4:6:?    1854-0071 NPN transistor   NPN transistor
             4:7:?    2N2160 unijunction transistor, GE   misc transistor
-            4:7:?    2N2907 PNP 40 V 800 mA, hfe=100-300 at 150 mA   PNP transistor
-            4:7:?    2N5416 PNP 300 V 1 A, hfe=5 at 5 mA   PNP transistor
-            4:7:?    2N697 NPN 40 V 150 mA, hfe=3-12   NPN transistor
-            4:8:?    1853-0036 PNP 2N3906 40 V 200 mA, hfe=80   PNP transistor
-            4:9:?    1853-0462 PNP   PNP transistor
-            4:9:?    2N3440 NPN 250 V 1 A, hfe=40-160   NPN transistor
-            4:9:?    2N3635 PNP 140 V 1 A, hfe=100-300   PNP transistor
-            4:10:?    1854-0045 NPN  hfe=150   NPN transistor
-            4:11:?    1854-0045 NPN  hfe=150   NPN transistor
-            4:12:?    1854-0404 NPN small signal transistor, National NS04008   NPN transistor
+            4:7:?    2N2907 PNP transistor 40 V 800 mA, hfe=100-300 at 150 mA   PNP transistor
+            4:7:?    2N5416 PNP transistor 300 V 1 A, hfe=5 at 5 mA   PNP transistor
+            4:7:?    2N697 NPN transistor 40 V 150 mA, hfe=3-12   NPN transistor
+            4:8:?    1853-0036 PNP transistor 2N3906 40 V 200 mA, hfe=80   PNP transistor
+            4:9:?    1853-0462 PNP transistor   PNP transistor
+            4:9:?    2N3440 NPN transistor 250 V 1 A, hfe=40-160   NPN transistor
+            4:9:?    2N3635 PNP transistor 140 V 1 A, hfe=100-300   PNP transistor
+            4:10:?    1854-0045 NPN transistor  hfe=150   NPN transistor
+            4:11:?    1854-0045 NPN transistor  hfe=150   NPN transistor
+            4:12:?    1854-0404 NPN transistor small signal transistor, National NS04008   NPN transistor
             4:13:?    LM725 op amp   opamp
             4:13:?    Small 600 uA meter (from old Omega TC box)   misc
-            4:14:?    2N2369A NPN 40 V 200 mA, hfe=20-40   NPN transistor
-            4:15:?    2N2907A PNP 60 V 600 mA, hfe=100-450   PNP transistor
+            4:14:?    2N2369A NPN transistor 40 V 200 mA, hfe=20-40   NPN transistor
+            4:15:?    2N2907A PNP transistor 60 V 600 mA, hfe=100-450   PNP transistor
             4:16:?    LF353AH Dual input JFET op amp, 8-pin metal can   opamp
             4:17:?    1826-0217 HP IC, op amp, TO-99 8 pin package   opamp
-            4:18:?    2N3251 PNP 40 V 200 mA, hfe>90   PNP transistor
-
+            4:18:?    2N3251 PNP transistor 40 V 200 mA, hfe>90   PNP transistor
+            
         Box 5
             5:1:?    Switches, pushbutton   switch
             5:2:?    Switch, rotary, 7 position, single deck    switch
@@ -167,6 +168,7 @@ if 1:  # Data
             5:4:?    Switch, toggle, single throw   switch
             5:5:?    Switch, toggle, double throw   switch
             5:6:?    Switch fasteners   hardware
+            5:6:1    Momentary on pushbutton switch with leads (old demagnetizer)   switch
             5:7:?    Switch, DIP   switch
             5:8:?    Switch, various PC mount plastic toggle   switch
             5:9:?    Switch, toggle, DPDT, momentary, large   switch
@@ -175,7 +177,7 @@ if 1:  # Data
             5:11:?    Switch, rocker   switch
             5:12:?    Switch, rocker   switch
             5:12:?    Switch, small microswitches   switch
-
+            
         Box 6
             6:1:?    4 mm banana jacks, mostly salvaged HP   jack
             6:2:?    CalTest 4 mm shrouded banana plug, fastener, red and black   plug
@@ -189,23 +191,21 @@ if 1:  # Data
             6:10:?    Ground banana jacks, nickel plated   jack
             6:11:?    CalTest low profile banana jacks, black   jack
             6:12:?    CalTest low profile banana jacks, red   jack
-
+            
         Box 7
             7:1:?    1N3600 silicon diode 100 PIV, 200 mA   diode
-            7:1:?    1N4004 diode 400 PIV, 1 A   diode
-            7:1:?    Zener 12 V 30 mA   zener
-            7:1:?    1N759 zener 12 V 30 mA   zener
-            7:1:?    1N965 zener 15 V 400 mA   zener
-            7:1:?    1N4728 zener 3.3 V @ 100 mA   zener
-            7:1:?    9.5 V rated silicon diode   diode
+            7:1:?    Zener diode 12 V 30 mA   zener
+            7:1:?    1N759 zener diode 12 V 30 mA   zener
+            7:1:?    1N965 zener diode 15 V 400 mA   zener
+            7:1:?    1N4728 zener diode 3.3 V @ 100 mA   zener
             7:1:?    9.5 V rated silicon diode   diode
             7:1:?    Assorted small signal diodes, silicon   diode
             7:1:?    C battery holder (holds one battery)   battery
-            7:1:?    Zener 1/2 W: 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30 V   zener
+            7:1:?    Zener diode 1/2 W: 3.3 4.7 5.1 6.2 7.5 8.2 9.1 10 12 15 18 24 27 30 V   zener
             7:2:?    Various AGC fuses   fuse
             7:3:?    Small silicon diodes (probably 1N4148), adhesive on leads (from Steve K.)   diode
             7:4:?    DC micromotor, 1 rev/s at 6 VDC, 10 mA no load current, 100 mA under load   misc
-            7:5:?    1N4004 diode 400 PIV, 1 A   diode
+            7:5:?    1N4004 diode 400 PIV, 1 A marked GI010159, typ voltage 0.59 V   diode
             7:5:?    Round fluorescent starters, two pin   opto
             7:6:?    D battery holder (holds one battery)   battery
             7:6:?    Misc. resistors (can toss)   resistor
@@ -221,7 +221,7 @@ if 1:  # Data
             7:12:?    MPJA level sensors   sensor
             7:12:?    Incandescent flashlight bulbs   opto
             7:12:?    Small incandescent bulb (old Heathkit fn gen) 66 Ω   opto
-
+            
         Box 8
             8:1:?    Pot, 10 ohm, 10 turn PC mount   pot
             8:2:?    Pot, 20 ohm, 10 turn PC mount   pot
@@ -247,7 +247,7 @@ if 1:  # Data
             8:16:?    Pot, 1 Mohm, 10 turn PC mount   pot
             8:17:?    Pot, 2 Mohm, 10 turn PC mount   pot
             8:18:?    World War 2 1/4" pot shaft waterproof feedthrough   hardware
-
+            
         Box 9
             9:1:?    Socket, transistor, TO-92   socket
             9:2:?    Relay, 12 V, DPDT, latching   relay switch
@@ -263,7 +263,7 @@ if 1:  # Data
             9:8:?    74LS151 8-channel digital mux   TTL
             9:9:?    CA3094E transconductance amplifier, Intersil   linear
             9:10:?    Orthodontic rubber bands   misc
-
+            
         Box 10
             10:1:?    Pot, 2 kohm, PC mount, finger dial   pot
             10:2:?    Pot, 250 ohm, PC mount, finger dial   pot
@@ -275,20 +275,20 @@ if 1:  # Data
             10:8:?    Pot, 250 kohm, PC mount, finger dial   pot
             10:9:?    Pot, 50 kohm, PC mount, finger dial   pot
             10:10:?    Pot, 480 ohm, PC mount, finger dial   pot
-
+            
         Box 11
             11:1:?    Capacitor, adjustable, 3 to 9 pF   capacitor
             11:2:?    Power jack, takes 5.5/2.1 mm plug, also plugs   jack
             11:3:?    1 A, 120 VAC SSR solid state relay, Grayhill 70YY14350   relay switch
             11:4:?    2 A, 120 VAC SSR solid state relay, Kyotto KB20C02A, 3-32 VDC in   relay switch
             11:5:?    1 A, 120 VAC SSR solid state relay, Grayhill 70YY14350   relay switch
-            11:6:?    TIP120 NPN Darlington 60 V 5 A, TO220, BCE from front, tab is B   NPN transistor
+            11:6:?    TIP120 NPN transistor Darlington 60 V 5 A, TO220, BCE from front, tab is B   NPN transistor
             11:7:?    12 VDC reed relay, 1 kohm coil, single pole NO   relay switch
-            11:8:?    2N2222 NPN 30 V 600 mA, hfe=35-300   NPN transistor
+            11:8:?    2N2222 NPN transistor 30 V 600 mA, hfe=35-300   NPN transistor
             11:9:?    LF353 Dual JFET op amp, 8-pin DIP   opamp
             11:9:?    PT27311 current transformer, 30-200 kHz   transformer
             11:10:?    Photosensitive resistors from 1960's HP differential voltmeter   opto
-
+            
         Box 12
             12:1:?    Chunk of broken UV glass   opto
             12:2:?    Frosted neon bulbs, short   opto
@@ -301,7 +301,7 @@ if 1:  # Data
             12:8:?    Various disk capacitors   capacitor
             12:9:?    Diodes   diode
             12:10:?    Capacitor, 10 nF, bypass   capacitor
-
+            
         Box 13
             13:1:?      
             13:2:?      
@@ -313,7 +313,7 @@ if 1:  # Data
             13:8:?      
             13:9:?      
             13:10:?      
-
+            
         Box 14
             14:1:?    Various inductors (coils) around 0.5 uH   inductor
             14:2:?    Various inductors (coils) around 0.2 uH   inductor
@@ -325,7 +325,7 @@ if 1:  # Data
             14:8:?    Ferrite toroid, square, 19 mm dia, 10 mm thick, 9 mm ID   ferrite
             14:9:?    Ferrite toroid, square, 13 mm dia, 6 mm thick, 7 mm ID   ferrite
             14:10:?    Ferrite toroid, square, 10 mm dia, 5 mm thick, 5 mm ID, with 2 wires, 2 turns   ferrite
-
+            
         Box 15
             15:1:?    Capacitor, 68 uF, 15 V, electrolytic, 1970's Sprague salvaged from Ithaca lock-in   capacitor
             15:2:?    Capacitor, 15 uF, 20 V, electrolytic, 1970's Sprague salvaged from Ithaca lock-in   capacitor
@@ -338,7 +338,7 @@ if 1:  # Data
             15:8:?    Capacitor, 2 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
             15:9:?    Capacitor, 0.977 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in   capacitor
             15:10:?      
-
+            
         Box 16
             16:1:M    Ring terminal, blue, #10   terminal
             16:2:M    Ring terminal, blue, #8   terminal
@@ -350,7 +350,7 @@ if 1:  # Data
             16:8:M    1/4" Faston terminal, male, 10-12 ga   terminal
             16:9:M    Spade terminal, red, #6   terminal
             16:10:M   1/4" Faston terminal, female, 12-14 ga   terminal
-
+            
         Box 17
             17:1:?    Resistor, precision, 1 kohm, HP from June 1968, 0.1%   resistor
             17:2:?    Resistor, precision, 1.001 kohm, HP from June 1968, 0.0075%   resistor
@@ -365,7 +365,7 @@ if 1:  # Data
             17:8:?    Resistor, power, 25.49 mohm, Dale, 10 W   resistor
             17:9:?    Resistor, precision, 89.975 kohm, HP from Mar 1966, 0.02%   resistor
             17:10:?    Resistor, power, Dale, 0.1337 ohm, about 3 W, three resistors in parallel   resistor
-
+            
         Box 18
             18:1:?    AGC fuse holder, end   fuse
             18:2:?    Pins, gold-plated, and matching sockets   pin
@@ -374,7 +374,7 @@ if 1:  # Data
             18:3:?    1N5817G Schottky diode, 20 PIV, 1 A   diode
             18:4:?    AGC fuse holder, panel mount   fuse
             18:4:?    2 A AGC slo-blo fuses   fuse
-            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 290 mΩ 62 °C/W TO-220
+            18:5:?    IRF630 N-ch MOSFET 200 V 9 A 290 mΩ 62 °C/W TO-220   MOSFET
             18:5:?    Socket, 8-pin DIP   socket
             18:6:?    16 pin ZIF socket   socket
             18:6:?    Jumper, 0.1 inch   jumper
@@ -382,10 +382,10 @@ if 1:  # Data
             18:8:?    Jumper, fits 8-pin DIP socket   jumper
             18:9:?    Fuse, AGC, various sizes   fuse
             18:10:?    1A 250 V lever snap action microswitch   switch
-            18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
+            18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOSFET
             18:12:?    IC tube pin (closes IC antistatic tube off)   misc
             18:12:?    0.2 A AGC-size fuse for Aneng 870 DMM   fuse
-
+            
         Box 19
             19:1:2    LF353 dual JFET op amp, 8-pin DIP   opamp
             19:2:M    LM224 quad op amp, 14-pin DIP   opamp
@@ -399,7 +399,7 @@ if 1:  # Data
             19:6:4    CA3140EZ (Intersil) BiMOS op amp, MOSFET input, bipolar output   opamp
             19:6:1    TS912IN dual CMOS op amp   opamp
             19:7:3    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
-            19:7:1    2N1487 NPN 40 V 6 A, hfe=15-45   NPN transistor
+            19:7:1    2N1487 NPN transistor 40 V 6 A, hfe=15-45   NPN transistor
             19:8:1    1826-0123 LM320-12K negative 12 V regulator TO-3   linear
             19:8:3    LM339 quad comparator, 14-pin DIP (HP part no. 1826-0138)   linear
             19:9:1    ECG56020 triac, 25 A, 400 V, 2.5 V gate voltage, 50 mA gate current   misc
@@ -407,7 +407,7 @@ if 1:  # Data
             19:10:1    LM350 adjustable regulator, 3 A, TO-3   linear
             19:11:2    LM338 regulator, 1.2-32 V, 5 A, TO-3   linear
             19:12:3    LM338 regulator, 1.2-32 V, 5 A, TO-3   linear
-
+            
         Box 20
             20:1:1    LM285Z-1.2 voltage reference, TO-92   linear
             20:1:2    LM285Z-2.5 voltage reference, TO-92   linear
@@ -427,7 +427,7 @@ if 1:  # Data
             20:4:1    6N139 opto isolator Darlington   opto
             20:4:8    Diac   misc
             20:4:1    HP 6N139 optocoupler   opto
-            20:5:15   IRF540 NMOS FET 33 A, 100 V, 44 mohm   FET transistor
+            20:5:15   IRF540 MOSFET 33 A, 100 V, 44 mohm   MOSFET
             20:6:1    74F240 octal buffer with 3-state outputs   TTL
             20:7:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220    misc
             20:8:1    74LS251M 3 state 1-of-8 line data selector/mux   TTL
@@ -440,8 +440,8 @@ if 1:  # Data
             20:12:2   LM317K adjustable voltage regulator, TO-3   linear
             20:12:2   LM317T adjustable voltage regulator, TO-220   linear
             20:12:1   7818C voltage regulator TO220   linear
-            20:12:2   HP 1826-0393, LM317T, TO-220   linear
-
+            20:12:2   HP 1826-0393, LM317T adjustable voltage regulator, TO-220   linear
+            
         Box 21
             21:1:?    Alligator clips   misc
             21:2:?    BNC all-female tees and angles   adapter
@@ -457,7 +457,7 @@ if 1:  # Data
             21:10:?    BNC 50 ohm terminators and feedthroughs   adapter
             21:11:?    Banana jack to 120 VAC ground male   adapter
             21:12:?    Lug to banana jack adapter   adapter
-
+            
         Box 22
             22:1:?    PICDEM lab parts -- short wires   misc
             22:2:?    PICDEM lab parts -- jumpers   jumper
@@ -469,7 +469,7 @@ if 1:  # Data
             22:8:?    PICDEM lab parts -- resistor   resistor
             22:9:?    PICDEM lab parts -- resistor   resistor
             22:10:?    PICDEM lab parts -- 10 uF cap   capacitor
-
+            
         Box 23 is the cardboard box of resistors
             23:1:?    inductor (coil), 2 uH, 0.77 ohm   inductor
             23:1:?    inductor (coil), 150 uH, 4.41 ohm   inductor
@@ -483,7 +483,7 @@ if 1:  # Data
             23:1:?    inductor (coil), 1.5 uH, 0.36 ohm   inductor
             23:1:?    inductor (coil), 1 mH, 15 ohm   inductor
             23:1:?    FET, 100 A (Rch < 1 mohm if Vgs > 5.39 V)   FET transistor
-
+            
         Box 24
             24:1:?    Various small batteries   battery
             24:2:?    Precision current transformer 50 A = 10 mA, 20 Hz to 20 kHz banggood 991591   ferrite transformer
@@ -509,12 +509,15 @@ if 1:  # Data
             24:22:?    N, UHF adapters   adapter
             24:23:?    Mini toggle switch DPDT on-off-mom 6 A at 125 V AC   switch
             24:24:?    Grayhill 240 VAC SSR 3.5 A solid state relay   relay
-
+            
         Box 25
             25:1:M    5 mm RGB LEDs (12 cents each from banggood)   LED
             25:1:4    GR precision wirewound resistors (1, 10, 100, 1000 kΩ) from 1656 impedance bridge   resistor
+            25:1:4    Vishay precision 2 MΩ foil resistor   resistor
+            25:1:10   0.6 Ω 3 W resistor (from Richard)   resistor
             25:2:13   650 nm laser 5 mW, 5 V, two wires   opto
             25:2:1    LM34 temperature IC   IC
+            25:2:1    MPJA 37543 3 digit green LED mini voltmeter   LED
             25:3:M    Green 5 mm LED   LED
             25:4:M    Red 5 mm LED   LED
             25:5:M    Blue 5 mm LED   LED
@@ -522,7 +525,7 @@ if 1:  # Data
             25:6:1    High gain μV/mV amplifier module, MPJA 35489, gain 1.5 to 1000   IC
             25:7:M    White 5 mm LED   LED
             25:8:M    Miniature DPDT center-off toggle switches 6 A 120 V   switch
-
+            
         Box 26
             26:1:?    8 and 10 pin SIP, resistor, 1k   resistor
             26:2:?    10 pin SIP, resistor, 1.5k   resistor
@@ -542,63 +545,71 @@ if 1:  # Data
             26:15:?    91 MΩ resistor   resistor
             26:15:?    10k, 50k, and 100k NTC thermistors 5%   thermistor
             26:15:?    200 mA fuses for Aneng 8009 meter   fuse
-
+            
         Box 27
             27:1:?    3 mm LED, yellow, 2.04 V @ 10 mA   LED
             27:2:?    3 mm LED, green, 2.02 V @ 10 mA   LED
             27:3:?    3 mm LED, red, 1.91 V @ 10 mA   LED
             27:4:?    3 mm LED, blue, 2.99 V @ 10 mA   LED
             27:5:?    3 mm LED, white, 2.96 V @ 10 mA   LED
-
+            
         Box 28
             28:1:?    Connector pair, locking 8-pin MPJA 32426   connector
             28:2:?    Connector pair, locking 8-pin MPJA 32426   connector
             28:3:?    1N4007 diode 1000 V PIV, 1 A   diode
-            28:4:?      
+            28:4:10   10 W 0.1 Ω power resistor (from Richard)   resistor
             28:5:?    Red boot 35 mm alligator clips MPJA 16452   misc
-            28:6:?    Rubber feet   hardware
+            28:6:?    Capacitor 2.2 μF 16 V (from Richard)   hardware
             28:7:?      
             28:8:?    Banana plugs, screw attach MPJA 30045   plug
             28:9:?    DPDT on-on mini toggle switch MPJA 31886   switch
             28:10:?    Black boot 35 mm alligator clips MPJA 16453   misc
             28:11:?      
             28:12:?      
+            28:12:10   5 W 0.1 Ω power resistor (from Richard)   resistor
             28:13:?      
             28:14:?    Dual banana jack MPJA 14492   jack
             28:15:?    Feed-throughs   connector
             28:16:?      
             28:17:?    Plastic tips for Soldapullt   misc
             28:18:?    Dual banana jack MPJA 14492   jack
-
+            
         Box 29
             29:1:?    Dual banana jack MPJA 14492   jack
+            29:1:w    USB-A 5 V to 12 V output boost converter   converter
             29:1:?    BNC jacks & hardware (in plastic bag)   connector
             29:2:?    BNC jacks & hardware   connector
-            29:3:?    2N7000 MOSFET transistor TO92 60 V 200 mA   MOS
+            29:3:20   2N7000 MOSFET transistor TO92 60 V 200 mA   MOSFET
+            29:3:1    120 V blue voltage monitor MPJA 34660   module
             29:4:?    Normally closed thermostats 40, 50, 60, 65[5]150 °C, MPJA 38152   thermostat
+            29:4:15   STP40NF10L N-Ch MOSFET 100 V 40 A ProtoSupplies XTR-82   MOSFET
             29:5:?    Rubber tips & plugs for banana test leads   probe
             29:6:?    Normally open thermostats 40, 50, 60, 65[5]150 °C, MPJA 35719   thermostat
             29:7:?    Standard toggle switch safety cover   switch
             29:8:?    Hamon 0.1 and 0.01 divider parts   misc
-            29:9:?      
-
+            29:8:20   LM358P dual op amp MPJA 36231   opamp
+            
         Box 30
+            30:1:1    Buck CV/CC converter 3 A MPJA 33370   converter
             30:1:?    Dupont jumper wires, assorted, 100 mm   connector
             30:1:19   100 μF 35 V surface mount capacitors   capacitor
-            30:1:?    AC volts multi-function meter (line voltage & current measurement)   meter
+            30:1:4    47 μF 35 V surface mount capacitors (from Richard)   capacitor
+            30:1:4    220 μF 35 V surface mount capacitors (from Richard)   capacitor
+            30:1:1    MPJA 37882 looping relay PCB (from Richard)   relay
+            30:1:1    Small prototyping PC boards (from Richard)   PCB
             30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt   module
-            30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOS
+            30:3:?    IRFZ44N N-ch MOSFET 55 V 49 A 17.5 mΩ 62 °C/W TO220   MOSFET
             30:4:7    Buck converter banggood 30Dec2019 $1.2   PCB
             30:5:?    5 V relay, 2.5 mA @ 5 V, 15 A 125 V (new 7 Aug 2017 banggood)   relay
             30:6:?    12 V 10 A relay, 60 mA closed (new 19 May 2022, Amazon, $2)   relay
-
+            
         Box 31
             31:1:?    Header 1x10 pin   socket
             31:2:?    Header 2x3 pin   socket
             31:3:?    Header 1x10 pin   socket
             31:4:?    Header 1x6 pin   socket
             31:5:?    Header 1x8 pin   socket
-
+            
         Box 32
             32:1:?    Capacitor, 100 nF, 25 V, part no. 104M5C806   capacitor
             32:2:?      
@@ -613,7 +624,7 @@ if 1:  # Data
             32:11:?      
             32:12:?      
             32:13:M   Boost converter 2 A 2-24 V banggood 2017/2020 ~80¢   PCB
-
+            
         Box 33
             33:1:? IEC type C jack MPJA 37461   jack
             33:2:? 
@@ -632,7 +643,7 @@ if 1:  # Data
             33:16:? 
             33:17:? 
             33:18:? 
-
+            
     ''')
     if 0:  # For testing/debugging
         data = dedent('''
@@ -643,7 +654,6 @@ if 1:  # Header
     if 1:  # Imports
         from collections import defaultdict
         from functools import cmp_to_key
-        from pdb import set_trace as xx
         from pprint import pprint as pp
         import csv
         import getopt
@@ -653,11 +663,11 @@ if 1:  # Header
         import sys
     if 1:  # Custom imports
         from columnize import Columnize
-        from color import TRM as t
-
+        import dpseq
+        import trm
+        t = trm.TrmDP()
         if 0:
             import debug
-
             debug.SetDebugger()
     if 1:  # Global variables
         beginning_lines_to_ignore = 3
@@ -687,7 +697,6 @@ if 1:  # Classes
             self.end = None
             # Other attributes
             self.empty = True if not self.description else False
-
         def __str__(self):
             k = "/".join(self.keywords)
             i = " " * 1
@@ -698,10 +707,8 @@ if 1:  # Classes
             if k:
                 s += f" {t.keyword}[{k}]{t.n}"
             return s
-
         def __repr__(self):
             return str(self)
-
         def __lt__(self, other):
             '''Comparison for sorting.  The primary key is the box number and the secondary key is
             the compartment number.
@@ -713,6 +720,11 @@ if 1:  # Classes
             else:
                 return int(self.compartment) < int(other.compartment)
 if 1:  # Utility
+    def Error(*msg, status=1):
+        print(f"{t.err}", end="")
+        print(*msg, end="")
+        print(f"{t.n}")
+        exit(status)
     def SetColors(on=True):
         # Colors
         t.match = t("royl") if on else ""
@@ -720,7 +732,8 @@ if 1:  # Utility
         t.compartment = t("grn") if on else ""
         t.quantity = t("viol") if on else ""
         t.keyword = t("gry") if on else ""
-        t.warn = t("ornl") if on else ""  # Color for a missing category warning
+        t.warn = t("orn") if on else ""  # Color for a missing category warning
+        t.err = t("red") if on else "" 
     def Usage(status=0):
         print(
             dedent(f'''
@@ -730,8 +743,17 @@ if 1:  # Utility
                 that matches this with the '-' removed will not appear in the output.  The numbers
                 separated by ':' are:  box, compartment, quantity.  Quantity is not shown unless
                 it is known (i.e., not '?' in the data).
-                
-                The special regex 'e' will cause the source file to be edited.
+            Single letter commands
+                a   Dump all records
+                b n Show contents of box number n
+                d   Inspect the data, showing problem areas
+                D   Dump raw data to stdout
+                e   Edit the source file
+                l   List keywords
+                m   Show empty compartments
+                n   Show box numbers in use
+                t   Dump the todo list
+                v   Print out color code and numbering key
             Example
                 python '{sys.argv[0]}' diode -zener
                     shows diodes that don't contain 'zener'.
@@ -769,6 +791,8 @@ if 1:  # Utility
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
+        if len(sys.argv) < 2:
+            Usage()
         for o, a in optlist:
             if o[1] in "aCcdeilov":
                 d[o] = not d[o]
@@ -781,14 +805,20 @@ if 1:  # Utility
                 Usage()
             elif o in ("-k",):
                 d["-k"] = a
+            elif o in ("-m",):
+                ShowEmptyCompartments()
+            elif o in ("-n",):
+                ShowBoxNumbersInUse()
             elif o in ("-t",):
-                print(todo)
+                PrintToDo()
                 exit(0)
         SetColors(False) if d["-C"] else SetColors()
         if len(args) == 1 and args[0] == "e":
             EditFile()
         return args
 if 1:  # Core functionality
+    def PrintToDo():
+        print(todo)
     def EditFile():
         subprocess.call(["vi", "/plib/pgm/comp.py"])
         exit(0)
@@ -822,19 +852,19 @@ if 1:  # Core functionality
                     e = Entry(i + 1, location, description, keywords)
                 items.append(e)
         if 0:  # Debug dump items
-            t.print(f"{t.ornl}Debug dump of items:")
+            t.print(f"{t.orn}Debug dump of items:")
             for i in items:
                 print(i)
             exit(0)
         items = list(sorted(items))
         if not items:
-            print(f"{t.ornl}items is empty")
+            print(f"{t.orn}items is empty")
             exit()
         return items
     def TextSearch(args, items):
         '''found will hold the Entry items that matched; pos holds the start and
         end position of the first match and is keyed by the line.
-
+        
         args        List of regexes to search for
         items       List of Entry instances; when printed, an Entry will result in a string like
                     "1:1 Component pins".
@@ -928,18 +958,15 @@ if 1:  # Core functionality
                 f"Color coding:  {t.box}box "
                 f"{t.compartment}compartment "
                 f"{t.quantity}quantity "
-                f"{t.keyword}keyword"
-            )
+                f"{t.keyword}keyword")
         # Quantity coding
         if qty:
-            print(
-                dedent('''
+            print(dedent('''
                 Letters for quantity:
                     ?   Not inventoried yet
                     f   A few
                     m   Too many to count
-            ''')
-            )
+            '''))
     def Keywords(items):
         "Returns a set of the keywords"
         kw = []
@@ -961,7 +988,7 @@ if 1:  # Core functionality
                 if not item.keywords:
                     no_kwd.append(item)
             if no_kwd:
-                t.print(f"{t.ornl}Items with no keyword:")
+                t.print(f"{t.orn}Items with no keyword:")
                 for item in no_kwd:
                     print(item)
         # Need inventory:  print boxes that still need their parts counted
@@ -975,14 +1002,88 @@ if 1:  # Core functionality
                     needs_counting[box] += 1
             if needs_counting:
                 o = []
-                t.print(f"{t.ornl}Boxes:compartments that still need parts counting:")
+                t.print(f"{t.orn}Boxes:compartments that still need parts counting:")
                 for box in needs_counting:
                     o.append(f"{box:2d}: {needs_counting[box]}")
                 for i in Columnize(o, columns=5, sep=" " * 5):
                     print(i)
+    def PrintKeywords():
+        # Put each keyword into a dict with its count
+        KW = defaultdict(int)
+        for item in items:
+            for kw in item.keywords:
+                KW[kw] += 1
+        # Get maximum count
+        max_count = max(KW.values())
+        w = len(str(max_count))  # Needed printing width
+        # Print sorted alphabetically
+        o, o1, max_count = [], [], 0
+        #t.print(f"{t.orn}Keywords sorted alphabetically (number is count):")
+        t.print(f"{t.orn}Keywords sorted alphabetically:")
+        for name in sorted(KW, key=str.lower):
+            count = KW[name]
+            #o.append(f"{count:{w}d} {name}")
+            o.append(f"{name}")
+            o1.append((count, name))
+        for item in Columnize(o):
+            print(item)
+        # Print sorted numerically
+        t.print(f"\n{t.orn}Keywords sorted by count:")
+        o = []
+        for count, name in sorted(o1):
+            o.append(f"{count:{w}d} {name}")
+        for item in Columnize(o):
+            print(item)
+    def ShowEmptyCompartments():
+        u = defaultdict(list)
+        for item in items:
+            if item.empty:
+                u[item.box].append(item.compartment)
+        t.print(f"{t.orn}Empty compartments:")
+        for i in u:
+            b = list(sorted(set(u[i])))
+            t.print(f"{t.box}{i:2d}: {t.compartment}{' '.join(str(j) for j in b)}")
+    def ShowBoxNumbersInUse():
+        o = []
+        for line in data.split("\n"):
+            line = line.strip()
+            if not line.startswith("Box "):
+                continue
+            num = int(line.split()[1])
+            o.append(num)
+        print("Box numbers in use: ", dpseq.Hyphenate(o))
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
+    if args and len(args[0]) == 1:   # One letter command
+        allowed, letter = "abdDeklmntv", args[0]
+        if letter in allowed:
+            if letter == "a":
+                d["-a"] = True
+            elif letter == "b":
+                try:
+                    d["-b"] = args[1]
+                except Exception:
+                    Error("Need box number")
+            elif letter == "d":
+                d["-d"] = True
+            elif letter == "D":
+                print(data)
+                exit(0)
+            elif letter in "kl":
+                d["-l"] = True
+            elif letter == "m":
+                d["-e"] = True
+            elif letter == "n":
+                ShowBoxNumbersInUse()
+                exit(0)
+            elif letter == "t":
+                d["-t"] = True
+            elif letter == "v":
+                d["-v"] = True
+                PrintColorCoding()
+                exit(0)
     if not d["-C"]:
         t.cat = t.hl = t.N = ""
     items = GetData()
@@ -996,43 +1097,12 @@ if __name__ == "__main__":
         for item in items:
             if item.box == n:
                 print(item)
-        PrintColorCoding()
     elif d["-d"]:
         Inspection()
     elif d["-e"]:  # Show empty compartments
-        u = defaultdict(list)
-        for item in items:
-            if item.empty:
-                u[item.box].append(item.compartment)
-        t.print(f"{t.ornl}Empty compartments:")
-        for i in u:
-            b = list(sorted(set(u[i])))
-            t.print(f"{t.box}{i:2d}: {t.compartment}{' '.join(str(j) for j in b)}")
+        ShowEmptyCompartments()
     elif d["-l"]:  # Show allowed keywords
-        # Put each keyword into a dict with its count
-        KW = defaultdict(int)
-        for item in items:
-            for kw in item.keywords:
-                KW[kw] += 1
-        # Get maximum count
-        max_count = max(KW.values())
-        w = len(str(max_count))  # Needed printing width
-        # Print sorted alphabetically
-        o, o1, max_count = [], [], 0
-        t.print(f"{t.brnl}Keywords sorted alphabetically (number is count):")
-        for name in sorted(KW, key=str.lower):
-            count = KW[name]
-            o.append(f"{count:{w}d} {name}")
-            o1.append((count, name))
-        for item in Columnize(o):
-            print(item)
-        # Print sorted numerically
-        t.print(f"\n{t.brnl}Keywords sorted by count:")
-        o = []
-        for count, name in sorted(o1):
-            o.append(f"{count:{w}d} {name}")
-        for item in Columnize(o):
-            print(item)
+        PrintKeywords()
     elif d["-k"]:  # Show all the items with the given keyword
         kw = d["-k"].lower()
         for item in items:

@@ -22,7 +22,6 @@ if 1:  # Imports
     import re
     import sys
     from collections import defaultdict, deque
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import wrap, dedent
     from columnize import Columnize

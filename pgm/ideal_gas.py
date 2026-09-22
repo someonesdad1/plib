@@ -105,10 +105,10 @@ if 1:  # Imports
     import sys
     import os
     import getopt
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
-    from color import t
+    import trm
+    t = trm.TrmDP()
     from get import GetNumber
     from f import flt
     from u import u, to, CT, ParseUnit

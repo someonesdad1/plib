@@ -1,32 +1,38 @@
 '''
+
+ToDo:
+    - Fix basic behavior:  
+        --test doesn't work 
+        - -2 option doesn't work with '-2 516 .0003' and it should
+
+
 Calculate parameters of an Archimedean spiral.  The units of length are arbitrary; the
 program assumes that the diameters, lengths, and thicknesses all have the same physical
 unit.
 
 Examples:
-
     1.  I have a toilet paper roll.  The paper is 0.068 mm thick, the roll is 120 mm in
         outside diameter, and the inside diameter is 44 mm.  What is the length of paper
         on the roll?
-
+        
             Choose problem 1; enter t = 0.068, D = 120, d = 44.  Get
                 n = 558.824 turns
                 L = 143959 mm = 144 m
-
+                
     2.  How big in diameter will be 1000 turns of sheet metal 0.01 units thick?
-
+    
             Choose problem 3; enter number of turns n and thickness t.  Get
                 L = 31415.9
                 D = 20
-
+                
     3.  I have a piece of 2" steel pipe that has an ID of 2.07 inches.  If a US dollar
         bill is 6.1 inches long, 2.61 inches wide, and 0.0043 inches thick, how many 
         dollar bills could I roll up and put into the pipe?
-
+        
             Choose problem 1 and input t = 0.004, D = 2.07, d= 0.  Get
                 L = 782.6"
                 n = 240.7
-
+                
         If we take int(782.6/6.1), we get 128 bills.  Practically, there are some
         physical limitations that would reduce this number.  The bills couldn't be wound
         tightly starting from zero radius.  You'd also probably want to use some tape to
@@ -36,29 +42,29 @@ Examples:
         estimate by 10-20% and declare the amount to be 100 bills.  Thus, if the bills
         were $100 bills, a 2 inch pipe could then store $10k for every 2.7 inches of
         length.
-
+        
     4.  Suppose I want to design a phonograph pen tester that will draw a line on paper
         in the shape of a spiral.  The pen writes a line 0.5 mm wide and I want there to
         be 0.25 mm between the lines.  Therefore, I pick the thickness t to be 0.75 mm.
         I'll start the line at a diameter of d = 25 mm and stop the line at a diameter
         of D = 1500 mm.  Calculate the drawn length by calling the script with '-1 1500
         25 0.75':
-
+        
             Outside diameter    = 1500
             Inside diameter     = 25
             Thickness           = 0.75
             Number of turns     = 983.33333
             Length              = 2355540.2
             Angle               = 6178.4656 rad = 354000°
-
+            
         Divide the length by 1000 to get 2356 m.  By turning the paper over, I can draw
         a line of 4.7 km on one sheet of paper.  I estimate it will take about 3 s to
         draw 200 mm, so the pen speed is about 70 mm/s.  The time to draw 2356 m is then
         2355540/70 = 33650 s or 9.3 hours.
-
+        
         The tester would need to know the radius of the pen to be able to keep the
         linear speed of the rotating paper constant.
-
+        
 '''
 if 1:  # Header
     if 1:  # Copyright, license
@@ -84,12 +90,12 @@ if 1:  # Header
         from wrap import dedent
         from u import u, fromto, ParseUnit
         from f import flt, pi, sqrt, log, degrees
-        from root import NewtonRaphson
+        from dproot import NewtonRaphson
         from lwtest import run, Assert, raises, assert_equal
         import g
+        from dbg import Dbg
     if 1:  # Global variables
         P = pathlib.Path
-        ii = isinstance
         problem_description = dedent('''
         Select the problem to solve (enter nothing or q to quit):
             1.  Have D, d, and t; want n and L.
@@ -103,12 +109,11 @@ if 1:  # Utility
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
         exit(status)
-        
     def Usage(status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] parameters
-          Calculate the parameters of an Archimedean spiral:
+          Calculate the parameters of an Archimedean spiral (all lengths use the same
+          unit):
             D = outside diameter of spiral
             d = inside diameter of spiral
             t = thickness of spiral's wraps
@@ -123,14 +128,13 @@ if 1:  # Utility
         ''')
         )
         exit(status)
-        
     def ParseCommandLine(d):
         d["-1"] = False  # Solve problem 1
         d["-2"] = False  # Solve problem 2
         d["-3"] = False  # Solve problem 3
         d["-d"] = 8  # Number of significant digits
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "123d:ht", "test")
+            opts, args = getopt.getopt(sys.argv[1:], "123d:h", "test")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
@@ -345,7 +349,6 @@ if 1:  # Core functionality
         Length              = {L}
         Angle               = {theta} rad = {deg}°''')
         )
-        
     def GetNum(msg, zero_ok=False, is_length=True):
         '''Prompt for the number; if is_length is True, the dimension of the
         unit must be a length.  Either a Length() object or float is
@@ -367,7 +370,6 @@ if 1:  # Core functionality
                 return num
             except Exception:
                 print("'{}' is not a valid length".format(s))
-                
     def Problem1():
         '''Given D, d, t find n, L.
         Test case:
@@ -404,7 +406,6 @@ if 1:  # Core functionality
         theta = PN(thetaD - thetad)
         L = LD - Ld
         PrintReport(D, d, t, n, L, theta)
-        
     def Problem2():
         '''Given L, t find n, D.  Assumes d = 0.
         Test case:
@@ -446,7 +447,6 @@ if 1:  # Core functionality
         D = 2 * n * t
         d = PN(0)
         PrintReport(D, d, t, n, L, theta)
-        
     def Problem3():
         '''Given n, t find L, D.  Assumes d = 0.
         Test case:
@@ -471,7 +471,6 @@ if 1:  # Core functionality
         D = 2 * n * t
         d = PN(0)
         PrintReport(D, d, t, n, L, theta)
-        
     def PrintEquations():
         print(
             dedent(f'''
@@ -490,7 +489,6 @@ if 1:  # Core functionality
         While the equations are exact, the numbers are most meaningful when
         t << D.''')
         )
-        
     def GetDefaultLengthUnit():
         default_unit = "mm"
         print("\nEnter default length unit [{}]:  ".format(default_unit), end="")
@@ -510,7 +508,6 @@ if 1:  # Core functionality
                     pass
                 print("Not a valid length unit -- try again:  ", end="")
         return s
-        
     def Interactive():
         print(
             dedent(f'''
@@ -540,10 +537,8 @@ if 1:  # Core functionality
             else:
                 print("Unrecognized problem number")
                 exit(1)
-                
     def Manpage():
-        print(
-            dedent(f'''
+        print(dedent(f'''
         The polar equation of an Archimedean spiral is
         
             r = a*θ
@@ -585,10 +580,8 @@ if 1:  # Core functionality
                 Angle               = 3511.1918 rad = 201176.47°
             Divide the length by 1000 to get 144 m.
      
-        ''')
-        )
+        '''))
         exit(0)
-        
     def Test_Spiral():
         "Test the basic functionality of the Spiral object"
         s, eps = Spiral(), 1e-6
@@ -636,7 +629,7 @@ if 1:  # Core functionality
         # s.PrintReport()
         assert_equal(di["L"], L, reltol=eps)
         assert_equal(di["D"], D, reltol=eps)
-if 0:
+if 0:   # DrawSpiral
     import g, math
     def DrawSpiral(file, a, theta1, theta2):
         "Generate a PostScript file showing a spiral"
@@ -676,6 +669,7 @@ if 0:
         dtheta = pi / 100
         Draw(Nrevolutions, a, dtheta)
     DrawSpiral("a.ps", 0.1, 0, 10 * pi)
+
 if 1 and __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
@@ -700,3 +694,4 @@ if 1 and __name__ == "__main__":
         s.PrintReport()
     else:
         Usage()
+        

@@ -1,6 +1,5 @@
 """
-Remove printable characters from the lines of the text files (or stdin)
-and report on which lines have control characters or Unicode characters.
+Identify lines with control or Unicode characters
 """
 
 if 1:  # Copyright, license
@@ -21,7 +20,6 @@ if 1:  # Imports
     import os
     import string
     import sys
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from columnize import Columnize
     from wrap import dedent

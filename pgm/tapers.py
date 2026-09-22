@@ -17,9 +17,6 @@ if 1:  # Imports & globals
     from fractions import Fraction
     from math import atan, pi
 
-    # Debugging stuff
-    from pdb import set_trace as xx
-
     if 0:
         import debug
 

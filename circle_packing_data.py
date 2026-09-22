@@ -1,0 +1,181 @@
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Construct circle packing data oo>
+        <oo desc ∞
+            Download the circle packing data from
+            http://hydra.nat.uni-magdeburg.de/packing/cci/cci.html and construct a CSV file
+            from it.
+        oo>
+        <oo copy ∞ Copyright © 2026 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ utility oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ oo>
+    '''
+    if 1:   # Standard imports
+        from pathlib import Path as P
+        import csv
+        import sys
+    if 1:   # Custom imports
+        import dptypes
+        import requests
+        import trm
+        from wrap import dedent
+        if 0:
+            import debug
+            debug.SetDebugger()
+    if 1:   # Global variables
+        t = trm.Trm()
+        g = dptypes.Constant()
+        g.dbg = False
+        t.dbg = t.lill
+        # Hold the downloaded data
+        with g:
+            g.radius = []
+            g.distance = []
+            g.ratio = []
+            g.density = []
+            g.contacts = []
+            g.loose = []
+            g.boundary = []
+            g.symmetry = []
+            g.author = []
+            g.hdr = "http://hydra.nat.uni-magdeburg.de/packing/cci/txt"
+            g.tmp = P("/tmp/circle_packing_data")   # Cache files here
+            g.minlength = 2734  # Each downloaded file must have >= this number of lines
+            # Name of the files we'll use to store data
+            g.files = "radius distance ratio density contacts loose boundary symmetry author".split()
+            # Keep track of number of lines in CSV file written
+            g.lines = 0
+if 1:   # Utility
+    def Dbg(*p, **kw):
+        if g.dbg:
+            print(f"{t.dbg}", end="")
+            print(*p, **kw)
+            print(f"{t.n}", end="")
+if 1:   # Core functionality
+    def DownloadFiles():
+        "Download the website's files and cache them in g.tmp"
+        for file in g.files:
+            url = f"{g.hdr}/{file}.txt"
+            r = requests.get(url)
+            s = r.content.decode()  # Convert to UTF8 string
+            with P(f"{g.tmp}/{file}.txt").open("w") as f: # Cache the file
+                f.write(s)
+            Dbg(f"Downloaded {file}.txt")
+    def ProcessFile(file):
+        'Return file as a list of (a, b) where a is an integer and b is a string'
+        myfile = f"{g.tmp}/{file}"
+        Dbg(f"  Processing {myfile}")
+        s = open(myfile).read()
+        o = []
+        for line in s.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            f = line.split()
+            if len(f) == 1:
+                # This only happens in symmetry.txt for no group; make it C1
+                n = f[0]
+                item = "C1"
+            elif len(f) == 2:
+                n, item = line.split()
+            else:
+                n = f[0]
+                item = ' '.join(f[1:])
+            n = int(n)
+            o.append((n, item))
+        Dbg(f"    {file}: {len(o)} lines")
+        return o
+    def MakeCSVFile(file):
+        # Read in data from the cached files
+        Dbg("Reading in cached file data")
+        radius   = ProcessFile("radius.txt")
+        distance = ProcessFile("distance.txt")
+        ratio    = ProcessFile("ratio.txt")
+        density  = ProcessFile("density.txt")
+        contacts = ProcessFile("contacts.txt")
+        loose    = ProcessFile("loose.txt")
+        boundary = ProcessFile("boundary.txt")
+        symmetry = ProcessFile("symmetry.txt")
+        author   = ProcessFile("author.txt")
+        # Fix the distance array
+        distance.insert(0, (1, '0.000000000000000000000000000000'))
+        Dbg("Fixed distance array (missing first line)")
+        # Check the lengths of the arrays
+        n = len(radius)
+        s = (radius, distance, ratio, density, contacts, loose, boundary, symmetry, author)
+        assert (len(i) == n for i in s)
+        Dbg("All array lengths OK")
+        # Verify first element in every file is correct integer
+        N = []
+        for i in range(n):
+            value = radius[i][0]
+            for k in s:
+                assert k[i][0] == value
+            N.append(value)
+        Dbg("First element integer matches in each file")
+        # Construct the CSV file
+        cfile = P("circle_packing.csv")
+        with open(str(cfile), "w", newline='') as csvfile:
+            w = csv.writer(csvfile)
+            for i in range(n):
+                row = [N[i]]
+                for j in s:
+                    row.append(j[i][1])
+                w.writerow(row)
+                g.lines += 1    # Count number of lines written
+        print(f"Wrote CSV file {t.sky}{cfile} ({g.lines} lines)")
+    def ReadCSVFile(cfile):
+        'Read in the file to verify it reads correctly'
+        with open(cfile, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            count = 0
+            for row in reader:
+                N = int(row[0])             # noqa
+                radius = float(row[1])      # noqa
+                distance = float(row[2])    # noqa
+                ratio = float(row[3])       # noqa
+                density = float(row[4])     # noqa
+                contacts = int(row[5])      # noqa
+                loose = int(row[6])         # noqa
+                boundary = int(row[7])      # noqa
+                symmetry = row[8]           # noqa
+                reference = row[9]          # noqa
+                count += 1
+        # Make sure we read in the same number of lines we wrote
+        if count != g.lines:
+            print(f"{t.redl}Error:  number of lines read != number of lines written")
+            print(f"  Number read    = {count}")
+            print(f"  Number written = {g.lines}")
+            exit(1)
+    def UpdateMessage():
+        print(dedent("""
+        This script shouldn't be run until you know the web page 
+        http://hydra.nat.uni-magdeburg.de/packing/cci/cci.html has been updated (the
+        last update date is given as e.g. 'Last update: 25-Dec-2024' at the top of the
+        page).  When you want to update the data, you must:
+
+            - Delete the directory /tmp/circle_packing_data
+            - Run this script with any command line argument
+        """))
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        UpdateMessage()
+        exit(0)
+    # Make a temporary directory in /tmp
+    with g:
+        if not g.tmp.exists():  # type: ignore
+            g.tmp.mkdir()   # type: ignore
+            DownloadFiles()
+        else:
+            t.print(f"{t.ornl}Files cached in {g.tmp}.  Remove directory for fresh download.")  # type: ignore
+    csvfile = "circle_packing.csv"
+    MakeCSVFile(csvfile)
+    ReadCSVFile(csvfile)

@@ -6,7 +6,6 @@ Run it in an empty directory to create a set of test files.
 import os
 import pathlib
 from wrap import dedent
-from pdb import set_trace as xx
 
 P = pathlib.Path
 

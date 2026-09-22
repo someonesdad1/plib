@@ -34,7 +34,8 @@ if 1:  # Header
         from f import flt, pi, acos, sqrt
         from get import GetNumber
         from u import ParseUnit, ParseUnitString
-        from color import t
+        import trm
+        t = trm.TrmDP()
     if 1:  # Global variables
         # Constants
         m3_per_ft3 = flt(0.0283168)
@@ -369,11 +370,6 @@ if 1:  # Utility
                 continue
             if u in allowed_length_units:
                 return (flt(num)*flt(prefix)*flt(allowed_length_units[u]), str(flt(num)) + " " + unit)
-
-if 0: #xx
-    form = HorizontalCylinder()
-    form.GetDimensions()
-    exit()
 
 if __name__ == "__main__":
     indent = " "*4

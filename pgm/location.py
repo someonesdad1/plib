@@ -31,10 +31,9 @@ if 1:  # Header
     if 1:   # Custom imports
         from f import flt
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.TrmDP()
         from lwtest import Assert
-        from dpprint import PP
-        pp = PP()   # Get pprint with current screen width
         if 0:
             import debug
             debug.SetDebugger()

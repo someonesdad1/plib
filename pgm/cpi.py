@@ -31,8 +31,10 @@ if 1:  # Header
         from wrap import dedent
         from f import flt
         from columnize import Columnize
-        from color import t
-        from months import months
+        import trm
+        t = trm.TrmDP()
+        #from months import months
+        import dptime
     if 1:  # Global variables
         # The needed inflation information is in the CPI dictionary, which maps integer
         # year to CPI values.
@@ -51,7 +53,7 @@ if 1:  # Utility
         In 1970, 3 friends lived in an apartment.  They ate simply and found they could
         be comfortable on $5 per week for food.  What is that equivalent to in 2025
         dollars?  Run the script with arguments:  '1970 5'.  The results are
-
+        
             Year = 1970, reference year = 2025, difference = 55 years
             Ratio for year/ref = 8.3
             Ratio for ref/year = 0.121
@@ -63,7 +65,7 @@ if 1:  # Utility
         2025 live comfortably on about $160 per month per person for food?  I'd answer a
         tentative yes, but you'd be on a budget, wouldn't eat in restaurants at all, and 
         you'd be buying mostly inexpensive foods.  
-
+        
         The script uses the US consumer price index numbers to scale a cost from one
         year to another.  It's only relevant to the US and it's the usual bureaucratic
         mess with changes in definitions over time and politicians wanting to make it
@@ -76,7 +78,7 @@ if 1:  # Utility
         Usage:  {name} [options] Y [amount1 amount2 ...]
           Print approximately what something cost in year Y compared to today
           ({ref_year}).  If amounts are included, they are scaled to both years.  Based
-          on the consumer price index.
+          on the consumer price index from 1913 to today.
         Options:
           -d n      Set the number of significant digits.  [{d["-d"]}]
           -h        Print a manpage
@@ -232,6 +234,7 @@ if 1:  # Core functionality
                 continue
             date, wage = line.split("$")
             month, day, year = date.split()
+            breakpoint() # ∞∞ 
             month = months(month)
             day = int(day.strip()[:-1])
             year = int(year)

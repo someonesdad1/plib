@@ -21,7 +21,6 @@ if 1:  # Imports
     import traceback
     import textwrap
     from collections import defaultdict
-    from pdb import set_trace as xx
 if 1:  # Custom imports
     from wrap import dedent
     if 0:
@@ -88,7 +87,7 @@ if 1:  # Utility
         d["-b"] = False  # Read as binary
         d["-c"] = False  # Use linenum:col format
         d["-l"] = False  # Only print the filename
-        d["-u"] = False  # Just print the U+xxxx form after the filename
+        d["-u"] = False  # Just print the U+dddd form after the filename
         d["-w"] = False  # Wrap lines
         try:
             optlist, args = getopt.getopt(sys.argv[1:], "bchluw")

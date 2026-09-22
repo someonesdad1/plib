@@ -1,58 +1,42 @@
-"""
-Identify file differences between /plib and /pylib.
-"""
-
-if 1:  # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright (C) 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <utility> Identify file differences between /plib and /pylib.  /pylib
-    # was my old python directory for scripts I've written starting in
-    # 1998.  There were over 1200 files in the /pylib directory tree, so I
-    # had to do a lot of trimming.
-    ##∞what∞#
-    ##∞test∞# ignore #∞test∞#
-    pass
-if 1:  # Standard modules
-    import getopt
-    import os
-    import pathlib
-    import sys
-if 1:  # Custom modules
-    from cmddecode import CommandDecode
-    from wrap import dedent
-    from columnize import Columnize
-
-    # Debugging stuff
-    from pdb import set_trace as xx
-
-    if 0:
-        import debug
-
-        debug.SetDebugger()  # Start debugger on unhandled exception
-if 1:  # Global variables
-    commands = "report details diff".split()
-    P = pathlib.Path
+if 1:  # Header
+    _pgminfo = '''
+        <oo gist ∞ Identify file differences between /plib and /pylib oo>
+        <oo desc ∞ Description oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ category oo>
+        <oo test ∞ notest oo>
+        <oo todo ∞ Todo items oo>
+    '''
+    if 1:  # Standard modules
+        import getopt
+        import pathlib
+        import sys
+    if 1:  # Custom modules
+        from cmddecode import CommandDecode
+        from wrap import dedent
+        from columnize import Columnize
+        if 0:
+            import debug
+            debug.SetDebugger()  # Start debugger on unhandled exception
+    if 1:  # Global variables
+        commands = "report details diff".split()
+        P = pathlib.Path
 if 1:  # Utility
-
     def eprint(*p, **kw):
         "Print to stderr"
         print(*p, **kw, file=sys.stderr)
-
     def Error(msg, status=1):
         eprint(msg)
         exit(status)
-
     def Usage(d, status=1):
         name = sys.argv[0]
-        print(
-            dedent(
-                f"""
+        print(dedent( f'''
         Usage:  {name} [options] cmd [file1 ...]
           Analyze differences between /plib and /pylib.  cmd:
             diff               Show files in /plib that differ from /pylib
@@ -60,11 +44,8 @@ if 1:  # Utility
             details files...   Explain how they differ
         Options:
           -a  Print a manpage.
-        """[1:-1]
-            )
-        )
+        '''))
         exit(status)
-
     def ParseCommandLine(d):
         d["-a"] = False  # Show all
         try:
@@ -78,10 +59,7 @@ if 1:  # Utility
         if not args:
             Usage(d)
         return args
-
-
 if 1:  # Core functionality
-
     def GetCommand(cmd):
         c = CommandDecode(commands)
         candidates = c(cmd)
@@ -92,7 +70,6 @@ if 1:  # Core functionality
         else:
             eprint(f"Command '{cmd}' not recognized")
         exit(1)
-
     def GetFiles():
         "Return dictionaries keyed by file name (value is pathlib.Path)"
         pl = set(P("/plib").glob("*.py"))
@@ -103,16 +80,11 @@ if 1:  # Core functionality
         for i in py:
             pylib[i.name] = i
         return plib, pylib
-
-
 if 1:  # Core functions
-
     def Details():
         pass
-
     def Missing():
         pass
-
     def Report():
         plib, pylib = GetFiles()
         common = set(plib) & set(pylib)
@@ -120,7 +92,6 @@ if 1:  # Core functions
             m = f"No common files ({len(plib)} in plib, {len(pylib)} in pylib"
             print(m)
         print("Common: ", common)
-
     def Diff():
         plib, pylib = GetFiles()
         common = set(plib) & set(pylib)
@@ -135,9 +106,8 @@ if 1:  # Core functions
             for line in Columnize(o, indent="  "):
                 print(line)
 
-
 if __name__ == "__main__":
-    d = {}  # Options dictionary
+    d: dict[object, object] = {}  # Options dictionary
     dispatch = {
         "diff": Diff,
         "report": Report,

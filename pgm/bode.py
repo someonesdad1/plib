@@ -1,3 +1,6 @@
+'''
+Generate a Bode plot for a transfer function defined in a file
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2011 Don Peterson #∞copyright∞#

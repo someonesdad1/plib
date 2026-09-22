@@ -1,28 +1,4 @@
 '''
-
-TODO
-    - Bug in pgm/tri.py
-        - Get SyntaxWarning to stderr when S3 is a ufloat.  It is likely caused by no
-          constructor in the Base class, as it's trying to convert '1.02(5)' to a float
-          when it's really a ufloat().
-    - Remove use of color.py stuff (let fmt.py handle this)
-        - This also means removing the c attribute
-    - Use fmt.py for formatting
-        - Foratting should also include a fixed number of decimals like f"{x:.3f}" and
-          allow decimal point lineup like fpformat.py does
-            - Look at changing the architecture and putting all the formatting into
-              fmt.py.  Then the flt methods just call into fmt.py.
-    - cbrt, exp2 not in namespace
-    - i18n:  does the radix change depending on localization settings?  Should
-      transparently handle "," for locales that don't use the period.  On my system,
-      'locale -a' returns C C.utf8 POSIX, so testing may be problematic.
-    - rlz doesn't remove 0 for negative numbers
-    - cpx:
-        - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide attribute .w
-          for "(1, 1)".  .w also gets "1 + i" form.
-        - .w property:  wide display
-        - Special forms:  1+i, i, -i, etc.
-        
 Module for calculations with real and complex numbers
 
     The reals are of type flt (derived from float) and the complex numbers are of type
@@ -159,63 +135,127 @@ Module for calculations with real and complex numbers
       
 '''
 if 1:  # Header
-    # Copyright, license
-    # These "trigger strings" can be managed with trigger.py
-    ##∞copyright∞# Copyright © 2021 Don Peterson #∞copyright∞#
-    ##∞contact∞# gmail.com@someonesdad1 #∞contact∞#
-    ##∞license∞#
-    #   Licensed under the Open Software License version 3.0.
-    #   See http://opensource.org/licenses/OSL-3.0.
-    ##∞license∞#
-    ##∞what∞#
-    # <programming> This module provides the flt/cpx types for calculations
-    # with numbers derived from measurements.  flt is derived from float
-    # and cpx from complex.  Their most useful feature is to only show
-    # a few digits in their string interpolations so that you don't see
-    # lots of digits with no real information.
-    ##∞what∞#
-    ##∞test∞# run #∞test∞#
-    # Standard library modules
-    from collections import deque
-    from collections.abc import Iterable
-    from fractions import Fraction
-    import cmath
-    import decimal
-    import locale
-    import math
-    import numbers
-    import operator
-    import pathlib
-    import re
-    import sys
-    import threading
-    import time
-    if 0:
-        import debug
-        debug.SetDebugger()
-    # Custom imports
-    from wrap import dedent
-    import fmt
-    try:
-        import uncertainties
-        have_unc = True
-    except ImportError:
-        have_unc = False
-    # Global variables
-    Lock = threading.Lock()
-    D = decimal.Decimal
-    P = pathlib.Path
-    ii = isinstance
-    __all__ = "Base flt cpx".split()
-    # This can be True when a formatter class is written
-    _have_Formatter = True
+    _pgminfo = '''
+        <oo gist ∞ Module for calculations with real and complex numbers oo>
+        <oo desc ∞ oo>
+        <oo copy ∞ Copyright © 2021 Don Peterson oo>
+        <oo lic ∞ MIT License
+            Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+            The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+            THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        oo>
+        <oo ind ∞ 8 indent oo>
+        <oo cat ∞ math oo>
+        <oo test ∞ run oo>
+        <oo todo ∞
+        
+            - ∞∞1 Strategic f.py changes:  remove any colorizing etc. and move
+              formatting to fmt.py.  Remove c attribute. 
+            - ∞∞1 flt('hydrogen|helium|air') doesn't do anything (should be ValueError)
+            - Use fmt.py for formatting
+                - Remove use of color.py stuff (let fmt.py handle this)
+                    - This also means removing the c attribute
+                - Foratting should also include a fixed number of decimals like
+                  f"{x:.3f}" and allow decimal point lineup like fpformat.py does
+                    - Look at changing the architecture and putting all the formatting
+                      into fmt.py.  Then the flt methods just call into fmt.py.
+            - Bugs
+                - pgm/tri.py
+                    - Get SyntaxWarning to stderr when S3 is a ufloat.  It is likely
+                      caused by no constructor in the Base class, as it's trying to
+                      convert '1.02(5)' to a float when it's really a ufloat().
+                - cbrt, exp2 not in namespace
+                - i18n:  does the radix change depending on localization settings?
+                  Should transparently handle "," for locales that don't use the period.
+                  On my system, 'locale -a' returns C C.utf8 POSIX, so testing may be
+                  problematic.
+                - rlz doesn't remove 0 for negative numbers
+                - cpx:
+                    - .t property:  tuple display.  z=cpx(1,1) --> "(1,1)".  Use wide
+                      attribute .w for "(1, 1)".  .w also gets "1 + i" form.
+                    - .w property:  wide display
+                    - Special forms:  1+i, i, -i, etc.
+        
+        28 Mar 2026 01:47:27 pm Sat  Mike showed me a beautiful and elegant way to get 
+        math/cmath modules in scope:
+
+            import math
+            import cmath
+            from typing import Callable, Any
+
+            def _make_smart_func(name: str) -> Callable:
+                """Creates a function that tries math, then falls back to cmath."""
+                m_func = getattr(math, name, None)
+                c_func = getattr(cmath, name, None)
+
+                if m_func and c_func:
+                    def smart_func(x: Any, *args: Any, **kwargs: Any) -> Any:
+                        try:
+                            # Try the real-domain version first
+                            res = m_func(x, *args, **kwargs)
+                            # If the input was a flt/float, keep it a flt
+                            return flt(res) 
+                        except ValueError:
+                            # If math.asin(1.1) raises ValueError, leap into the complex plane
+                            return cpx(c_func(x, *args, **kwargs))
+                    return smart_func
+                
+                # If it only exists in one (like 'erf' in math or 'phase' in cmath)
+                return m_func or c_func
+
+            # The 'Magic' Bulk Import
+            _to_merge = set(dir(math)) | set(dir(cmath))
+            for _name in _to_merge:
+                if not _name.startswith("_"):
+                    globals()[_name] = _make_smart_func(_name)
+
+
+        oo>
+    '''
+    if 1:   # Standard library modules
+        import collections
+        import fractions
+        import cmath
+        import decimal
+        import locale
+        import math
+        import numbers
+        import operator
+        import pathlib
+        import re
+        import sys
+        import threading
+        import time
+    if 1:   # Custom imports
+        if 0:
+            import debug
+            debug.SetDebugger()
+        import fmt as FMT
+        import wrap
+        try:
+            import uncertainties
+            have_unc = True
+        except ImportError:
+            have_unc = False
+    if 1:   # Symbols from libraries
+        deque = collections.deque
+        Iterable = collections.abc.Iterable
+        Fraction = fractions.Fraction
+        dedent = wrap.dedent
+        D = decimal.Decimal
+        P = pathlib.Path
+    if 1:   # Global variables
+        Lock = threading.Lock()
+        __all__ = "Base flt cpx".split()
+        # This can be True when a formatter class is written
+        _have_Formatter = True
 class Base(object):
     "Items common to flt and cpx classes"
     _digits = 3  # Number of digits for str()
     _sigcomp = None  # Number of digits for comparisons
     _dp = locale.localeconv()["decimal_point"]
     _flip = False  # If True, interchange str() and repr()
-    _fmt = fmt.Fmt()  # Formatter for flt
+    _fmt = FMT.Fmt()  # Formatter for flt
     _rlz = False  # Remove leading zero if True
     _rtz = True  # Remove trailing zeros if True
     _rtdp = True  # Remove trailing decimal point
@@ -244,7 +284,7 @@ class Base(object):
             for i in B:
                 if Keep(i, B):
                     base[i] = B[i]
-            S = flt.__dict__ if ii(self, flt) else cpx.__dict__
+            S = flt.__dict__ if isinstance(self, flt) else cpx.__dict__
             for i in S:
                 if Keep(i, S):
                     cls[i] = S[i]
@@ -254,7 +294,7 @@ class Base(object):
             # Restore our important attributes
             for i in self.base:
                 exec(f"Base.{i} = self.base[i]")
-            name = "flt" if ii(self, flt) else "cpx"
+            name = "flt" if isinstance(self, flt) else "cpx"
             for i in self.cls:
                 exec(f"{name}.{i} = self.cls[i]")
             if Base._lock:
@@ -269,7 +309,7 @@ class Base(object):
             Base._sigcomp = None  # Number of digits for comparisons
             Base._dp = locale.localeconv()["decimal_point"]
             Base._flip = False  # If True, interchange str() and repr()
-            Base._fmt = fmt.Fmt()  # Formatter for flt
+            Base._fmt = FMT.Fmt()  # Formatter for flt
             Base._fmt.n = Base._digits
             Base._rlz = False  # Remove leading zero if True
             Base._rtz = True  # Remove trailing zeros if True
@@ -281,7 +321,7 @@ class Base(object):
             Base._high = 1e16  # When to switch to scientific notation
         def _check(self):
             "Make sure Base._digits is an integer >= 0 or None"
-            if not ii(Base._digits, int):
+            if not isinstance(Base._digits, int):
                 raise TypeError("Base._digits is not an integer")
             if Base._digits is not None:
                 if Base._digits < 0:
@@ -299,7 +339,7 @@ class Base(object):
         def __truediv__(self, other):
             return self._do_op(other, operator.truediv)
         def __neg__(self):
-            if ii(self, (flt, cpx)):
+            if isinstance(self, (flt, cpx)):
                 return self(-float(self))
             else:
                 raise RuntimeError("Bug in logic")
@@ -329,28 +369,28 @@ class Base(object):
             '''
             def GetResult(type_a, type_b, type_result):
                 type_result(op(type_a(a), type_b(b)))
-            if ii(a, flt):
-                if ii(b, flt):
+            if isinstance(a, flt):
+                if isinstance(b, flt):
                     return GetResult(float, float, flt)
-                elif ii(b, (complex, cpx)):
+                elif isinstance(b, (complex, cpx)):
                     return GetResult(float, complex, cpx)
                 else:
                     return GetResult(float, float, flt)
-            elif ii(a, cpx):
-                if ii(b, flt):
+            elif isinstance(a, cpx):
+                if isinstance(b, flt):
                     return GetResult(complex, float, cpx)
-                elif ii(b, (complex, cpx)):
+                elif isinstance(b, (complex, cpx)):
                     return GetResult(complex, complex, cpx)
                 else:
                     return GetResult(complex, float, cpx)
             else:
-                type_a = complex if ii(a, complex) else float
-                if ii(b, flt):
+                type_a = complex if isinstance(a, complex) else float
+                if isinstance(b, flt):
                     if type_a is complex:
                         return GetResult(type_a, float, cpx)
                     else:
                         return GetResult(type_a, float, flt)
-                elif ii(b, cpx):
+                elif isinstance(b, cpx):
                     return GetResult(type_a, complex, cpx)
                 else:
                     raise RuntimeError("At least one of a or b must be flt or cpx")
@@ -367,9 +407,9 @@ class Base(object):
                 return y
             n = a.N if n is None else n
             n = max(1, min(n, 15))  # Clamp n to [1, 15]
-            if ii(a, flt) and ii(b, flt):
+            if isinstance(a, flt) and isinstance(b, flt):
                 return Round(a) == Round(b)
-            elif ii(a, cpx) and ii(b, cpx):
+            elif isinstance(a, cpx) and isinstance(b, cpx):
                 a_re, a_im = Round(a.real), Round(a.imag)
                 b_re, b_im = Round(b.real), Round(b.imag)
                 return (a_re == b_re) and (a_im == b_im)
@@ -429,7 +469,7 @@ class Base(object):
         def N(self, value):
             "Set the number of digits for all flt objects"
             "The value is clamped to be between 1 and 15 digits"
-            if not ii(value, int):
+            if not isinstance(value, int):
                 raise TypeError("value must be an integer >= 0")
             # Clamp to [1, 15]
             if not value:
@@ -488,7 +528,7 @@ class flt(Base, float):
     n to 0 to return to the Base class behavior.
     '''
     def __new__(cls, value):
-        if ii(value, str) and "∞" in value:
+        if isinstance(value, str) and "∞" in value:
             value = value.replace("∞", "inf")
         try:
             instance = super().__new__(cls, value)
@@ -500,16 +540,13 @@ class flt(Base, float):
         # Local number of digits overrides Base.N if not zero
         instance._n = 0  # Instance's number of digits
         return instance
-    def _s(self, fmt="fix", no_color=False):  # flt
+    def _s(self, format="fix"):  # flt
         'Return the rounded string representation'
-        # no_color is no longer used, but it's simplest to leave this stuff in place
-        if fmt not in set("fix fixed eng sci engsi engsic".split()):
-            raise ValueError("fmt must be one of:  fix, fixed, eng, sci, engsi, engsic")
+        if format not in set("fix fixed eng sci engsi engsic".split()):
+            raise ValueError("format must be one of:  fix, fixed, eng, sci, engsi, engsic")
         self._check()
         if not Base._digits:
             return str(float(self))
-        def decorate(x):
-            return x if no_color else Base.wrap(x, self)
         x = D(self)
         n = self._n if self._n else Base._digits
         if n is None:
@@ -530,52 +567,60 @@ class flt(Base, float):
             Base._fmt.rtdp = self._rtdp
             Base._fmt.rlz = self._rlz
             Base._fmt.u = self._uni
-        if fmt == "fix" or fmt == "fixed":
+        if format == "fix" or format == "fixed":
             need_sci = (x and self.low is not None and abs(x) < self.low) or (
                 x and self.high is not None and abs(x) >= self.high
             )
             if need_sci:
                 s = self._fmt.sci(self, n=n)
             else:
-                s = (
-                    self._fmt.fix(self, n=n)
-                    if fmt == "fix"
-                    else self._fmt.fixed(self, n=n)
-                )
-        elif fmt == "eng":
-            s = self._fmt.eng(self, fmt="eng", n=n)
-        elif fmt == "engsi":
-            s = self._fmt.eng(self, fmt="engsi", n=n)
-        elif fmt == "engsic":
-            s = self._fmt.eng(self, fmt="engsic", n=n)
-        elif fmt == "sci":
-            s = self._fmt.sci(self, n=n)
+                s = self._fmt.fix(self, n=n) if format == "fix" else self._fmt.fixed(self, n=n)
+        elif format == "eng":
+            if FMT.old:
+                s = self._fmt.eng(self, fmt="eng", n=n)
+            else:
+                s = self._fmt.eng(self, n=n)
+        elif format == "engsi":
+            if FMT.old:
+                s = self._fmt.eng(self, fmt="engsi", n=n)
+            else:
+                s = self._fmt.engsi(self, n=n)
+        elif format == "engsic":
+            if FMT.old:
+                s = self._fmt.eng(self, fmt="engsic", n=n)
+            else:
+                s = self._fmt.engsic(self, n=n)
+        elif format == "sci":
+            if FMT.old:
+                s = self._fmt.sci(self, n=n)
+            else:
+                s = self._fmt.sci(self, n=n)
         else:
             raise Exception("Software bug")
-        return decorate(s)
-    def _r(self, no_color=False):
+        return s
+    def _r(self):
         'Return the repr string representation'
-        # no_color is no lonter used, but it's simplest to leave this stuff in place
+        # 'pydoc repr' says repr returns the canonical string representation of the
+        # object.  Usually eval(repr(obj)) == obj.
         self._check()
-        def f(x):
-            return x if no_color else Base.wrap(x, self, force=flt)
-        s = f"{repr(float(self))}"
-        if no_color:
-            return s
-        return f(s)
+        return f"flt({super().__repr__()})"
     def __str__(self):
         return self._r() if Base._flip else self._s()
     def __repr__(self):
         return self._s() if Base._flip else self._r()
     def __hash__(self):
-        return hash(float(self._r()))
+        return hash(float(self))
+        if self.f:
+            return hash(float(eval(str(self))))
+        else:
+            return hash(float(eval(repr(self))))
     def rnd(self, n=None):
         '''Return a flt that is rounded to the current number of digits
         or n digits if n is not None.
         '''
         with self:
             if n is not None:
-                if not ii(n, int) and not (1 <= n <= 15):
+                if not isinstance(n, int) and not (1 <= n <= 15):
                     raise ValueError("n must be an integer between 1 and 15")
                 self.N = n
             return flt(self.s)
@@ -584,9 +629,7 @@ class flt(Base, float):
         cp = flt(float(self))
         return cp
     def help(self):
-        print(
-            dedent(
-                '''
+        print(dedent('''
         The flt class is derived from float and has the following attributes:
           copy      Returns a copy of self
           eng       Return engineering notation string
@@ -609,20 +652,19 @@ class flt(Base, float):
           t       * Date and time
           u       * Use Unicode characters in eng/sci string interpolation
              * means the attribute's state affects all flt and cps instances'''[1:]
-            )
-        )
+        ))
         return ""
     if 1:  # Arithmetic functions
         def _do_op(self, other, op):
-            if ii(other, complex):
+            if isinstance(other, complex):
                 return cpx(op(float(self), other))
             return flt(op(float(self), float(other)))
         def __floordiv__(self, other):
-            if ii(other, complex):
+            if isinstance(other, complex):
                 raise TypeError("can't take floor of complex number")
             return self._do_op(other, operator.floordiv)
         def __mod__(self, other):
-            if not ii(other, flt):
+            if not isinstance(other, flt):
                 raise TypeError("Second operand must be a flt")
             rem = abs(float(self) % float(other))
             assert 0 <= rem <= abs(other)
@@ -632,7 +674,7 @@ class flt(Base, float):
             '''Return (q, rem) where q is how many integer units of other are in
             self and rem is a flt giving the remainder.
             '''
-            if not ii(other, flt):
+            if not isinstance(other, flt):
                 raise TypeError("Second operand must be a flt")
             # See python-3.7.4-docs-html/library/functions.html#divmod
             q = math.floor(float(self) / float(other))
@@ -646,7 +688,7 @@ class flt(Base, float):
             return self + other
         def __rsub__(self, other):
             "other - self"
-            if ii(other, (flt, cpx)):
+            if isinstance(other, (flt, cpx)):
                 return other.__add__(-self)
             return -self + other
         def __rmul__(self, other):
@@ -657,7 +699,7 @@ class flt(Base, float):
             return operator.truediv(flt(1), self) * other
         def __rfloordiv__(self, other):
             "other//self"
-            return flt(floor((flt(1) / self) * other))
+            return flt(math.floor((flt(1) / self) * other))
         def __rmod__(self, other):
             "other % self"
             return self.__mod__(other, self)
@@ -680,7 +722,7 @@ class flt(Base, float):
             b = flt(float(other))
             return Base.sig_equal(self, b, n=n)
         def __lt__(self, other):
-            if ii(other, complex):
+            if isinstance(other, complex):
                 raise ValueError("Complex numbers are not ordered")
             return float(self) < float(other)
         def __call__(self, x):
@@ -689,7 +731,7 @@ class flt(Base, float):
             of n.
             '''
             y = flt(x)
-            if ii(x, flt) and self.n:
+            if isinstance(x, flt) and self.n:
                 y.n = self.n
             return y
     if 1:  # Properties
@@ -699,7 +741,7 @@ class flt(Base, float):
             return self._n
         @n.setter
         def n(self, value):
-            if not ii(value, int):
+            if not isinstance(value, int):
                 raise TypeError(f"{value!r} must be an integer")
             if not (0 <= value <= 15):
                 raise ValueError("value must be >= 0 and <= 15")
@@ -708,23 +750,23 @@ class flt(Base, float):
         @property
         def eng(self):
             "Return a string formatted in engineering notation"
-            return self._s(fmt="eng")
+            return self._s(format="eng")
         @property
         def engsi(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with a space character.
             '''
-            return self._s(fmt="engsi")
+            return self._s(format="engsi")
         @property
         def engsic(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with no space character.
             '''
-            return self._s(fmt="engsic")
+            return self._s(format="engsic")
         @property
         def sci(self):
             "Return a string formatted in scientific notation"
-            return self._s(fmt="sci")
+            return self._s(format="sci")
 class ParseComplex(object):
     '''Parses complex numbers in the ways humans like to write them.
     Instantiate the object, then call it with the string to parse; the
@@ -850,21 +892,21 @@ class cpx(Base, complex):
         "real can be a number type, a cpx, or a complex."
         def f(x):
             return D(x) if x else D(0)
-        if ii(real, (int, float, flt, D)):
+        if isinstance(real, (int, float, flt, D)):
             imag = 0 if imag is None else imag
             re, im = float(real), float(imag)
             instance = super().__new__(cls, re, im)
-        elif ii(real, cpx):
+        elif isinstance(real, cpx):
             re, im = real._real, real._imag
             instance = super().__new__(cls, re, im)
-        elif ii(real, numbers.Complex):
+        elif isinstance(real, numbers.Complex):
             re, im = real.real, real.imag
             instance = super().__new__(cls, re, im)
-        elif ii(real, str):
+        elif isinstance(real, str):
             if "i" in real:
                 real = real.replace("i", "j")
             if "j" in real:
-                if ii(imag, str):
+                if isinstance(imag, str):
                     raise ValueError("Can't use 'i' or 'j' and give imag number")
                 else:
                     # Use ParseComplex to recognize the complex string
@@ -892,39 +934,39 @@ class cpx(Base, complex):
         "Return polar form"
         def f(x):
             return Base.wrap(x, self)
-        r, theta = [flt(i) for i in polar(self)]
-        theta *= 1 if self.rad else 180 / pi
+        r, theta = [flt(i) for i in cmath.polar(self)]
+        theta *= 1 if self.rad else 180 / math.pi
         deg = "" if self.rad else "°"
         sp = " " if self.w else ""
         if repr:
-            s = f"{r._r(no_color=True)}{sp}∠{sp}{theta._r(no_color=True)}{deg}"
+            s = f"{r._r()}{sp}∠{sp}{theta._r()}{deg}"
         else:
-            s = f"{r._s(no_color=True)}{sp}∠{sp}{theta._s(no_color=True)}{deg}"
+            s = f"{r._s()}{sp}∠{sp}{theta._s()}{deg}"
         t = f(s) if self.i else f("(" + s + ")")
         return f(t)
-    def _s(self, fmt="fix"):
+    def _s(self, format="fix"):
         '''Return the rounded string representation.  If cpx.i is True,
         then "i" is used as the unit imaginary and no parentheses are
         placed around the string.  If cpx.p is False, use rectangular;
         if True, use polar coordinates.
         '''
-        if fmt not in set("fix eng sci engsi engsic".split()):
-            raise ValueError("fmt must be one of:  fix, eng, sci, engsi, engsic")
+        if format not in set("fix eng sci engsi engsic".split()):
+            raise ValueError("format must be one of:  fix, eng, sci, engsi, engsic")
         def f(x):
             return Base.wrap(x, self)
         if self.p:  # Polar coordinates
             return self._pol()
         elif self.t:  # Tuple form
             r, i = self._real, self._imag
-            re = r._s(fmt=fmt, no_color=True)
-            im = i._s(fmt=fmt, no_color=True)
+            re = r._s(format=format)
+            im = i._s(format=format)
             sp = " " if self.w else ""
             s = f"({re},{sp}{im})"
             return f(s)
         else:  # Rectangular coordinates
             r, i = self._real, self._imag
-            re = r._s(fmt=fmt, no_color=True)
-            im = i._s(fmt=fmt, no_color=True)
+            re = r._s(format=format)
+            im = i._s(format=format)
             if self.nz and ((r and not i) or (not r and i)):
                 if r:
                     s = f"{re}" if cpx._i else f"({re})"
@@ -936,7 +978,7 @@ class cpx(Base, complex):
                 iu = "i" if cpx._i else "j"
                 sp = " " if self.w else ""
                 sgn = f"{sp}-{sp}" if i < 0 else f"{sp}+{sp}"
-                im = abs(i)._s(fmt=fmt, no_color=True)
+                im = abs(i)._s(format=format)
                 if cpx._i:
                     s = f"{re}{sgn}{im}{iu}"
                 else:
@@ -1085,23 +1127,23 @@ class cpx(Base, complex):
         @property
         def eng(self):
             "Return a string formatted in engineering notation"
-            return self._s(fmt="eng")
+            return self._s(format="eng")
         @property
         def engsi(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with a space character.
             '''
-            return self._s(fmt="engsi")
+            return self._s(format="engsi")
         @property
         def engsic(self):
             '''Return a string formatted in engineering notation with SI
             prefix appended with no space character.
             '''
-            return self._s(fmt="engsic")
+            return self._s(format="engsic")
         @property
         def sci(self):
             "Return a string formatted in scientific notation"
-            return self._s(fmt="sci")
+            return self._s(format="sci")
 if 1:  # Get math/cmath functions into this namespace
     '''Put all math symbols into this namespace.  We use an object with
     the same name as the function and let it have a __call__ method.
@@ -1179,11 +1221,11 @@ if 1:  # Get math/cmath functions into this namespace
                 print("Dropping into debugger")
                 breakpoint()
                 pass    # Lets you see the exception in the debugger
-            if ii(result, int):
+            if isinstance(result, int):
                 return result
-            elif ii(result, (float, flt)):
+            elif isinstance(result, (float, flt)):
                 return flt(result)
-            elif ii(result, C):
+            elif isinstance(result, C):
                 return cpx(result)
             else:
                 if self.name == "polar":
@@ -1201,11 +1243,11 @@ if 1:  # Get math/cmath functions into this namespace
             '''
             C = (complex, cpx)
             def cc(x):
-                return any([ii(i, C) for i in x])
+                return any([isinstance(i, C) for i in x])
             if cc(list(args) + list(kw.values())):
                 return True
             if len(args) == 1:
-                if not ii(args[0], str) and ii(args[0], Iterable):
+                if not isinstance(args[0], str) and isinstance(args[0], Iterable):
                     return cc(args[0])
             return False
     # All math/cmath function names for python version 3.9.4
@@ -1219,6 +1261,27 @@ if 1:  # Get math/cmath functions into this namespace
     atanh     erf       frexp     isnan     log2      radians   trunc
     ceil      erfc      fsum      isqrt     modf      rect      ulp
     '''
+    if 0 and __name__ == "__main__":  
+        F = set(functions.split() + "e inf nan pi tau infj nanj".split())
+        def PyVersion():
+            import platform
+            return platform.python_version()
+        def GetSym(module):
+            return set(list(i for i in module.__dict__.keys() if not i.startswith("_")))
+        m = GetSym(math)
+        cm = GetSym(cmath)
+        print(f"Python version {PyVersion()}")
+        print(f"  math: ", end="")
+        for i in m:
+            if i not in F:
+                print(f"{i} ", end="")
+        print()
+        print(f"  cmath: ", end="")
+        for i in cm:
+            if i not in F:
+                print(f"{i} ", end="")
+        print()
+        exit()
     for name in functions.split():
         if hasattr(math, name) or hasattr(cmath, name):
             s = f"{name} = Delegator('{name}')"
@@ -1229,12 +1292,14 @@ if 1:  # Get math/cmath functions into this namespace
     #   cmath: infj nanj
     from math import inf, pi, e, tau, nan
     from cmath import infj, nanj
-    # Dummy usages to avoid linter message
-    inf
-    pi
-    e
-    tau
-    nan
+    if 1:   # Dummy usages to avoid linter message
+        inf
+        pi
+        e
+        tau
+        nan
+        infj
+        nanj
     # Change constants' type to flt
     constants = "e pi tau".split()
     for i in constants:
@@ -1311,7 +1376,7 @@ if 1:  # Classes derived from flt for physical data; needed for solarsys.py
         '''
         allowed = set("?¿⁇❓❔⸮︖﹖？")
         def __new__(cls, arg):
-            if not ii(arg, str):
+            if not isinstance(arg, str):
                 raise TypeError(f"'{arg}' must be a string")
             c = arg.strip()
             if c and (len(c) != 1 or c not in Unk.allowed):
@@ -1322,14 +1387,14 @@ if 1:  # Classes derived from flt for physical data; needed for solarsys.py
             return "?"
         def __repr__(self):
             return "Unk('?')"
-# xx These got broken; problem appears in f.py line 699 __eq__
+# ∞∞1 These got broken; problem appears in f.py line 699 __eq__
 if 0:  # Classes derived from flt for physical data
     class Nothing(flt):
         '''Represent a 'None' number.  Can be initialized with None,
         "None" (case insensitive), "-", or "".
         '''
         def __new__(cls, arg):
-            if ii(arg, str):
+            if isinstance(arg, str):
                 if not (arg.lower() == "none" or not arg or set(arg) == {"-"}):
                     raise ValueError(f"{arg!r} is improper argument")
             else:
@@ -1363,7 +1428,7 @@ if 0:  # Classes derived from flt for physical data
     class Rng(flt):
         "Represent a range"
         def __new__(cls, a, b):
-            assert ii(a, str) and ii(b, str)
+            assert isinstance(a, str) and isinstance(b, str)
             if a[0] in Approx.allowed:
                 # Is approximate, but ignore, as it's a range
                 x, y = flt(a[1:]), flt(b)
@@ -1450,7 +1515,7 @@ if 0:  # Classes derived from flt for physical data
         range.
         '''
         # Simplest case
-        if ii(s, (flt, int, float)):
+        if isinstance(s, (flt, int, float)):
             return flt(s)
         u = s.strip()
         try:
@@ -1493,6 +1558,7 @@ if 0:  # Classes derived from flt for physical data
             pass
         # It's nothing we recognize
         raise ValueError(f"{s!r} not a valid argument")
+
 if __name__ == "__main__":
     from lwtest import run, raises, assert_equal, Assert
     eps = 1e-15
@@ -1500,14 +1566,14 @@ if __name__ == "__main__":
         "Return True if a == b within the indicated tolerance"
         if not a and not b:
             return True
-        if ii(a, flt) and ii(b, flt):
+        if isinstance(a, flt) and isinstance(b, flt):
             diff = abs(float(a) - float(b))
             if float(a):
                 reldiff = abs(diff / float(a))
             elif float(b):
                 reldiff = abs(diff / float(b))
             return reldiff <= reltol
-        elif ii(a, cpx) and ii(b, cpx):
+        elif isinstance(a, cpx) and isinstance(b, cpx):
             # Real part
             realdiff = abs(float(a.real) - float(b.real))
             if float(a.real):
@@ -1532,7 +1598,7 @@ if __name__ == "__main__":
         else:
             raise TypeError("Both a and b must be flt or cpx")
     def Test_flt_derived_classes():
-        return  # These classes broke somehow xx
+        return  # These classes broke somehow ∞∞1
         # Nothing
         x = Nothing("")
         Assert(str(x) == "--")
@@ -1611,45 +1677,45 @@ if __name__ == "__main__":
         Assert(f(1426725400) == flt(1426725400))
         Assert(f(2440.53) == flt(2440.53))
         # Unk
-        Assert(ii(f("?"), Unk))
+        Assert(isinstance(f("?"), Unk))
         # Rng
         x = f("0.03e22-0.05e22")
-        Assert(ii(x, Rng))
+        Assert(isinstance(x, Rng))
         Assert(str(x) == "[3e20,5e20]")
         Assert(repr(x) == "Rng(3e20, 5e20)")
         # Approx
         x = f("≈0.3")
-        Assert(ii(x, Approx))
+        Assert(isinstance(x, Approx))
         Assert(str(x) == "≈0.3")
         Assert(repr(x) == "Approx('≈0.3')")
         x = f("~2")
-        Assert(ii(x, Approx))
+        Assert(isinstance(x, Approx))
         Assert(str(x) == "≈2")
         Assert(repr(x) == "Approx('~2')")
         # LessThan
         x = f("<50")
-        Assert(ii(x, LessThan))
+        Assert(isinstance(x, LessThan))
         Assert(str(x) == "<50")
         Assert(repr(x) == "LessThan('<50')")
         x = f("≤50")
-        Assert(ii(x, LessThan))
+        Assert(isinstance(x, LessThan))
         Assert(str(x) == "≤50")
         Assert(repr(x) == "LessThan('≤50')")
         x = f("≪50")
-        Assert(ii(x, LessThan))
+        Assert(isinstance(x, LessThan))
         Assert(str(x) == "≪50")
         Assert(repr(x) == "LessThan('≪50')")
         # GreaterThan
         x = f(">50")
-        Assert(ii(x, GreaterThan))
+        Assert(isinstance(x, GreaterThan))
         Assert(str(x) == ">50")
         Assert(repr(x) == "GreaterThan('>50')")
         x = f("≥50")
-        Assert(ii(x, GreaterThan))
+        Assert(isinstance(x, GreaterThan))
         Assert(str(x) == "≥50")
         Assert(repr(x) == "GreaterThan('≥50')")
         x = f("≫50")
-        Assert(ii(x, GreaterThan))
+        Assert(isinstance(x, GreaterThan))
         Assert(str(x) == "≫50")
         Assert(repr(x) == "GreaterThan('≫50')")
     def Test_sig_equal():
@@ -1699,7 +1765,7 @@ if __name__ == "__main__":
         # Test factory feature
         x = flt(pi)
         y = x(1 / pi)
-        Assert(ii(y, flt) and y == 1 / pi)
+        Assert(isinstance(y, flt) and y == 1 / pi)
         x.n = 5
         y = x(1 / pi)
         Assert(y.n == 5)
@@ -1958,9 +2024,9 @@ if __name__ == "__main__":
             (14, "3.1415926535898"),
             (15, "3.14159265358979"),
         ):
-            Assert(repr(x.rnd(n)) == s)
+            Assert(repr(x.rnd(n)) == f"flt({s})")
             y = flt(s)
-            Assert(repr(y) == s)
+            Assert(repr(y) == f"flt({s})")
     def Test_fmt():
         if 1:  # flt
             x = flt(10 * pi)
@@ -2077,164 +2143,164 @@ if __name__ == "__main__":
             Assert(z.s == "0")
             z._reset()
     def Test_functions():
-        '''Test the functions using python 3.7.12.  The focus is that the
-        correct types are returned, as the numerical values will have been
-        tested well with python's tests.
+        '''Test the functions.  The focus is that the correct types are returned, as the
+        numerical values will have been tested well with python's tests.
         '''
         x = flt(3.389)
         y = flt(1.412)
         a, i = 0.8813735870195429, cpx(0, 1)
         tf, tc, ti = type(x), type(i), type(1)
+        # noqa has been put on these lines because 'ruff check' declares them undefined
         if 1:  # acos
-            Assert(type(acos(0)) is tf)
-            Assert(type(acos(i)) is tc)
+            Assert(type(acos(0)) is tf)         # noqa
+            Assert(type(acos(i)) is tc)         # noqa
         if 1:  # acosh
-            raises(ValueError, acosh, 0.1)
-            Assert(type(acosh(1)) is tf)
-            Assert(type(acosh(i)) is tc)
+            raises(ValueError, acosh, 0.1)          # noqa
+            Assert(type(acosh(1)) is tf)            # noqa
+            Assert(type(acosh(i)) is tc)            # noqa
         if 1:  # asin
-            Assert(type(asin(0)) is tf)
-            Assert(type(asin(i)) is tc)
+            Assert(type(asin(0)) is tf)         # noqa
+            Assert(type(asin(i)) is tc)         # noqa
         if 1:  # asinh
-            Assert(type(asinh(0)) is tf)
-            Assert(type(asinh(i)) is tc)
+            Assert(type(asinh(0)) is tf)            # noqa
+            Assert(type(asinh(i)) is tc)            # noqa
         if 1:  # atan
-            Assert(type(atan(0)) is tf)
-            raises(ValueError, atan, i)
+            Assert(type(atan(0)) is tf)         # noqa
+            raises(ValueError, atan, i)         # noqa
         if 1:  # atan2
-            Assert(type(atan2(0, 0)) is tf)
+            Assert(type(atan2(0, 0)) is tf)         # noqa
         if 1:  # atanh
-            Assert(type(atanh(0)) is tf)
-            Assert(type(atanh(i)) is tc)
-            raises(ValueError, atanh, 1)
+            Assert(type(atanh(0)) is tf)            # noqa
+            Assert(type(atanh(i)) is tc)            # noqa
+            raises(ValueError, atanh, 1)            # noqa
         if 1:  # ceil
-            Assert(type(ceil(x)) is ti)
-            raises(TypeError, ceil, i)
+            Assert(type(ceil(x)) is ti)         # noqa
+            raises(TypeError, ceil, i)          # noqa
         if 1:  # copysign
-            Assert(type(copysign(x, 1)) is tf)
-            Assert(type(copysign(x, -1)) is tf)
+            Assert(type(copysign(x, 1)) is tf)          # noqa
+            Assert(type(copysign(x, -1)) is tf)         # noqa
         if 1:  # cos
-            Assert(type(cos(0)) is tf)
-            Assert(type(cos(i)) is tc)
+            Assert(type(cos(0)) is tf)          # noqa
+            Assert(type(cos(i)) is tc)          # noqa
         if 1:  # cosh
-            Assert(type(cosh(0)) is tf)
-            Assert(type(cosh(i)) is tc)
+            Assert(type(cosh(0)) is tf)         # noqa
+            Assert(type(cosh(i)) is tc)         # noqa
         if 1:  # degrees
-            Assert(type(degrees(pi)) is tf)
-            raises(TypeError, degrees, i)
+            Assert(type(degrees(pi)) is tf)         # noqa
+            raises(TypeError, degrees, i)           # noqa
         if 1:  # divmod
-            q, rem = divmod(x, y)
-            Assert(q == 2 and ii(q, int))
+            q, rem = divmod(x, y)           # noqa
+            Assert(q == 2 and isinstance(q, int))
             Assert(rem == x - 2 * y and type(rem) is tf)
             Assert(q * y + x % y == x)
         if 1:  # erf
-            Assert(type(erf(x)) is tf)
-            raises(TypeError, erf, i)
+            Assert(type(erf(x)) is tf)          # noqa
+            raises(TypeError, erf, i)           # noqa
         if 1:  # erfc
-            Assert(type(erfc(x)) is tf)
-            raises(TypeError, erfc, i)
+            Assert(type(erfc(x)) is tf)         # noqa
+            raises(TypeError, erfc, i)          # noqa
         if 1:  # exp
-            Assert(type(exp(0)) is tf)
-            Assert(type(exp(i)) is tc)
+            Assert(type(exp(0)) is tf)          # noqa
+            Assert(type(exp(i)) is tc)          # noqa
         if 1:  # expm1
-            Assert(type(expm1(0)) is tf)
-            raises(TypeError, expm1, i)
+            Assert(type(expm1(0)) is tf)            # noqa
+            raises(TypeError, expm1, i)         # noqa
         if 1:  # fabs
-            Assert(type(fabs(x)) is tf)
-            raises(TypeError, fabs, i)
+            Assert(type(fabs(x)) is tf)         # noqa
+            raises(TypeError, fabs, i)          # noqa
         if 1:  # factorial
-            Assert(factorial(3) == 6)
-            raises(ValueError, factorial, -1)
+            Assert(factorial(3) == 6)           # noqa
+            raises(ValueError, factorial, -1)           # noqa
             # The following line is commented out because using factorial()
             # with floats is deprecated.
             # raises(ValueError, factorial, x)
-            raises(TypeError, factorial, i)
+            raises(TypeError, factorial, i)         # noqa
         if 1:  # floor
-            Assert(type(floor(x)) is ti)
-            raises(TypeError, floor, i)
+            Assert(type(floor(x)) is ti)            # noqa
+            raises(TypeError, floor, i)         # noqa
         if 1:  # fmod
-            Assert(type(fmod(x, y)) is tf)
-            raises(TypeError, fmod, i, y)
+            Assert(type(fmod(x, y)) is tf)          # noqa
+            raises(TypeError, fmod, i, y)           # noqa
         if 1:  # frexp
-            a, b = frexp(x)
+            a, b = frexp(x)         # noqa
             Assert(type(a) is tf)
             Assert(type(b) is ti)
-            raises(TypeError, frexp, i)
+            raises(TypeError, frexp, i)         # noqa
         if 1:  # fsum
-            Assert(type(fsum([x, y])) is tf)
-            raises(TypeError, fsum, [i, y])
+            Assert(type(fsum([x, y])) is tf)            # noqa
+            raises(TypeError, fsum, [i, y])         # noqa
         if 1:  # gamma
-            Assert(type(gamma(x)) is tf)
-            raises(TypeError, gamma, i)
+            Assert(type(gamma(x)) is tf)            # noqa
+            raises(TypeError, gamma, i)         # noqa
         if 1:  # hypot
-            Assert(type(hypot(x, y)) is tf)
-            raises(TypeError, hypot, i, x)
+            Assert(type(hypot(x, y)) is tf)         # noqa
+            raises(TypeError, hypot, i, x)          # noqa
         if 1:  # isclose
-            Assert(type(isclose(x, y)) is bool)
-            Assert(type(isclose(i, y)) is bool)
+            Assert(type(isclose(x, y)) is bool)         # noqa
+            Assert(type(isclose(i, y)) is bool)         # noqa
         if 1:  # isfinite
-            Assert(type(isfinite(x)) is bool)
+            Assert(type(isfinite(x)) is bool)           # noqa
         if 1:  # isinf
-            Assert(isinf(flt("inf")))
+            Assert(isinf(flt("inf")))           # noqa
         if 1:  # isnan
-            Assert(isnan(flt("nan")))
+            Assert(isnan(flt("nan")))           # noqa
         if 1:  # ldexp
-            Assert(ldexp(x, 4) == x * 2**4)
+            Assert(ldexp(x, 4) == x * 2**4)         # noqa
         if 1:  # lgamma
-            Assert(type(lgamma(x)) is tf)
-            raises(TypeError, lgamma, i)
+            Assert(type(lgamma(x)) is tf)           # noqa
+            raises(TypeError, lgamma, i)            # noqa
         if 1:  # log
-            Assert(type(log(x)) is tf)
-            Assert(type(log(i)) is tc)
+            Assert(type(log(x)) is tf)          # noqa
+            Assert(type(log(i)) is tc)          # noqa
         if 1:  # log10
-            Assert(type(log10(x)) is tf)
-            Assert(type(log10(i)) is tc)
+            Assert(type(log10(x)) is tf)            # noqa
+            Assert(type(log10(i)) is tc)            # noqa
         if 1:  # log1p
-            Assert(type(log1p(x)) is tf)
-            raises(TypeError, log1p, i)
+            Assert(type(log1p(x)) is tf)            # noqa
+            raises(TypeError, log1p, i)         # noqa
         if 1:  # log2
-            Assert(type(log2(x)) is tf)
-            raises(TypeError, log2, i)
+            Assert(type(log2(x)) is tf)         # noqa
+            raises(TypeError, log2, i)          # noqa
         if 1:  # modf
-            a, b = modf(x)
+            a, b = modf(x)          # noqa
             Assert(type(a) is tf and type(b) is tf)
-            raises(TypeError, modf, i)
+            raises(TypeError, modf, i)          # noqa
         if 1:  # phase
-            Assert(type(phase(x)) is tf)
-            Assert(type(phase(i)) is tf)
+            Assert(type(phase(x)) is tf)            # noqa
+            Assert(type(phase(i)) is tf)            # noqa
         if 1:  # polar
-            a, b = polar(i)
+            a, b = polar(i)         # noqa
             Assert(type(a) is tf and type(b) is tf)
         if 1:  # pow
-            Assert(type(pow(x, y)) is tf)
-            raises(TypeError, pow, i, x)
-            raises(TypeError, pow, x, i)
+            Assert(type(pow(x, y)) is tf)           # noqa
+            raises(TypeError, pow, i, x)            # noqa
+            raises(TypeError, pow, x, i)            # noqa
         if 1:  # radians
-            Assert(type(radians(x)) is tf)
-            raises(TypeError, radians, i)
+            Assert(type(radians(x)) is tf)          # noqa
+            raises(TypeError, radians, i)           # noqa
         if 1:  # rect
-            Assert(type(rect(x, y)) is tc)
+            Assert(type(rect(x, y)) is tc)          # noqa
         if 1:  # remainder
-            Assert(type(remainder(x, y)) is tf)
+            Assert(type(remainder(x, y)) is tf)         # noqa
         if 1:  # sin
-            Assert(type(sin(x)) is tf)
-            Assert(type(sin(i)) is tc)
+            Assert(type(sin(x)) is tf)          # noqa
+            Assert(type(sin(i)) is tc)          # noqa
         if 1:  # sinh
-            Assert(type(sinh(x)) is tf)
-            Assert(type(sinh(i)) is tc)
+            Assert(type(sinh(x)) is tf)         # noqa
+            Assert(type(sinh(i)) is tc)         # noqa
         if 1:  # sqrt
-            Assert(type(sqrt(x)) is tf)
-            Assert(type(sqrt(-x)) is tc)
-            Assert(type(sqrt(i)) is tc)
+            Assert(type(sqrt(x)) is tf)         # noqa
+            Assert(type(sqrt(-x)) is tc)            # noqa
+            Assert(type(sqrt(i)) is tc)         # noqa
         if 1:  # tan
-            Assert(type(tan(x)) is tf)
-            Assert(type(tan(i)) is tc)
+            Assert(type(tan(x)) is tf)          # noqa
+            Assert(type(tan(i)) is tc)          # noqa
         if 1:  # tanh
-            Assert(type(tanh(x)) is tf)
-            Assert(type(tanh(i)) is tc)
+            Assert(type(tanh(x)) is tf)         # noqa
+            Assert(type(tanh(i)) is tc)         # noqa
         if 1:  # trunc
-            Assert(type(trunc(x)) is ti)
-            raises(TypeError, trunc, i)
+            Assert(type(trunc(x)) is ti)            # noqa
+            raises(TypeError, trunc, i)         # noqa
     def Test_ParseComplex():
         test_cases = {
             # Pure imaginaries

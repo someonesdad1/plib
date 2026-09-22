@@ -1,3 +1,6 @@
+'''
+Print periods of various bit rates
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2018 Don Peterson #∞copyright∞#
@@ -14,8 +17,6 @@ if 1:  # Copyright, license
 if 1:  # Custom imports
     from fpformat import FPFormat
     from wrap import dedent
-
-
 def BitRatePeriods():
     rates = (
         50,
@@ -46,7 +47,5 @@ def BitRatePeriods():
     )
     for rate in rates:
         print(f"{rate:^12d}  {fp.engsi(1 / rate) + 's':^15s}")
-
-
 if __name__ == "__main__":
     BitRatePeriods()

@@ -43,7 +43,8 @@ if 1:  # Header
         from wrap import wrap, dedent, indent, Wrap
         from columnize import Columnize
         from globalcontainer import Global, Variable, Constant
-        from color import t
+        import trm
+        t = trm.TrmDP()
         if 0:
             import debug
             debug.SetDebugger()  # Start debugger on unhandled exception
@@ -577,8 +578,7 @@ if 1:  # Core functionality
             line = line.rstrip("\n\r").replace("\t", " ")
             line = Xref.punct.sub(" ", line)  # Replace punct w/ space
             line = line if not preserve_case else line.lower()
-            # xx Why not use str.split(); it should do the same thing.
-            words = re.split("  *", line)
+            words = line.split()
             for word in words:
                 if not word:
                     continue
@@ -599,6 +599,7 @@ if 1:  # Core functionality
             ProcessLine(line, linenum)
             line = stream.readline()
         return mydict
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)

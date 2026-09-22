@@ -1,12 +1,9 @@
-"""Clover lapping/grinding compounds
-
-Sizes from https://www.kemet.co.uk/blog/lapping/clover-lapping-compound-comparision-chart
-"""
-
-print(
-    """
-Clover brand grinding compounds
-
+'''
+Print sizes of Clover lapping/grinding compounds
+∞∞ Color highlight the ones I have on-hand
+'''
+# Sizes from https://www.kemet.co.uk/blog/lapping/clover-lapping-compound-comparision-chart
+print('''Clover brand grinding compounds
     Clover  US grit
     Grade    size
     7A      1200
@@ -20,5 +17,4 @@ Clover brand grinding compounds
     B        240
     C        220
     D        180
-    NC       150"""[1:]
-)
+    NC       150''')

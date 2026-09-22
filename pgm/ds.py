@@ -67,20 +67,20 @@ if 1:  # Header
     if 1:  # Custom imports
         from wrap import dedent
         from selection import Select
-        from dirfiles import Dirfiles
+        from dppath import Dirfiles
         from wsl import wsl
-        from timer import GetET
+        from dptime import GetET
         from dpstr import IgnoreFilter
         from f import flt
-        from color import t
-        import util
+        import trm
+        import dputil
     if 1:  # Global variables
         class G:  # Storage for global variables as attributes
             pass
         g = G()
         g.dbg = False
-        t.dbg = t("lill") if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t = trm.TrmDP()
+        t.dbg = t.lil
         # app to open a file with registered application
         if wsl:
             g.app = "explorer.exe"  # Linux under WSL
@@ -109,17 +109,19 @@ if 1:  # Header
                 "eb": "/ebooks/ds.eb.ignore",
                 "hpj": "/ebooks/hpj/ds.hpj.ignore",
             }
-        # Colors for output
-        t.dir = t("gry")  # Contrast for directory portion
-        t.match = t("ornl")  # Color for matches
 if 1:  # Utility
+    def GetColors():
+        t.dbg = "lil"
+        t.err = "redl"
+        t.dir = t.wht2  # Contrast for directory portion
+        t.match = t.ygr  # Color for matches
     def Dbg(*p, **kw):
         if g.dbg:
             print(f"{t.dbg}", end="", file=Dbg.file)
             k = kw.copy()
             k["file"] = Dbg.file
             print(*p, **k)
-            print(f"{t.N}", end="", file=Dbg.file)
+            print(f"{t.n}", end="", file=Dbg.file)
     Dbg.file = sys.stderr  # Debug printing to stderr by default
     def Error(*msg, status=1):
         print(*msg, file=sys.stderr)
@@ -179,6 +181,7 @@ if 1:  # Utility
             Usage(d)
         if d["-k"]:  # Open files indicated by keyword
             OpenByKeyword(*args)
+        GetColors()
         return args
 if 1:  # Core functionality
     def GenerateIndexFiles(d):
@@ -267,7 +270,7 @@ if 1:  # Core functionality
     def OpenFile(app, matches, choice):
         "Open indicated choice (subtract 1 first)"
         file = matches[choice - 1][0]
-        print(f"{choice + 1} {file}")
+        print(f"{choice} {file}")
         if wsl:
             if 0:
                 # Use wslpath.exe to convert the file name to a Windows path
@@ -369,7 +372,6 @@ if 1:  # Core functionality
                     d["files"] = f(d["files"])
             except FileNotFoundError:
                 pass
-
     def OpenMatches(matches, d):
         '''Each match item will be (full_filename, match_object) where
         match_object is the mo for _only_ the actual file name (not the
@@ -409,7 +411,7 @@ if 1:  # Open by keyword
         for keyword in args:
             if keyword in files:
                 for file in files[keyword]:
-                    util.ShowFile(file)
+                    dputil.ShowFile(file)
         exit(0)
 if __name__ == "__main__":
     d = {  # Options dictionary

@@ -4,7 +4,6 @@ Utility for magnification factors for IrfanView.
 """
 
 from f import flt
-from pdb import set_trace as xx
 
 if 0:
     import debug

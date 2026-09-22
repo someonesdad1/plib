@@ -1,12 +1,13 @@
 '''
 Decorate color specifications
+    - Add -n option to print file:linenum
     - Consider adding hex decorators to each line for convenience
     - Forms that must be recognized:
         - i = integer on [0, 255],
         - d = real on [0, 1]
             - .123
             - 0.123
-        - Hex string form @#$xxyyzz
+        - Hex string form @#$aabbcc
         - Single integer on interval [0, 2**24)
             - i i i    or    i, i, i     or   i; i; i
             - d d d    or    d, d, d     or   d; d; d
@@ -40,29 +41,30 @@ if 1:  # Header
     if 1:  # Standard imports
         from collections import deque
         from pathlib import Path as P
-        from pdb import set_trace as xx
         import getopt
         import math
         import os
         import re
         import sys
     if 1:  # Custom imports
+        from dptypes import Constant
         from wrap import wrap, dedent
-        from color import Color, Trm
+        from color import Color
+        import trm
         from wl2rgb import rgb2wl, wl2rgb
         if 0:
             import debug
             debug.SetDebugger()
     if 1:  # Global variables
         ii = isinstance
-        t = Trm()
+        t = trm.TrmDP()
         # The following makes the script's output always have escape codes for color, letting you
         # save the results to a file and view later with e.g. /usr/bin/less.
         t.on = True
-        class g:
-            pass  # Hold global variables
         t.dbg = t("wht", "blu")
-        g.duplicates = set()
+        g = Constant()
+        with g:
+            g.duplicates = set()
 if 1:  # Utility
     def Dbg(*p, **kw):
         'Print in debug colors if d["-D"] is True'
@@ -245,7 +247,7 @@ if 1:  # Core functionality
         '''
         flags = re.I | re.X
         regexps = (
-            # [@#$]xxyyzz form
+            # [@#$]aabbcc form
             R(r"([@#$][0-9a-f]{6})", flags),
             # Three integers or floats separated by commas
             R(rf"({s},\s*{s},\s*{s})", flags),
@@ -380,7 +382,7 @@ if __name__ == "__main__":
     # Container for the lines to output; contents will be (line, Color).  The trailing whitespace
     # from line is stripped.
     g.out = deque()
-    d = {}  # Options dictionary
+    d = {}  # type: ignore
     files = ParseCommandLine(d)
     if d["-b"]:
         Browse()

@@ -27,7 +27,6 @@ if 1:  # Header
         import sys
         import getopt
         from math import exp
-        from pdb import set_trace as xx
     if 1:  # Custom imports
         from wrap import dedent
         from lwtest import run, assert_equal, raises

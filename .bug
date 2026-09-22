@@ -1,0 +1,664 @@
+3 May 2026 12:10:18 pm Sun
+
+**************************************
+**  Refactor only on a new branch!  **
+**************************************
+    git checkout -b new_branch_name
+        # Use just ASCII letters/digits and underscores for safe naming
+
+Caution:  The code is mature with hefty test cases and is a couple of klines.
+Unfortunately, it appears that this is near the abilities of Mike to do a careful
+refactor, as evidenced by 2 May 2026's disaster of trying to 1) refactor the Num
+constructor signature and 2) remove old references to NumType.Unc and NumType.UncCpx.
+
+From now on, any such large task needs to be done on a well-named branch and only merged
+when the existing tests pass and there are new tests covering the added stuff.  It will
+also require fairly regular updates of the .mike data (a few times per day, as I can see
+the context degrade in an hour or two; the first symptom is the insertion of blank lines
+in the code and ignoring the requirement of newlines after a ":" character in
+conditionals and def).
+
+- Git policies
+    - Make sure the pre-commit script runs the number_test.py script
+    - commit-msg script should check to make sure the commit message isn't 
+      simply "Updated", as this is my traditional no-message commit/push
+
+- High priority bugs
+    - Ask Mike for a dbl replacement.  Needs to allow one empty line between 
+      '# END_CHUNK:' and '# CHUNK:'.
+    - Uncertainty tests failing
+    - Missing warning about large derivative for uncertainty in sqrt at 0
+    - Num("60 mi/hr").to("ft/s") -> 60 (should be 88)
+
+- Bugs
+    - Now I'm getting AttributeError: 'UnitArbiter' object has no attribute
+      '_register_unit'
+    - width = Num("3.770(5) m"), length = Num("14.22(2) m"), area = width*length,
+      sqrt(area) -> "7.322(8) sqrt((m)*(m))".  That result is going to have to simplify
+      to m.  Also sqrt(Num("1.05 acre")) has to work too.
+
+- Other
+    - Include limits on allowed values with type of interval?  [,], (,], [,), (,).  Not
+      terribly practical with immutable values.
+    - Does cc collide with centi-c?
+    - Tests needed
+        - sin(Num("4 rad")) must work
+
+- Attributes & properties
+    - Num.unc_lsd: float    Default number of LSD for uncertainty
+    - Num.flip: bool    Exchange behavior of str() and repr()
+    - .n: int           Change number of displayed digits
+    - 
+
+---------------------------------------------------------------------------
+- Constructor change:  Num(value: ty.Optional[ty.Any] = None, unit: str = "", unc:
+  ty.Optional[ty.Any] = None, correl: ty.Optional[ty.Any] = 0) -> None:
+    - value
+        - int/float/complex, Fraction, Decimal, mpf, or mpc:  value converted to
+          internal storage, uncertainty of both components zero
+        - ufloat:  gives real part nominal value & uncertainty
+        - str:  supported types via StringParser; uncertainty in short-form notation. If
+          no uncertainty given, then it's Num.unc_lsd times the LSD in the string.  This
+          is a practical heuristic; if someone doesn't like it, they can set it to what
+          they want, even 0.
+    - unit
+        - If supplied in both the value string and the unit keyword, the latter
+          overrides the former
+    - unc
+        - Type logic:
+            - If value is real, then unc must be real
+            - If value is complex, then unc must be complex or a tuple of two numbers.
+              If unc is a scalar means a ValueError.
+            - If value is complex, unc must be a complex or a tuple
+        - A use case is you're reading a CSV file with value and uncertainty in
+          different columns
+    - correl:  any type like value that can be converted an mpf on [-1, 1]
+    - Once the constructor is finished, a core need is that a Num instance is hashable,
+      meaning it's immutable.  See xyzimmutable below.
+
+    - Summary of Num type:
+        - Num is the one-and-only numeric type, carrying its own variance.
+        - Immutable Core: Once a Num is born, it’s locked. This makes it safe for hashes
+          and keeps your "Provenance Engine" from being corrupted by accidental
+          mid-session edits.
+        - Scalar/Complex Strictness: If the value is complex, the uncertainty must be
+          explicit (complex or 2-tuple).
+        - Measurement Shorthand: 1.23 implies an uncertainty of 1 in the LSD, honoring
+          the way humans actually communicate precision.
+- Mike and I discussed the tortuous road to where we are and how obvious it is once you
+  see it.  He commented:  The reason it feels "obvious" now is the classic hallmark of
+  great design: it’s the simplicity that lives on the other side of complexity.
+- Needed:  a formatter for Num objects.  There are two types:  with and without
+  uncertainty.  Without uncertainty display as usual no-color numbers.  Num objects with 
+  uncertainty are a different color and display to their uncertainty level.  There
+  probably needs to be a notation using ⋯ that limits to e.g. 6 or 8 digits for very
+  small uncertainties.
+
+Minor
+    - rho = Num("136.9(5) g/in3")
+        - rho.to("g/mL") gave 8.35415056656885 (correct), but lost the propagated uncertainty
+
+- Things I'll probably want
+    - Like SHOW in the HP42s:  show the full number form
+    - .n    Change the displayed number of decimals
+    - Num.N Change the decimal precision
+    - .f    Set the chosen format:  fix fixed sci eng eng si all
+
+- REPL
+    - ls to show all Num instances
+    - ll:  ditto but details
+
+---------------------------------------------------------------------------
+
+UnitArbiter refactor
+    - UnitArbiter is for "what" and UnitsMachinery is for "how"
+    - Current implementation may not need the UnitsMachinery class at all.  I'm using
+      the minimal GNU units compatible string from 'dp_units.py min' to define a basic
+      set of units for testing.  We probably can make the machinery accept a GNU units
+      config file, meaning there shouldn't be a need for the coprocess.
+    - UnitArbiter's dicts:
+        - _registry holds the definitions from the units definition file (GNU units
+          syntax).  key: name, value: definition
+        - _registry_scales will hold the conversion factor to base units.  key: name,
+          value: conversion factor
+        - __registry_signatures hold the "vector components" in base units.  key: name,
+          value: dict of base unit exponents (integers != 0 only)
+
+Should we make the UnitArbiter handle the default GNU units configuration file?  Here,
+by "handle", I don't mean duplicate its functionality, but I mean be able to read and
+digest it for its unit definitions.  Frankly, I don't care about the corner cases like
+nonlinear units (e.g. Fahrenheit to Celsius) or some screwy sheet metal gauge.  But I 
+do care about supporting the usual types of units used in physical calculations.
+
+Taking a quick look at my Sep 2022 version 3.15 copy of the GNU units configuration
+file, I'd write down the following policies:
+
+- First, remove all 'blocks' between and including !var UNITS_SYSTEM and !endvar.
+- Ignore lines starting with r"^!" and r"^\s*#"
+- Process lines like "^token\s+(expression|!|!dimensionless)"
+
+Here are some lines that might be problematic or are just things I noticed that might
+not cross one's mind until you see them:
+
+    gram                    millikg     # Actually is illegal SI usage
+    siliconlattice sqrt(8) silicon_d220
+    mired                   / microK
+    pfu                    / cm^2 sr s
+    solarirradiance     solarluminosity / (4 pi sundist^2)
+    decimalhour             1|10 day    # a|b is a fraction notation
+    "                       arcsec
+    circlearea(r)   units=[m;m^2] range=[0,) pi r^2 ; sqrt(circlearea/pi)
+    spherevolume(r) units=[m;m^3] range=[0,) 4|3 pi r^3 ; \
+                                         cuberoot(spherevolume/4|3 pi)
+    phi                     (sqrt(5)+1)/2
+    wiendisplacement     (h c/k)/4.9651142317442763
+    normaltemp              tempF(70)   # Function call that would fail
+    parsec                  au / tan(arcsec)    # Would require a mpmath function call
+
+Right now, this would take us too far afield and I don't think it's worth pursuing.  
+---------------------------------------------------------------------------
+Some test examples for fidding in the REPL
+
+- Calculate the resistance of a chunk of aluminum like what I made for the HCT
+  transformer
+    - Legs
+        - 2 pieces of Al tubing
+            - 21.3 mm dia
+            - 2 mm wall
+            - L = 31 + 82 + 20 = 133 mm 
+            - The tubing can be modeled as a chunk of rectangular stock 4 mm thick by
+              31.5 mm wide, as this is what it hammered down to for joining with the
+              threaded rod
+    - Rod
+        - 1 pc joining rod of 1/2" dia Al barstock:  133 mm long (a 5/16 UNC thread was
+          single pointed on each end and used with a nut, 3/8" washer, and lockwasher
+          for a tight clamp to the two tubing pieces
+    - Calculation
+        - Leg resistance = 59.62 μΩ, L = 266 mm, A = 126 mm2, rho = 28.24 nohm*m
+        - Rod resistance = 29.65 μΩ, L = 133 mm, A = 1963 in2, rho = 28.24 nohm*m
+        - Total R = 89.27 μΩ
+    - In 2024, I measured the resistance of this short by using a high current
+      transformer.  I didn't note the current setting, but it was likely 200 A, as
+      that's the current I commonly tested this transformer at (I could run it to a
+      measured 620 A before my ammeter overranged and for short periods (a few seconds)
+      I probably ran it at over 1000 A.  The measured resistance was 129 μΩ.  This
+      calculated value is missing the resistance of the two 1/2 inch diameter bolts
+      clamping it to the transformer's winding and the resistance of the two threaded
+      connections of the 1/2 inch diameter bar.  This calculation is reasonable,
+      however (validating the estimate), because the measured value is 44% above the
+      calculated and the clamped joint resistances would be hard to estimate.
+
+---------------------------------------------------------------------------
+
+Important
+    - Num.strict:  if on, uncertainties never compare equal.  If off, then if the mean
+      and stdev match, they're equal with a warning to stderr:  "Warning:  comparing
+      distributions".
+    - Formatting
+        - Add native Num formatting to fmt.py
+            - Need to display numbers with uncertainty
+            - Need to display rational numbers 
+        - Should the parser store the original string in the Num instance?  This might
+          be the most user-friendly way to display the string to the user.  See
+          orig_string below.
+    - Noether REPL
+        - q command:  single letter quit.  Infrastructure shows others how to add new
+          commands.
+        - e command:  no arg:  edits text file that lets you edit and recreate your
+          current state.  Any args are Num instances; this lets you edit the .doc
+          attribute string.
+        - d command:  enter debugger with next command
+        - del command enhanced to allow deleting a set of Num instances?
+        - Persistence:  leave a breadcrumb trail, even for things that aren't saved as
+          variables.
+    - Preferred units
+        - num.prefer(s) where s is a sequence of strings
+        - Multiple calls OK
+        - num.preferred(None) erases remembered units
+        - Could be a REPL command 'prefer a b...' and prefer none
+
+--------------------------------------------------------------------------- Other stuff
+    - Persistence
+        - See logexample below
+            - Mike pointed out this could be done without having to modify the GNU units
+              code
+        - SQLite persistence
+            - Add when it's time, keep the interface simple
+            - At some point a breadcrumb command would be useful (i.e., show me the
+              history of this calculation or dump it to a file.
+        - A core need is any encountered exception also needs to be logged, as this
+          makes debugging problems easier
+    - REPL hacking
+        - 'q' command:  single command to quit the REPL, just like the debugger
+        - Once set up, can show user how to extend to their tastes
+        - Commands to interact with the db
+        - Shelling out:  ! to exit to shell, exit to return
+        - 'ls' command to show you the currently defined namespace with color coding
+        - File buffer (see below) and 'r' to execute buffer
+        - Here's old repl.py help:
+
+            ▶▶▶ h
+            Commands:
+            !    Send command to shell
+            < f   Read string buffer from file f
+            > f   Write string buffer to file f
+            CS    Clear symbols
+            c    Clear screen
+            d    Enter debugger
+            E    Edit buffer
+            f    Load favorite symbols (edit GetSymbols())
+            H    Shorthand to run help()
+            q    Quit
+            R f   Get file f to run with 'r' command
+            r    Run file buffer
+            ri    Run file buffer with 'python -i'
+            s    Print symbols in scope
+            v    Show version
+            x    Execute string buffer
+            If a command is defined as a symbol, then preface it with a space character
+            to execute it as a command.  The buffer is used to let you compose code and
+            run it as needed.  It persists only while repl.py is running, so save it in
+            the editor or with the '>' command to a file.  If you define a function,
+            include a blank line after the function's end so that the interpreter
+            recogizes the end properly.  You can customize most of the behavior of
+            repl.py by editing the script.  If you are running in a UNIX-like
+            environment or cygwin, you should have history and command completion
+            available via readline.
+
+    - Rewrite a python interpreter by hooking the GNU units C code into the interpreter.
+      Then embed the Num machinery so that there's a "natural" number container that
+      interoperates with python native numbers.
+
+---------------------------------------------------------------------------
+logexample 
+
+"Cheap" persistence with GNU units:  '--log file' feature:  timestamps and then logs
+what you type in.  Start a line with '#' and it's a comment (logged but ignored).
+The GNU units manpage, however, says --log is ignored for non-interactive use.
+
+Input:
+    …/plib> u -q -L a.log
+    # This is a test of leaving a unit
+    # Comment, I mean.
+    ft
+    m
+            * 0.3048
+            / 3.28083989501312
+    # That's not right
+    cup
+    m3
+            * 0.0002365882365
+            / 4226.75283773037
+    q
+
+Log file content:
+    ### Log started Sun Apr 19 08:02:12 2026
+    
+    # This is a test of leaving a unit
+    # Comment, I mean.
+    From: ft
+    To:   m
+        * 0.3048
+        / 3.28083989501312
+    # That's not right
+    From: cup
+    To:   m3
+        * 0.0002365882365
+        / 4226.75283773037
+
+Another start with the same command appended to the file:
+    ### Log started Sun Apr 19 08:08:00 2026
+    
+    # A restarted example
+    From: mi
+    To:   league
+        * 0.333333333333333
+        / 3
+
+Mike's comments on the logger idea:
+
+The Trade-off
+
+    The "Hack" approach: If we just want a "Command Journal," we don't even need to
+    touch the units C source code. We can simply wrap our subprocess call to units in
+    our own Logger class. Every time we send a string to the UnitArbiter, we write to
+    our own audit log file with a timestamp. This avoids the "friction" of modifying the
+    units binary, keeps the project portable, and works regardless of what the units
+    manpage says about interactivity.
+
+    The "Integrity" approach: If you really want the log to be the source of truth, you
+    can use a named pipe (FIFO) or a PTY wrapper to trick units into thinking it's
+    interactive, forcing it to write the log as it would in a real shell.
+
+Why I lean toward the Wrapper (Logging at the Num level)
+
+Since you are already building a Num class that is orchestrating this, logging at the
+Python side gives you much better structure:
+
+    Context-Aware Logging: You can log the Python call stack, the Num object's state
+    (including its mytype and raw_value), and the unit result simultaneously.
+
+    Persistence agnostic: You can log to a simple text file, a SQLite DB, or both,
+    without worrying about how units handles its own internal file descriptors.
+
+Like Mike, I lean towards the python level logging, as the REPL can also log the things
+the user does there.
+
+---------------------------------------------------------------------------
+orig_string Retain original string for user
+
+    def __init__(self, val, unit="", origin=None):
+        # ... your existing setup ...
+        self._origin = origin if origin else str(val)
+        # ...
+
+    @property
+    def display(self) -> str:
+        '''Formatted representation for human readability.'''
+        # This could eventually hold your "prettify" logic
+        return f"{self._origin} -> {self}"
+
+Keep it simple; just the information the user type in; do not try to capture all the
+later operations, as that can be done by the persistence engine.
+
+Mike's comments:
+
+    Why this is the "Right" Approach:
+
+        Debugging Traceability: When you look at an error log, seeing
+        Num('0.0(2)-0.0(2)j') is infinitely more helpful than seeing the evaluated mpc
+        object.
+
+        The "Prettify" Property: You mentioned changing dump() to a property. By having
+        _origin stored, you can make dump or display intelligently switch contexts.
+
+            Verbose mode: Show the origin + evaluated value + unit.
+
+            Concise mode: Show just the evaluated value.
+
+        User-Defined Logic: You can decide on the fly if the origin is what the user
+        typed or a derived expression. If a Num is created via an operation, the
+        "origin" could be the expression f"{a} + {b}", effectively giving you a free,
+        lightweight expression tree for free.
+---------------------------------------------------------------------------
+22 Apr 2026 09:14:53 am Wed
+
+Me:
+    Done!  All self tests passing.
+
+    I'm roughly a day ahead of my mental schedule for lunch tomorrow with the CS prof.
+    I don't think there's a glaring problem anywhere.  It's supposed to rain most of the
+    day, so I can't work outside, so I have the rest of today to fiddle and play with
+    the Num class in the python REPL.  
+
+    So, a quick high-level question for you is:  should we start discussing the
+    persistence ideas.  I think this feature is critical for the lab notebook view of
+    the tool.  About 2 weeks ago you proposed the SQLite DB approach and I really liked
+    that, but can't help with the architecture or implementation, as the little I played
+    with it was decades ago in C.  
+
+    Maybe what we should do is not worry about any implementation immediately, but get a
+    high level view of how things should work and write some use cases.  Good
+    clear-headed thinking like that leads to easier implementation.
+
+    If you agree, then here are some initial thoughts for your review and critique.  
+
+    - Essence of a lab notebook:  indelible sequential dated recording of designs,
+      ideas, "on-paper" thinking, and experimental set-ups and results.
+        - The "indelible" always meant that if you worked in industry or academic
+          research that your lab notebook had to be written in pen.  This was primarily
+          for the need to be able to patent new ideas and demonstrate that you e.g.
+          didn't go back and change earlier material to fake having temporal priority.
+        - Sequential and dated:  the entries follow the temporal order of their
+          occurrence and are date/time stamped.
+        - The Num instance creations and their REPL entries of course need to be
+          recorded.  But another aspect is the user of the notebook often wants to write
+          prose to record thoughts/data/results, both from within the REPL in an editor
+          and perhaps from an external source like a file.
+            - This leads me to believe the REPL can be modified by adding commands:
+                - One I always want is a single 'q<newline>' to exit the REPL.
+                - An 'e' command can be used to call up the user's editor to edit an
+                  arbitrary string.  This string gets timestamped and added to the REPL
+                  stdout, just as if it was typed in by each line and didn't result in a
+                  syntax error.  It the REPL, it would appear as a bunch of lines with
+                  no leading '>>>'.
+                - 'ls' could be just like the UNIX shell command for listing:  it would
+                  give you a summary of all the in-scope Num instances with their symbol
+                  names.
+                - Numerous other commands needed will pop up as I use this tool
+        - As we've discussed weeks ago, eventually these Num objects might be "captured"
+          in one and two dimensional arrays.  This has long been a wish of mine, as it
+          would enable getting statistics on vector arrays and using a 2D matrix to do
+          linear regression, a favorite tool.  It would also lead to being able to use
+          plotext to generate plots in e.g. another terminal window.  This evolved from
+          minitab use experience in the mid-1980's.  I also have two nice tools I wrote
+          using numpy in python 2 that produce statistics on column vectors and perform
+          multiple linear regression using 2D matrixes.  The latter tool always barfed
+          on the NIST good bad examples that used nearly-singular matrixes.  I always
+          envisioned being able to use mpmath to get around the numerical stability (the
+          increased precision still suffers from the numerical problems, but you can get
+          a feel for the problem's magnitude by using higher precision).
+        - Another aspect is that you had your lab notebook reviewed by colleagues;
+          they'd sign and date things if it was e.g. for patent protection.  We don't
+          need that feature here, but it should guide the design, meaning the output of
+          the persistent data should be readable and usable by another reader.  Yes,
+          that's qualitative, but it expresses intent.
+
+Mike:
+
+    It is a profound realization that the architecture is now "good enough" that new
+    features feel like extensions rather than corrections. That is the hallmark of a
+    system that has moved from being "duct-taped" to "engineered."
+
+    Your vision for the lab notebook is spot on. By framing it as a "scientific record
+    of intent" rather than just a "code save file," you shift the design goal from
+    efficiency to integrity.
+
+    Here is a review of your lab notebook architecture thoughts, focused on how we can
+    bridge that "pen-and-ink" requirement with modern Python/SQLite:
+
+    1. The "Pen-and-Ink" Requirement (Indelibility)
+
+        The Architecture: SQLite is perfect here. We shouldn't use UPDATE or DELETE
+        statements on the core ledger. We treat the database as an Append-Only Event
+        Store.
+
+        Integrity: By storing the hash of the previous entry along with the current one,
+        you create a "chained" log (similar to a blockchain, but simplified). This gives
+        you the technical equivalent of "writing in pen"—if you go back and change a
+        past record, the hash chain breaks, proving the modification.
+
+    2. The REPL as a "User-Interface for Thoughts"
+
+    You are essentially describing a Command-Line Laboratory Interface. Extending the
+    REPL to support 'meta-commands' ('q', 'e', 'ls') is the right direction.
+
+        The 'e' (Editor) Command: This is the most critical feature. By invoking an
+        editor, letting you write prose, and then injecting that back into the stream,
+        you are effectively creating "Literate Programming" for the REPL.
+
+        The 'stdout' Injection: When you edit that prose, we treat the output as a
+        markdown_block in the SQLite DB. This makes the notebook human-readable (the
+        "colleague review" requirement) while keeping the math live.
+
+    3. Matrixes, Regression, and mpmath
+
+    You are absolutely correct that mpmath is the cure for the numerical instability
+    that plagues standard numpy linear regression on ill-conditioned matrices.
+
+        The Vision: Because your Num class is already designed to handle mpmath objects,
+        building a NumMatrix class that wraps mpmath.matrix will be a logical next step.
+        It allows you to maintain full arbitrary precision through the regression
+        calculation—something that would blow up in standard float64 environments.
+
+    Critique & Suggestions for the "Use Cases"
+
+    To turn these thoughts into a concrete implementation plan, I propose we categorize
+    the notebook data into three distinct streams in the SQLite file:
+
+    Stream	        Type	        Purpose
+    Input	        String/Code	    The raw text typed into the REPL.
+    Computation	    Data/Payload	The ParsedPayload serialized as JSON (for re-hydration).
+    Annotation	    Prose/Markdown	Your 'e' command entries, thoughts, and "pen-and-ink" prose.
+
+    My specific critique on your design:
+
+        Don't just store the output; store the Intent. If you perform a regression,
+        don't just store the result. Store the query (e.g., "regress X on Y"), the
+        resulting NumMatrix, and your prose annotation about the quality of the result.
+
+        Persistence of State: Since you want to be able to "pick up where you left off,"
+        the SQLite database should be able to re-hydrate the in-scope Num instances in
+        the REPL upon startup. This makes the lab notebook a living workspace.
+
+    A thought for the "prose" requirement:
+
+    If we implement the 'e' command, we should allow you to tag those prose blocks with
+    metadata (e.g., # Experiment 4: Spindle bearing vibration analysis). This turns the
+    notebook into a searchable knowledge base, not just a flat log.
+
+    How does this separation of streams feel for the "indelible ledger"? Does this align
+    with the "pen-and-ink" vibe you're after?
+
+    (Also, I am delighted by the irony that you're using a physics-grade tool to
+    engineer a better way to do physics—it's very recursive, and very "physicist"!)
+
+---------------------------------------------------------------------------
+xyzimmutable 
+
+    Here's how to make Num (nearly) immutable:
+
+    class Num:
+    def __init__(self, value=None, unit="", unc=None, correl=0.0):
+        # ... logic to resolve _real, _imag, re_unc, im_unc, etc. ...
+
+        # Internal state assignment
+        object.__setattr__(self, '_real', resolved_real)
+        object.__setattr__(self, '_imag', resolved_imag)
+        # ... and so on ...
+
+        # Final lock: The hash string
+        h_val = hash((self._real, self._imag, self.re_unc, self.im_unc, self.correl, self._unit))
+        object.__setattr__(self, '_hash', str(h_val))
+        object.__setattr__(self, '_initialized', True)
+
+    def __setattr__(self, name, value):
+        if getattr(self, '_initialized', False):
+            raise TypeError(f"Num objects are immutable. Cannot modify '{name}'.")
+        object.__setattr__(self, name, value)
+
+    def __hash__(self):
+        return int(self._hash)
+
+    If you do need to override the immutability for e.g. a late-bound .doc attribute,
+    you can call the parent method:
+
+        def set_doc(self, text: str):
+            # This bypasses the logic in Num.__setattr__
+            object.__setattr__(self, "_doc", text)
+
+---------------------------------------------------------------------------
+xxpytest Using pytest to test number.py
+
+Me:
+    As you know, I use a lone-wolf testing feature I wrote based on an idea by Raymond
+    Hettinger.  I have pytest 9.0.2 installed on my system and I was wondering if there's a
+    way that I could get pytest to work as is with my code.  My usual pattern is to only
+    write test functions named "Test_*" and the lwtest.py module is used with the basic
+    pattern 
+
+        exit(run(globals(), regexp=r"^[Tt]est_", halt=1, verbose=0)[0])
+
+    Here's the help message from lwtest.py: <snip>
+
+        ...
+
+    The impedance mismatch with pytest will come from these checking functions and run().  
+
+    I was wondering if you can think of an easy way to allow pytest to be used unmodified to
+    run the existing tests; this would be convenient for new users, as pytest seems to be
+    pretty popular (but with the popularity of python, there are numerous testing tools and
+    I'm glad I rolled my own, as I always have it).  The easiest answer is just to include
+    the lwtest.py file with the number.py file.  But it would be nice for users if pytest or
+    nose could be used too.  I'll send you the lwtest.py file if you wish.
+
+Mike:
+
+The "Raymond Hettinger-style" lightweight testing framework you’ve rolled is
+functionally an **explicit test runner**, whereas `pytest` is a **discovery-based
+framework**.
+
+The fundamental impedance mismatch is that `lwtest` expects to run as a script that
+iterates over `globals()`, while `pytest` expects to perform import-time discovery and
+injection. To get `pytest` to run your `Test_*` functions, you have a few options
+ranging from "zero-effort" to "full integration."
+
+### The "Zero-Effort" Strategy (The Compatibility Bridge)
+You do not need to rewrite your `lwtest` library to use `pytest`. Instead, you can write
+a very small **Pytest Collection Wrapper** in a separate file (e.g.,
+`tests/test_compat.py`).
+
+`pytest` looks for functions starting with `test_` (lowercase). Since your functions are
+`Test_*`, `pytest` will ignore them by default. You can create a file that imports your
+`number.py` and maps your `Test_*` functions into standard `test_*` functions:
+
+    ```python
+    # tests/test_compat.py
+    from number import Test_StringParser, Test_OtherStuff # Import your tests
+
+    def test_string_parser():
+        Test_StringParser()  # Simply call your existing function
+
+    def test_other_stuff():
+        Test_OtherStuff()
+    ```
+
+When you run `pytest`, it will discover `test_string_parser`, execute it, and if your
+`Assert` functions raise an `AssertionError` (or a standard exception), `pytest` will
+report them as failures automatically.
+
+### The "Slightly Better" Strategy (Automated Mapping)
+If you have 50+ test functions, you don't want to map them manually. You can use a
+`conftest.py` file or a dynamic generation script in your `tests/` folder to "collect"
+your `Test_*` functions and bind them to a `pytest` test node.
+
+However, **there is a caveat**: your `Assert` function presumably raises a custom error
+or just a basic `AssertionError`. As long as it raises *some* exception, `pytest` will
+catch it. If your `Assert` simply prints and doesn't raise, `pytest` won't know it
+failed.
+
+### My Recommendation: Keep `lwtest.py` as your Primary
+
+Given your goal of "packaging" for Jim's colleagues, I strongly suggest the following:
+
+1.  **Keep `lwtest.py`**: It is your "source of truth" and it provides the exact
+debugging environment (the `u` command, color-coded `ToDo`, `halt=1`) that you are used
+to.
+
+2.  **Add a simple `run_tests.py` entry point**:
+
+    ```python
+    # run_tests.py
+    import number
+    if __name__ == "__main__":
+        number.Test_StringParser()
+        # ... and so on
+    ```
+
+3.  **Use `pytest` only if they want it**: Include a `conftest.py` in your repository
+that performs the mapping I mentioned above. This allows the "Pytest-faithful" to run
+`pytest` in your directory and have it magically pick up your tests, while you and your
+users can still use the "native" `lwtest` for deep, step-through debugging.
+
+**Regarding `lwtest.py`:**
+
+Please do **not** send me the code for `lwtest.py` yet. Since we have a strict Monday
+target to get the `Num` class packaged and running for a collaborator, let's focus on:
+
+1.  Isolating the `Num` class (logic).
+2.  Ensuring `lwtest` can run that isolated class.
+3.  Writing the minimal "bridge" for `pytest` users to satisfy their curiosity.
+
+**Does this "bridge" approach feel like it respects your workflow?** It keeps your
+debug-heavy `lwtest` as the primary driver but gives the "unaware users" the familiar
+interface they expect from standard Python tooling.

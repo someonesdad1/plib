@@ -24,7 +24,8 @@ if 1:  # Header
         import sys
     if 1:   # Custom imports
         from wrap import dedent
-        from color import t
+        import trm
+        t = trm.TrmDP()
         import termtables as tt
         if 0:
             import debug
@@ -40,8 +41,7 @@ if 1:   # Utility
         t.stuff = t.lill
         t.err = t.redl
         t.warn = t.ornl
-        t.dbg = t.lill if g.dbg else ""
-        t.N = t.n if g.dbg else ""
+        t.dbg = t.lill
     def GetScreen():
         'Return (LINES, COLUMNS)'
         return (
@@ -52,7 +52,7 @@ if 1:   # Utility
         if g.dbg:
             print(f"{t.dbg}", end="")
             print(*p, **kw)
-            print(f"{t.N}", end="")
+            print(f"{t.n}", end="")
     def Warn(*msg):
         print(*msg, file=sys.stderr)
     def Error(*msg, status=1):

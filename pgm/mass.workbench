@@ -1,0 +1,39 @@
+# This datafile uses mass.py to calculate the mass of the workbench design given at
+# https://lautard.com/bench.htm.
+
+material fir
+# Define the default length units
+units inch
+# Number of significant figures in the report 
+digits 3
+# Mass unit for report
+munit lb
+# Volume unit for report
+vunit in3
+
+# Define bench dimensions
+length = 96
+width = 48
+height = 32
+
+# Each of the bench components
+2x4 L=96, n=4, name="long2x4"
+4x4 L=32, n=4, name="leg4x4"
+2x4 L=45, n=8, name="crosspiece2x4"
+rect a=48, b=96, L=0.75, n=2, material="plywood", name="plywood_top"
+rect a=48, b=96, L=0.25, n=1, material="masonite", name="top_cover"
+
+#  Results:
+#   [x] is line no.          Mass          % of         Volume         % of
+#      Component              lb          Total          in3          Total
+# -------------------- ---------------- ---------- ---------------- ----------
+# long2x4                    38.           14.         2000.           16.
+# leg4x4                     13.            4.7         670.            5.3
+# crosspiece2x4              35.           13.         1900.           15.
+# plywood_top               140.           54.         6900.           55.
+# top_cover                  37.           14.         1200.            9.1
+# -------------------- ---------------- ---------- ---------------- ----------
+# Total positive            270.                      13000.
+# Total negative              0.                          0.
+# -------------------- ---------------- ---------- ---------------- ----------
+# Total net                 270.                      13000.
