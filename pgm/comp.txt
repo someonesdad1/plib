@@ -44,7 +44,7 @@ Box 1
     1:11:1    Piezo buzzer ? 🟦 sound
     1:12:2    Piezo buzzer All El. 1 kHz 10 Vpp 🟦 sound
     1:13:1    Speaker, small, 8 ohm 🟦 sound
-    1:13:1    Radio Shack 273-065A buzzer 3-20 V DC 🟦 sound
+    1:13:1    Archer (Radio Shack) 273-065A piezo active buzzer 3-20 V DC (pretty loud) 🟦 sound
     1:14:1    Piezo buzzer 60 Hz - 2 kHz 4.5 Vpp 🟦 sound
     1:15:1    Buzzer 2 kHz 9 V 🟦 sound
     1:16:1    Radio Shack Chime, 1.5-3 V, 30-60 mA, two tone, + RED, -BLK, connect WHT to + for sound 🟦 sound
@@ -191,54 +191,58 @@ Box 7
     7:12:?    Small incandescent bulb (old Heathkit fn gen) 66 Ω 🟦 opto
 
 Box 8
-    8:1:?    Pot, 10 ohm, 10 turn PC mount 🟦 pot
-    8:2:?    Pot, 20 ohm, 10 turn PC mount 🟦 pot
-    8:3:?    Pot, 50 ohm, 10 turn PC mount 🟦 pot
-    8:4:?    Pot, 100 ohm, 10 turn PC mount 🟦 pot
-    8:4:?    Pot, 100 ohm, square & round, 1 turn PC mount 🟦 pot
-    8:5:?    Pot, 200 ohm, round, 1 turn PC mount, facing normal to board, finger turn 🟦 pot
-    8:6:?    Pot, 500 ohm, 10 turn PC mount 🟦 pot
-    8:6:?    Pot, 500 ohm, round, 1 turn PC mount, facing normal to board 🟦 pot
-    8:6:?    Pot, 500 ohm, round, 1 turn PC mount, facing normal to board, finger turn 🟦 pot
-    8:7:?    Pot, 1 kohm, round, 1 turn PC mount, facing normal to board, finger turn 🟦 pot
-    8:8:?    Pot, 2 kohm, 10 turn PC mount 🟦 pot
-    8:9:?    Pot, 5 kohm, 1 turn PC mount, round, finger turn 🟦 pot
-    8:9:?    Pot, 5 kohm, 10 turn PC mount 🟦 pot
-    8:10:?    Pot, 10 kohm, 10 turn PC mount 🟦 pot
-    8:11:?    Pot, 20 kohm, 1 turn PC mount, round 🟦 pot
-    8:11:?    Pot, 20 kohm, 10 turn PC mount 🟦 pot
-    8:12:?    Pot, 50 kohm, 1 turn PC mount, round, facing normal to board, miniature 🟦 pot
-    8:12:?    Pot, 50 kohm, 1 turn PC mount, square, facing normal to board 🟦 pot
-    8:13:?    Pot, 100 kohm, 10 turn PC mount 🟦 pot
-    8:14:?    Pot, 200 kohm, 10 turn PC mount 🟦 pot
-    8:15:?    Pot, 500 kohm, 10 turn PC mount 🟦 pot
-    8:16:?    Pot, 1 Mohm, 10 turn PC mount 🟦 pot
-    8:17:?    Pot, 2 Mohm, 10 turn PC mount 🟦 pot
+    8:1:?    Pot, 10 ohm, 10 turn PCB mount 🟦 pot
+    8:2:?    Pot, 20 ohm, 10 turn PCB mount 🟦 pot
+    8:3:?    Pot, 50 ohm, 10 turn PCB mount 🟦 pot
+    8:4:?    Pot, 100 ohm, 10 turn PCB mount 🟦 pot
+    8:4:?    Pot, 100 ohm, square & round, 1 turn PCB mount 🟦 pot
+    8:5:?    Pot, 200 ohm, round, 1 turn PCB mount, facing normal to board, finger turn 🟦 pot
+    8:6:?    Pot, 500 ohm, 10 turn PCB mount 🟦 pot
+    8:6:?    Pot, 500 ohm, round, 1 turn PCB mount, facing normal to board 🟦 pot
+    8:6:?    Pot, 500 ohm, round, 1 turn PCB mount, facing normal to board, finger turn 🟦 pot
+    8:7:?    Pot, 1 kohm, round, 1 turn PCB mount, facing normal to board, finger turn 🟦 pot
+    8:8:?    Pot, 2 kohm, 10 turn PCB mount 🟦 pot
+    8:9:?    Pot, 5 kohm, 1 turn PCB mount, round, finger turn 🟦 pot
+    8:9:?    Pot, 5 kohm, 10 turn PCB mount 🟦 pot
+    8:10:?    Pot, 10 kohm, 10 turn PCB mount 🟦 pot
+    8:11:?    Pot, 20 kohm, 1 turn PCB mount, round 🟦 pot
+    8:11:?    Pot, 20 kohm, 10 turn PCB mount 🟦 pot
+    8:12:?    Pot, 50 kohm, 1 turn PCB mount, round, facing normal to board, miniature 🟦 pot
+    8:12:?    Pot, 50 kohm, 1 turn PCB mount, square, facing normal to board 🟦 pot
+    8:13:?    Pot, 100 kohm, 10 turn PCB mount 🟦 pot
+    8:14:?    Pot, 200 kohm, 10 turn PCB mount 🟦 pot
+    8:15:?    Pot, 500 kohm, 10 turn PCB mount 🟦 pot
+    8:16:?    Pot, 1 Mohm, 10 turn PCB mount 🟦 pot
+    8:17:?    Pot, 2 Mohm, 10 turn PCB mount 🟦 pot
     8:18:?    World War 2 1/4" pot shaft waterproof feedthrough 🟦 hardware
 
 Box 9
     9:1:4    Socket, transistor, TO-92 🟦 socket
-    9:2:3    Relay, 12 V, DPDT, latching 🟦 relay switch
+    9:1:5    1826-0311 LM201A op amp 🟦 opamp
+    9:2:3    12 V latching relay DPDT 🟦 relay
     9:3:6    555 timer 🟦 linear
     9:3:2    556 timer (dual 555) 🟦 linear
     9:5:1    Luxeon star LED, 350 mA max 🟦 opto
-    9:6:?    
-    9:7:3    1826-0311 LM201A op amp 🟦 opamp
+    9:5:1    8-pin DIP socket 🟦 socket
+    9:5:8    2N5062 SCR silicon-controlled rectifier 0.8 A 200 V🟦 SCR
+    9:6:M    555 timer 🟦 linear
+    9:7:M    555 timer 🟦 linear
     9:8:5    74LS151 8-channel digital mux 🟦 TTL
     9:9:3    CA3094E transconductance amplifier, Intersil 🟦 linear
-    9:10:1   8-pin DIP sockets 🟦 socket
+    9:10:10  T514256A 262144 WORD x4 BIT dynamic ram🟦 socket
+    9:10:1   0410-0766 Bliley 100 MHz quartz crystal🟦 socket
 
 Box 10
-    10:1:?    Pot, 2 kohm, PC mount, finger dial 🟦 pot
-    10:2:?    Pot, 250 ohm, PC mount, finger dial 🟦 pot
-    10:3:?    Pot, 2.4 kohm, PC mount, finger dial 🟦 pot
-    10:4:?    Pot, 800 kohm, PC mount, fastener driver dial 🟦 pot
-    10:5:?    Pot, 500 ohm, PC mount, finger dial 🟦 pot
-    10:6:?    Pot, 2 kohm, PC mount, finger dial 🟦 pot
-    10:7:?    Pot, 100 ohm, PC mount, finger dial 🟦 pot
-    10:8:?    Pot, 250 kohm, PC mount, finger dial 🟦 pot
-    10:9:?    Pot, 50 kohm, PC mount, finger dial 🟦 pot
-    10:10:?    Pot, 480 ohm, PC mount, finger dial 🟦 pot
+    10:1:?    Pot, 2 kohm, PCB mount, finger dial 🟦 pot
+    10:2:?    Pot, 250 ohm, PCB mount, finger dial 🟦 pot
+    10:3:?    Pot, 2.4 kohm, PCB mount, finger dial 🟦 pot
+    10:4:?    Pot, 800 kohm, PCB mount, fastener driver dial 🟦 pot
+    10:5:?    Pot, 500 ohm, PCB mount, finger dial 🟦 pot
+    10:6:?    Pot, 2 kohm, PCB mount, finger dial 🟦 pot
+    10:7:?    Pot, 100 ohm, PCB mount, finger dial 🟦 pot
+    10:8:?    Pot, 250 kohm, PCB mount, finger dial 🟦 pot
+    10:9:?    Pot, 50 kohm, PCB mount, finger dial 🟦 pot
+    10:10:?    Pot, 480 ohm, PCB mount, finger dial 🟦 pot
 
 Box 11
     11:1:?    Capacitor, adjustable, 3 to 9 pF 🟦 capacitor
@@ -303,7 +307,7 @@ Box 15
     15:6:?    Capacitor, 100 nF, 100 V, 1970's GE salvaged from Ithaca lock-in 🟦 capacitor
     15:7:?    Capacitor, 205 uF, 10 V, 1970's Kemet salvaged from Ithaca lock-in 🟦 capacitor
     15:8:?    Capacitor, 2 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in 🟦 capacitor
-    15:9:?    Capacitor, 0.977 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in 🟦 capacitor
+    15:9:?    Capacitor, 1 uF, 200 V, 1970's Electrocube salvaged from Ithaca lock-in 🟦 capacitor
     15:10:?     🟦
 
 Box 16
@@ -349,7 +353,7 @@ Box 18
     18:8:?    Jumper, fits 8-pin DIP socket 🟦 jumper
     18:9:?    Fuse, AGC, various sizes 🟦 fuse
     18:10:?    1A 250 V lever snap action microswitch 🟦 switch
-    18:11:?    2N7000 MOSFET transistor TO92 60 V 200 mA 🟦 MOSFET
+    18:11:M    2N7000 MOSFET transistor TO92 60 V 200 mA 🟦 MOSFET
     18:12:?    IC tube pin (closes IC antistatic tube off) 🟦 misc
     18:12:?    0.2 A AGC-size fuse for Aneng 870 DMM 🟦 fuse
 
@@ -396,12 +400,16 @@ Box 20
     20:4:1    HP 6N139 optocoupler 🟦 opto
     20:5:15   IRF540 MOSFET 33 A, 100 V, 44 mohm 🟦 MOSFET
     20:6:1    74F240 octal buffer with 3-state outputs 🟦 TTL
-    20:7:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220 🟦  misc
+    20:6:2    BTB08600BW Sensitive gate triac 8 A 600 V TO-220 🟦  misc
+    20:7:2    IRF3205 MOSFET TO-220 🟦  MOSFET
+    20:7:2    LM3909 LED flasher 🟦  IC
     20:8:1    74LS251M 3 state 1-of-8 line data selector/mux 🟦 TTL
     20:9:10   7812 voltage regulator TO220 🟦 linear
     20:10:10  7805 voltage regulator TO220 🟦 linear
     20:11:2   210A102 SIP resistors, 1 kohm, Allen-Bradley 🟦 resistor
     20:11:1   DIP resistors, 1 kohm 🟦 resistor
+    20:11:1   LM337T 1.5 A negative voltage regulator 🟦 linear
+    20:11:2   78L08 100 mA 8 V regulator 🟦 linear
     20:12:1   TL780-05C 5 V voltage regulator, TO-220 🟦 linear
     20:11:2   LM317K adjustable voltage regulator, TO-3 🟦 linear
     20:12:2   LM317K adjustable voltage regulator, TO-3 🟦 linear
@@ -455,7 +463,7 @@ Box 24
     24:1:?    Various small batteries 🟦 battery
     24:2:?    Precision current transformer 50 A = 10 mA, 20 Hz to 20 kHz banggood 991591 🟦 ferrite transformer
     24:3:?    16-pin DIP header (socket) for 8 resistor-type components 🟦 socket
-    24:4:?    Super capacitors 🟦 capacitor
+    24:4:?    Super capacitor 🟦 capacitor
     24:5:?    Mercury switch, 2 A rating 🟦 switch
     24:6:10   LED, white, 10 mm 🟦 opto
     24:7:M    Black and yellow wire nuts 🟦 connector
@@ -557,11 +565,13 @@ Box 29
     29:8:20   LM358P dual op amp MPJA 36231 🟦 opamp
 
 Box 30
+    30:1:?    Antistatic foam 🟦 converter
     30:1:1    Buck CV/CC converter 3 A MPJA 33370 🟦 converter
     30:1:?    Dupont jumper wires, assorted, 100 mm 🟦 connector
-    30:1:19   100 μF 35 V surface mount capacitors 🟦 capacitor
-    30:1:4    47 μF 35 V surface mount capacitors (from Richard) 🟦 capacitor
-    30:1:4    220 μF 35 V surface mount capacitors (from Richard) 🟦 capacitor
+    30:1:19   100 μF 35 V surface mount capacitor 🟦 capacitor
+    30:1:4    47 μF 35 V surface mount capacitor (from Richard) 🟦 capacitor
+    30:1:4    220 μF 35 V surface mount capacitor (from Richard) 🟦 capacitor
+    30:1:M    0.1 μF 25 V capacitor 🟦 capacitor
     30:1:1    MPJA 37882 looping relay PCB (from Richard) 🟦 relay
     30:1:1    Small prototyping PC boards (from Richard) 🟦 PCB
     30:2:?    ZK-TD2 timer module $4.6 ea banggood 19Nov2021 /elec/projects/TimerBox.odt 🟦 module
@@ -593,13 +603,18 @@ Box 32
     32:13:M   Boost converter 2 A 2-24 V banggood 2017/2020 ~80¢ 🟦 PCB
 
 Box 33
-    33:1:? IEC type C jack MPJA 37461 🟦 jack
-    33:2:? 
-    33:3:? 
+    33:1:2 IEC type C jack MPJA 37461 🟦 jack
+    33:2:7 47 μF 50 radial capacitor (All Elec.) 🟦 capacitor
+    33:3:3 TCM3105 frequency-shift-keying (FSK) voice-band modem 🟦 IC
+    33:3:2 TL064 low power JFET input op amp 🟦 opamp
+    33:3:1 LM386 low voltage audio amplifier🟦 linear
+    33:3:3 MAX231 RS-232 driver/receiver 🟦 IC
+    33:3:1 1N5148 microwave tuning varactor diode 🟦 IC
+    33:3:2 CD4053 8 channel analog mux/demux with logic-level conversion 🟦 CMOS
     33:4:? 
     33:5:? 
     33:6:? 
-    33:7:? 
+    33:7:4 IEC type C jack MPJA 37461 🟦 jack
     33:8:? 
     33:9:? 
     33:10:? 

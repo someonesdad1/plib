@@ -125,6 +125,8 @@ if 1:   # Instrument data
 
         # Other
             43 ; ProtoBoard ; ContSpec ; ; 1986 ; 25 ; Prototyping ; Small prototyping board 
+            44 ; 6236B ; HP ; KR31500964 ; Dec 2025 ; 65 ; DCPS ; 8 V @ 6 A power supply
+
     '''
 if 1:   # Classes
     class Instrument:
@@ -262,7 +264,7 @@ if 1:   # Core functionality
         if integers:
             for i in instruments:
                 if i.inst_num in integers:
-                    print(f"{i.inst_num:4d} {i.mfg} {i.model} {i.description}")
+                    t.print(f"{t.grnl}{i.inst_num:4d}{t.n} {i.mfg} {i.model} {i.description}")
             exit(0)
 
 if __name__ == "__main__":
