@@ -611,12 +611,13 @@ Box 33
     33:3:3 MAX231 RS-232 driver/receiver 🟦 IC
     33:3:1 1N5148 microwave tuning varactor diode 🟦 IC
     33:3:2 CD4053 8 channel analog mux/demux with logic-level conversion 🟦 CMOS
-    33:4:? 
-    33:5:? 
-    33:6:? 
+    33:3:2 KS5808 tone/pulse dialer with redial 🟦 CMOS
+    33:4:M TO-3 insulators 🟦 heat
+    33:5:M Heat sink washers etc. 🟦 heat
+    33:6:M Various heat sinks 🟦 heat
     33:7:4 IEC type C jack MPJA 37461 🟦 jack
-    33:8:? 
-    33:9:? 
+    33:8:M Various heat sinks 🟦 heat
+    33:9:M Various heat sinks 🟦 heat
     33:10:? 
     33:11:? 
     33:12:? 

@@ -29,7 +29,7 @@ if 1:  # Header
         from wrap import dedent
         import trm
         t = trm.TrmDP()
-        from timer import Stopwatch
+        from dptime import Stopwatch
     if 1:  # Global variables
         class G:
             pass
