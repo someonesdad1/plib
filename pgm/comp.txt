@@ -700,5 +700,6 @@ Box 35
     35:13:? 3xx, 4xx monolithic ceramic capacitor MPJA 32534 🟦 capacitor
 
     35:14:? 1xx, 2xx ceramic capacitor 3 kV MPJA 33413 🟦 capacitor
-    35:14:? 3xx, 4xx, 6xx ceramic capacitor 3 kV MPJA 33413 🟦 capacitor
+    35:15:? 3xx, 4xx, 6xx ceramic capacitor 3 kV MPJA 33413 🟦 capacitor
+    35:16:? Ceramic trimmer capacitors 5-120 pF MPJA 36384 🟦 capacitor
 
