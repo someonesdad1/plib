@@ -603,7 +603,7 @@ Box 32
     32:13:M   Boost converter 2 A 2-24 V banggood 2017/2020 ~80¢ 🟦 PCB
 
 Box 33
-    33:1:2 IEC type C jack MPJA 37461 🟦 jack
+    33:1:3 IEC type C jack MPJA 37461 🟦 jack
     33:2:7 47 μF 50 V radial capacitor (All Elec.) 🟦 capacitor
     33:3:3 TCM3105 frequency-shift-keying (FSK) voice-band modem 🟦 IC
     33:3:2 TL064 low power JFET input op amp 🟦 opamp
@@ -615,14 +615,90 @@ Box 33
     33:4:M TO-3 insulators 🟦 heat
     33:5:M Heat sink washers etc. 🟦 heat
     33:6:M Various heat sinks 🟦 heat
-    33:7:4 IEC type C jack MPJA 37461 🟦 jack
+    33:7:6 IEC type C jack MPJA 37461 🟦 jack
     33:8:M Various heat sinks 🟦 heat
     33:9:M Various heat sinks 🟦 heat
     33:10:? 
     33:11:? 
     33:12:? 
-    33:14:? 
-    33:15:? 
+    33:13:3 IEC type C jack MPJA 37461 🟦 jack
+    33:14:3 IEC type C jack MPJA 37461 🟦 jack
+    33:15:3 IEC type C jack MPJA 37461 🟦 jack
     33:16:? 
     33:17:? 
     33:18:? 
+
+Box 34
+    34:1:10 15 uF 16 V tantalum capacitor  🟦 capacitor
+    34:2:10 22 uF 16 V tantalum capacitor  🟦 capacitor
+    34:3:10 33 uF 16 V tantalum capacitor  🟦 capacitor
+    34:4:10 47 uF 16 V tantalum capacitor  🟦 capacitor
+    34:5:10 100 uF 16 V tantalum capacitor  🟦 capacitor
+    34:6:10 1 uF 16 V tantalum capacitor  🟦 capacitor
+    34:7:10 2.2 uF 16 V tantalum capacitor  🟦 capacitor
+    34:8:10 3.3 uF 16 V tantalum capacitor  🟦 capacitor
+    34:9:10 4.7 uF 16 V tantalum capacitor  🟦 capacitor
+    34:10:10 10 uF 16 V tantalum capacitor  🟦 capacitor
+
+Box 35
+    35:1:? 1 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 2.2 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 3.3 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 4.7 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 10 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 22 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 33 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 47 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:1:? 100 uF 50 V electrolytic capacitor MPJA 32531 🟦 capacitor
+
+    35:2:? 10 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:2:? 22 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:2:? 33 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:2:? 47 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+
+    35:3:? 100 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:3:? 220 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:3:? 330 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:3:? 470 uF 25 V electrolytic capacitor MPJA 32531 🟦 capacitor
+
+    35:4:? 100 uF 16 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:4:? 220 uF 16 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:4:? 330 uF 16 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:5:? 470 uF 16 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:5:? 1000 uF 16 V electrolytic capacitor MPJA 32531 🟦 capacitor
+
+    35:6:? 100 uF 10 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:6:? 220 uF 10 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:6:? 330 uF 10 V electrolytic capacitor MPJA 32531 🟦 capacitor
+    35:6:? 470 uF 10 V electrolytic capacitor MPJA 32531 🟦 capacitor
+
+    35:7:? 822 polyester capacitor MPJA 33416 🟦 capacitor
+    35:7:? 333 polyester capacitor MPJA 33416 🟦 capacitor
+
+    35:8:? 2G473J polyester capacitor MPJA 33416 🟦 capacitor
+    35:8:? 2E333J polyester capacitor MPJA 33416 🟦 capacitor
+    35:8:? 2G223J polyester capacitor MPJA 33416 🟦 capacitor
+    35:8:? 2E683J polyester capacitor MPJA 33416 🟦 capacitor
+
+    35:9:? 2E223J polyester capacitor MPJA 33416 🟦 capacitor
+    35:9:? 2E333J polyester capacitor MPJA 33416 🟦 capacitor
+    35:9:? 2E473K polyester capacitor MPJA 33416 🟦 capacitor
+    35:9:? 2J682J polyester capacitor MPJA 33416 🟦 capacitor
+
+    35:10:? 2J473J polyester capacitor MPJA 33416 🟦 capacitor
+    35:10:? 2G103J polyester capacitor MPJA 33416 🟦 capacitor
+    35:10:? 2J223J polyester capacitor MPJA 33416 🟦 capacitor
+    35:10:? 2J103J polyester capacitor MPJA 33416 🟦 capacitor
+    35:10:? 2J102J polyester capacitor MPJA 33416 🟦 capacitor
+
+    35:11:? 2J222J polyester capacitor MPJA 33416 🟦 capacitor
+    35:11:? 2J472J polyester capacitor MPJA 33416 🟦 capacitor
+    35:11:? 2E103J polyester capacitor MPJA 33416 🟦 capacitor
+    35:11:? 2J332J polyester capacitor MPJA 33416 🟦 capacitor
+
+    35:12:? 1xx, 2xx monolithic ceramic capacitor MPJA 32534 🟦 capacitor
+    35:13:? 3xx, 4xx monolithic ceramic capacitor MPJA 32534 🟦 capacitor
+
+    35:14:? 1xx, 2xx ceramic capacitor 3 kV MPJA 33413 🟦 capacitor
+    35:14:? 3xx, 4xx, 6xx ceramic capacitor 3 kV MPJA 33413 🟦 capacitor
+
