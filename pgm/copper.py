@@ -1,7 +1,6 @@
-"""
+'''
 Print out copper pipe sizes
-"""
-
+'''
 if 1:  # Copyright, license
     # These "trigger strings" can be managed with trigger.py
     ##∞copyright∞# Copyright (C) 2019 Don Peterson #∞copyright∞#
@@ -24,18 +23,16 @@ if 1:  # Imports
 if 1:  # Custom imports
     from u import u
     from wrap import dedent
+    from trm import TrmDP
 if 1:  # Global variables
     copper_density_g_per_cc = 8.96 * u("g/cc")
     copper_density_lb_per_cubic_inch = copper_density_g_per_cc / u("lb/in3")
-
-
+    t = TrmDP()
 def Error(msg, status=1):
     print(msg, file=sys.stderr)
     exit(status)
-
-
 def Data():
-    """Return a dictionary keyed by the tubing nominal size in inches."""
+    '''Return a dictionary keyed by the tubing nominal size in inches.'''
     # Data from https://www.sizes.com/materials/pipeCopper.htm
     #   Type K:  heaviest wall, underground burial
     #   Type L:  most common size
@@ -53,12 +50,10 @@ def Data():
             ("2", [2 + 1 / 8, 1.959, 1.985, 2.009]),
         )
     )
-
-
 if __name__ == "__main__":
     data = Data()
     print(
-        dedent(f"""
+        dedent(f'''
                          Copper Tubing and Pipe
                          ----------------------
     
@@ -74,7 +69,7 @@ if __name__ == "__main__":
                                 Inside Diameter
     Nominal     OD      Type K      Type L      Type M
     -------   ------    ------      ------      ------
-    """)
+    ''')
     )
     f = "{:^7s}   {:6.3f}    {:6.3f}      {:6.3f}      {:6.3f}"
     f = "{{:^7s}}   {}    {{:6.3f}}      {{:6.3f}}      {{:6.3f}}"
@@ -86,8 +81,6 @@ if __name__ == "__main__":
     print("Mass per unit length in lb/ft")
     for size, j in data.items():
         OD, ID_K, ID_L, ID_M = j
-
         def m(ID):
             return pi * 12 * (OD**2 - ID**2) / 4
-
         print(f.format(" " * 6).format(size, m(ID_K), m(ID_L), m(ID_M)))

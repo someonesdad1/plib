@@ -181,7 +181,7 @@ def Open(cmd):
             # 64 bit cygwin environment
             pth = "d:/cygwin64/elec/batteries/duracell"
             st = "d:/cygwin64/bin/cygstart.exe"
-    file = f"{pth}/Duracell_{cmd.upper()}_alkaline.pdf"
+    file = f"{pth}/Duracell_{cmd.upper()}_battery.pdf"
     dputil.ShowFile(file)
 def TestData():
     print(
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     if not cmd:
         PrintData()
     else:
-        if cmd in "aa aaa c d 9".split():
+        if cmd in "aa aaa c d 9 lr44 sr44".split():
             Open(cmd)
         elif cmd == "t":
             TestData()

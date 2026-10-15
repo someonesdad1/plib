@@ -186,9 +186,9 @@ Box 7
     7:11:?    10 W resistor, 20 ohm 🟦 resistor
     7:11:?    10 W resistor, 24 mohm 🟦 resistor
     7:11:?    Precision resistor, 200.9 ohms 🟦 resistor
-    7:12:?    MPJA level sensors 🟦 sensor
-    7:12:?    Incandescent flashlight bulbs 🟦 opto
-    7:12:?    Small incandescent bulb (old Heathkit fn gen) 66 Ω 🟦 opto
+    7:12:?    MPJA level sensors SW-200D, dual ball tilt 5 V 10 mA off at 15° tilt🟦 sensor
+    7:12:?    Incandescent flashlight bulbs 3 V, 0.5 A, run at 0.4-0.45 for hand-held 🟦 opto
+    7:12:?    Small incandescent bulb (old Heathkit fn gen) 66 Ω, need to run at 24 V 🟦 opto
 
 Box 8
     8:1:?    Pot, 10 ohm, 10 turn PCB mount 🟦 pot
@@ -618,7 +618,8 @@ Box 33
     33:7:6 IEC type C jack MPJA 37461 🟦 jack
     33:8:M Various heat sinks 🟦 heat
     33:9:M Various heat sinks 🟦 heat
-    33:10:? 
+    33:10:6 Round 20 A 12 V or 24 V DC rocker switch, 20 mm hole
+    33:10:6 Round 20 A 12 V or 24 V DC rocker switch, 20 mm hole
     33:11:? 
     33:12:? 
     33:13:3 IEC type C jack MPJA 37461 🟦 jack

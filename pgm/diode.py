@@ -92,7 +92,9 @@ if 1:   # Utility
             print(str(e))
             exit(1)
         if len(sys.argv) < 2:
-            Usage()
+            #Usage()
+            print("Diode = 1N4148")
+            PrintTable(d["-v"])
         for o, a in opts:
             if o[1] in list("4tv"):
                 d[o] = not d[o]
@@ -108,7 +110,6 @@ if 1:   # Utility
         GetColors()
         g.W, g.L = GetScreen()
         return args
-
 if 1:   # Classes
     class Diode:
         def __init__(self, V_mV, i_mA, name):
@@ -175,6 +176,7 @@ if 1:   # Functions
 
 if __name__ == "__main__":  
     d = {}  # Options dictionary
+    diode = d4148
     args = ParseCommandLine(d)
     # Get diode = which diode model to use
     if d["-4"]:
@@ -182,7 +184,6 @@ if __name__ == "__main__":
         diode = d4004
     else:
         print("Diode = 1N4148")
-        diode = d4148
     if d["-t"]:
         PrintTable(d["-v"])
     if args:

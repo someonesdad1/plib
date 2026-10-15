@@ -471,6 +471,7 @@ if 1:  # Core functionality
         for item in args:
             try:
                 subprocess.call((ActOn.cygstart, item))
+                print(f"{item}")
             except Exception as e:
                 print(f"{e}", file=sys.stderr)
     def GoTo(arg):
