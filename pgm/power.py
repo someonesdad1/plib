@@ -1,4 +1,7 @@
 '''
+ToDo
+    - Switch to termtables for printing
+
 Print out the cost of electrical power.
 '''
 if 1:  # Header

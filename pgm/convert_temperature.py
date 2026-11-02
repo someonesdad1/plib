@@ -1,6 +1,6 @@
-"""
+'''
 Temperature conversion utility
-"""
+'''
 
 if 1:  # Header
     if 1:  # Copyright, license
@@ -24,6 +24,8 @@ if 1:  # Header
         from u import ParseUnit
         from sig import GetSigFig
         from f import flt
+        from columnize import Columnize
+        import dpseq
         import trm
         t = trm.TrmDP()
         from wrap import dedent
@@ -51,17 +53,16 @@ if 1:  # Utility
     def GetColors():
         uc = d["-c"]
         if 1:  # New colors
-            t.k = t.roy if uc else ""
-            t.f = t.grn if uc else ""
-            t.c = t.yel if uc else ""
+            t.k = t.royl if uc else ""
+            t.f = t.grnl if uc else ""
+            t.c = t.yell if uc else ""
             t.r = t.viol if uc else ""
-            t.w = t("redl", attr="it") if uc else ""
+            t.w = t("mag", attr="") if uc else ""
     def Error(msg, status=1):
         print(msg, file=sys.stderr)
         exit(status)
     def Usage(d):
-        print(
-            dedent(f"""
+        print(dedent(f'''
         Usage:  {sys.argv[0]} temperature1 [temperature2 ...]
           Utility to convert between common temperatures.  The number of digits in the conversions
           is determined from the number of significant figures in the command line arguments (will
@@ -70,22 +71,23 @@ if 1:  # Utility
             -c      Don't use color in output
             -d n    Set number of significant figures
             -r      Include Rankine temperatures
-        """)
-        )
+            -t      Print conversion table
+        '''))
         exit(0)
     def ParseCommandLine(d):
-        d["-c"] = True  # Use color in output
-        d["-d"] = None  # Manually set sig figs
-        d["-r"] = False  # Include Rankine in output
+        d["-c"] = True      # Use color in output
+        d["-d"] = None      # Manually set sig figs
+        d["-r"] = False     # Include Rankine in output
+        d["-t"] = False     # Conversion table
         if len(sys.argv) < 2:
             Usage(d)
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "cd:r")
+            opts, args = getopt.getopt(sys.argv[1:], "cd:rt")
         except getopt.GetoptError as e:
             print(str(e))
             exit(1)
         for o, a in opts:
-            if o[1] in list("cr"):
+            if o[1] in list("crt"):
                 d[o] = not d[o]
             elif o == "-d":
                 try:
@@ -105,10 +107,10 @@ if 1:  # Core functionality
     def ShowFormulas():
         print()
         print(
-            dedent(f"""
+            dedent(f'''
         Formulas:
             {t.c}C{t.n} = 5/9*({t.f}F{t.n} - 32) = {t.k}K{t.n} - 273.15
-            {t.f}F{t.n} = 9/5*{t.c}C{t.n} + 32""")
+            {t.f}F{t.n} = 9/5*{t.c}C{t.n} + 32''')
         )
         if d["-r"]:
             print(f"    {t.r}R{t.n} = {t.f}F{t.n} + 459.67")
@@ -136,7 +138,7 @@ if 1:  # Core functionality
             T.N = n
             # Assume it's °C
             From = "c"
-            print(f"{t.w}{T!s:^{w}s}{sep}", end="")
+            print(f"{t.w}{T!s:^{w}s}{t.n}{sep}", end="")
             print(f"{t.f}{ConvertTemperature(T, From, 'f')!s:^{w}s}{sep}", end="")
             print(f"{t.k}{ConvertTemperature(T, From, 'k')!s:^{w}s}{sep}", end="")
             t.print(f"{t.r}{ConvertTemperature(T, From, 'r')!s:^{w}s}") if d[
@@ -145,7 +147,7 @@ if 1:  # Core functionality
             # Assume it's °F
             From = "f"
             print(f"{t.c}{ConvertTemperature(T, From, 'c')!s:^{w}s}{sep}", end="")
-            print(f"{t.w}{T!s:^{w}s}{sep}", end="")
+            print(f"{t.w}{T!s:^{w}s}{t.n}{sep}", end="")
             print(f"{t.k}{ConvertTemperature(T, From, 'k')!s:^{w}s}{sep}", end="")
             t.print(f"{t.r}{ConvertTemperature(T, From, 'r')!s:^{w}s}") if d[
                 "-r"
@@ -154,7 +156,7 @@ if 1:  # Core functionality
             From = "k"
             print(f"{t.c}{ConvertTemperature(T, From, 'c')!s:^{w}s}{sep}", end="")
             print(f"{t.f}{ConvertTemperature(T, From, 'f')!s:^{w}s}{sep}", end="")
-            print(f"{t.w}{T!s:^{w}s}{sep}", end="")
+            print(f"{t.w}{T!s:^{w}s}{t.n}{sep}", end="")
             t.print(f"{t.r}{ConvertTemperature(T, From, 'r')!s:^{w}s}") if d[
                 "-r"
             ] else t.print()
@@ -164,12 +166,47 @@ if 1:  # Core functionality
                 print(f"{t.c}{ConvertTemperature(T, From, 'c')!s:^{w}s}{sep}", end="")
                 print(f"{t.f}{ConvertTemperature(T, From, 'f')!s:^{w}s}{sep}", end="")
                 print(f"{t.k}{ConvertTemperature(T, From, 'k')!s:^{w}s}{sep}", end="")
-                t.print(f"{t.w}{T!s:^{w}s}")
+                t.print(f"{t.w}{T!s:^{w}s}{t.n}")
+    def PrintTable():
+        'Print a °C and °F table for convenient conversions'
+        main, other = t.yell, t.whtl
+        def FtoC():
+            t.f = main
+            t.c = other
+            o = [f"{t.f} °F    {t.c}°C"]
+            dT = 1
+            for F in range(-10, 110 + dT, dT):
+                C = (F - 32)*5/9
+                o.append(f"{t.f}{F:3d}  {t.c}{C:4.1f}")
+            for i in Columnize(o, sep=" "*5):
+                print(i)
+        def CtoF():
+            t.c = main
+            t.f = other
+            o = [f"{t.c} °C{' '*6}{t.f}°F"]
+            dT = 0.5
+            spc = " "*2
+            for C in dpseq.frange(-20, 40 + dT, dT):
+                F = 9/5*C + 32
+                if C == int(C):
+                    s = f"{t.c}{int(C):<5d}{spc}{t.f}{F:5.1f}"
+                else:
+                    s = f"{t.c}{C:<5.1f}{spc}{t.f}{F:5.1f}"
+                o.append(s)
+            for i in Columnize(o, sep=" "*4):
+                print(i)
+        FtoC()
+        print()
+        CtoF()
+
 if __name__ == "__main__":
     d = {}  # Options dictionary
     args = ParseCommandLine(d)
-    assert args
-    Header()
-    for temperature in args:
-        Report(temperature)
-    ShowFormulas()
+    if d["-t"]:
+        PrintTable()
+    else:
+        assert args
+        Header()
+        for temperature in args:
+            Report(temperature)
+        ShowFormulas()

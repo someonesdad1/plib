@@ -181,7 +181,11 @@ def Open(cmd):
             # 64 bit cygwin environment
             pth = "d:/cygwin64/elec/batteries/duracell"
             st = "d:/cygwin64/bin/cygstart.exe"
-    file = f"{pth}/Duracell_{cmd.upper()}_battery.pdf"
+    if cmd == "9":
+        file = f"{pth}/Duracell_{cmd.upper()}V_battery.pdf"
+    else:
+        file = f"{pth}/Duracell_{cmd.upper()}_battery.pdf"
+    print(file)
     dputil.ShowFile(file)
 def TestData():
     print(

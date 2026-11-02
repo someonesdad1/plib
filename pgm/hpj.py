@@ -29923,8 +29923,7 @@ if 1:  # Utility
         print(*msg, file=sys.stderr)
         exit(status)
     def Usage(d, status=1):
-        print(
-            dedent(f'''
+        print(dedent(f'''
         Usage:  {sys.argv[0]} [options] [regex1 [regex2 ...]]
           Search the HP Journal article information.  Use the options to restrict the things to
           search.  One article is printed per line.  To search for a year such as 1977, use the
@@ -30151,19 +30150,34 @@ if 1:  # Core functionality
         else:
             print(a)
     def BenchBriefs(regexps):
-        dir = P("/ebooks/hpj/benchbriefs")
+        s = "/ebooks/hpj/benchbriefs"
+        dir = P(s)
         files = set()
         for regexp in regexps:
-            r = re.compile(regexp, re.I)
-            for line in bb.split("\n"):
-                if not line.strip():
-                    continue
-                file, other = line.split(":", maxsplit=1)
-                if r.search(other):
-                    files.add(file.strip())
-        for i in files:
+            try:
+                # Look for a specific year
+                year = int(regexp)
+                for line in bb.split("\n"):
+                    if ":" in line:
+                        pdf, title = line.split(":")
+                        yr = int(pdf.strip().split("-")[0])
+                        if yr == year:
+                            files.add(pdf.strip())
+            except ValueError:
+                # Normal regex search
+                r = re.compile(regexp, re.I)
+                for line in bb.split("\n"):
+                    if not line.strip():
+                        continue
+                    file, other = line.split(":", maxsplit=1)
+                    if r.search(other):
+                        files.add(file.strip())
+        for i in sorted(files):
             file = dir / i
-            Launch(file)
+            if d["-o"]:
+                Launch(file)
+            else:
+                print(str(file).replace(s + "/", ""))
         exit(0)
 if __name__ == "__main__":
     d = {}  # Options dictionary
