@@ -62,6 +62,10 @@ Reorganization core files
         - Generate a python interpreter with GNU units built into it, giving semantic
           units at the bytecode level
 
+    - tr is a pretty powerful tool, but it unfortunately is a byte-oriented one and thus
+      is unable to handle Unicode strings.  A handy utility would be to try to duplicate
+      tr's functionality in a Tr python script such that tr idioms work for Unicode
+      strings by changing tr to Tr.
 
     - xybloat Dealing with function bloat (Mike's advice)
     - pgm/ohm.py

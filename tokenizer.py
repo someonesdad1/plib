@@ -67,6 +67,7 @@ if 1:  # Header
             Tokenizer PrintTokens 
             wrd dig nln wht pnc oth
         '''.split()
+        lw = lwtest
         # Unicode symbols for whitespace characters
         with g:
             g.ws = {"\t": "␉", "\r": "␍", "\v": "␋", "\f": "␌", "\n": "␤"}
@@ -440,12 +441,14 @@ if __name__ == "__main__":
                 This provides a demonstration of the Tokenizer() functions abilities.  Use "-"
                 to read from stdin.
             Options:
+                -i      Ignore case for spell checking
                 -T      Print tokenizing timing information for each file
                 -s      Demonstrate a spell checking task
                 --test  Run self-tests
             '''))
             exit(status)
         def ParseCommandLine(d):
+            d["-i"] = False         # Ignore case
             d["-s"] = False         # Demonstrate spell checking
             d["-T"] = False         # Tokenizing timing
             d["--test"] = False     # Run self-tests
@@ -482,8 +485,12 @@ if __name__ == "__main__":
             print(f"  Tokenizing rate = {tokens/(1000*time)} ktokens/s")
         def SpellCheck(file):
             'Print misspelled words in file with their location'
-            words = set(i.lower() for i in get.GetLines("/words/words.default", nonl=True))
-            tokens = Tokenizer(open(file).read().lower())
+            if d["-i"]:
+                words = set(i.lower() for i in get.GetLines("/words/words.default", nonl=True))
+                tokens = Tokenizer(open(file).read().lower())
+            else:
+                words = set(i for i in get.GetLines("/words/words.default", nonl=True))
+                tokens = Tokenizer(open(file).read())
             misspelled = collections.defaultdict(list)
             for word in tokens:
                 if not isinstance(word, wrd):
